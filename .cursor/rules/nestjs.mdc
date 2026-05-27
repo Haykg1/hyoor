@@ -1,0 +1,17 @@
+---
+description: NestJS backend conventions for apps/api
+globs: apps/api/**/*.ts
+alwaysApply: false
+---
+
+# NestJS Development Rules
+
+- **Architecture**: Modular structure — Module, Controller, Service per domain.
+- **Naming**: `kebab-case` files (e.g. `user-profile.service.ts`); `PascalCase` classes; `camelCase` methods.
+- **Dependency injection**: Constructor injection with `private readonly`.
+- **Validation**: `class-validator` + `class-transformer` on all DTOs.
+- **Controllers**: Keep thin — business logic belongs in services.
+- **Typing**: No `any`. Explicit return types. Use DTOs/interfaces for data shapes.
+- **Prisma**: Inject `PrismaService` from `DatabaseModule` (global).
+- **Config**: Read env via `ConfigService` nested keys — not `process.env` in services.
+- **After changes**: `pnpm --filter api lint --fix && pnpm --filter api format && pnpm --filter api typecheck` (+ `npm run e2e:tests` when routes/auth/validation change — see `integration-tests.mdc`)

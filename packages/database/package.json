@@ -1,0 +1,40 @@
+{
+  "name": "@repo/database",
+  "version": "0.0.1",
+  "scripts": {
+    "generate": "prisma generate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "studio": "prisma studio",
+    "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts",
+    "format": "prettier --write 'prisma/**/*.{prisma,ts}'",
+    "format:check": "prettier --check 'prisma/**/*.{prisma,ts}'"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.0.0"
+  },
+  "devDependencies": {
+    "@repo/prettier-config": "workspace:*",
+    "@types/bcryptjs": "^3.0.0",
+    "bcryptjs": "^3.0.3",
+    "prettier": "^3.0.0",
+    "prisma": "^5.0.0",
+    "ts-node": "^10.0.0",
+    "typescript": "^5.0.0"
+  },
+  "prettier": "@repo/prettier-config",
+  "prisma": {
+    "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./client": {
+      "types": "./src/generated/client/index.d.ts",
+      "default": "./src/generated/client/index.js"
+    }
+  },
+  "types": "./src/index.ts"
+}

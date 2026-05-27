@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "properties" ADD COLUMN     "maxAdults" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "maxChildren" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "maxInfants" INTEGER NOT NULL DEFAULT 0;

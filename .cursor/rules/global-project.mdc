@@ -1,0 +1,27 @@
+---
+description: Global project standards, communication, and code style
+alwaysApply: true
+---
+
+# Global Project Rules
+
+- **Language**: English only for code and documentation.
+- **Style**: Use early returns to reduce nesting.
+- **Formatting**: Do not leave blank lines inside functions.
+- **Comments**: Do not over-comment. Only comment non-obvious business logic or deep technical details. Code should be self-explanatory.
+- **Documentation**: Use JSDoc for public methods and complex logic only.
+- **Security**: Always validate inputs and check permissions (RBAC/guards) before sensitive operations.
+- **Communication**: Keep responses short and sharp. No filler, no engagement bait.
+
+## Quality gate (mandatory after every code change)
+
+After editing files, run lint + format + typecheck for **each affected workspace only** — do not skip, do not wait for commit.
+
+| Changed in | Run |
+|---|---|
+| `apps/api/**` | `pnpm --filter api lint --fix && pnpm --filter api format && pnpm --filter api typecheck` (+ `npm run e2e:tests` if routes/auth/validation changed — see `integration-tests.mdc`) |
+| `apps/web/**` | `pnpm --filter web lint --fix && pnpm --filter web format && pnpm --filter web typecheck` |
+| `packages/database/**` | `pnpm --filter database format && pnpm db:generate` (if schema changed) |
+| `packages/shared/**` | `pnpm lint && pnpm typecheck` |
+
+Fix all errors before marking the task done. Husky lint-staged runs on commit — run manually during development too.

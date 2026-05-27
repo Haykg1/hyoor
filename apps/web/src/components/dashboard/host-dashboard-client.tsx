@@ -1,0 +1,122 @@
+'use client';
+
+import { CirclePlus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+
+import { Button } from '@/components/ui/button';
+import { useHostListings } from '@/hooks/use-host-listings';
+
+import { HostDashboardStatsPanel } from './host-dashboard-stats';
+import { HostListingsPanel } from './host-listings-panel';
+
+interface HostDashboardClientProps {
+  welcomeName: string;
+}
+
+type TabKey = 'active' | 'disabled' | 'bookings';
+
+const TABS: TabKey[] = ['active', 'disabled', 'bookings'];
+
+export function HostDashboardClient({ welcomeName }: HostDashboardClientProps): React.JSX.Element {
+  const t = useTranslations('dashboard');
+  const {
+    listings,
+    stats,
+    page,
+    limit,
+    totalPages,
+    total,
+    tab,
+    isLoading,
+    setTab,
+    setPage,
+    setLimit,
+    softDeleteListing,
+  } = useHostListings();
+
+  const activeTabKey: TabKey = tab === 'disabled' ? 'disabled' : 'active';
+
+  function handleTabClick(key: TabKey) {
+    if (key === 'bookings') return;
+    setTab(key === 'disabled' ? 'disabled' : 'active');
+  }
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+      {/* Header */}
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold sm:text-3xl">{t('title')}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t('welcome', { name: welcomeName })}
+          </p>
+        </div>
+        <Button className="gap-2 self-start sm:self-auto" onClick={() => {}}>
+          <CirclePlus className="h-4 w-4" />
+          {t('add_listing')}
+        </Button>
+      </div>
+
+      {/* Stats */}
+      <div className="mb-8">
+        <HostDashboardStatsPanel stats={stats} />
+      </div>
+
+      {/* Tabs */}
+      <div className="mb-6 inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
+        {TABS.map((key) => {
+          const isBookings = key === 'bookings';
+          const label = isBookings
+            ? `${t('tabs.booking_requests')} (${stats.pendingRequests})`
+            : key === 'active'
+              ? `${t('tabs.listings')} (${stats.totalListings})`
+              : t('tabs.disabled');
+          return (
+            <button
+              key={key}
+              type="button"
+              disabled={isBookings}
+              onClick={() => handleTabClick(key)}
+              data-state={key === activeTabKey ? 'active' : 'inactive'}
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow"
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab panels */}
+      {activeTabKey === 'active' && (
+        <HostListingsPanel
+          listings={listings}
+          isLoading={isLoading}
+          page={page}
+          limit={limit}
+          totalPages={totalPages}
+          total={total}
+          showDelete
+          emptyKey="empty_listings"
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+          onDelete={softDeleteListing}
+        />
+      )}
+      {activeTabKey === 'disabled' && (
+        <HostListingsPanel
+          listings={listings}
+          isLoading={isLoading}
+          page={page}
+          limit={limit}
+          totalPages={totalPages}
+          total={total}
+          showDelete={false}
+          emptyKey="empty_disabled"
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+          onDelete={async () => {}}
+        />
+      )}
+    </div>
+  );
+}

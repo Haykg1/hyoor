@@ -1,0 +1,10 @@
+export { PropertyDetailView } from './property-detail-view';
+export { PropertyDetailHeader } from './property-detail-header';
+export { PropertyGallery } from './property-gallery';
+export { PropertyStats } from './property-stats';
+export { PropertyDescription } from './property-description';
+export { PropertyAmenities } from './property-amenities';
+export { PropertyHostCard } from './property-host-card';
+export { PropertyMap } from './property-map';
+export { PropertyReviewsList } from './property-reviews-list';
+export { BookingWidget } from './booking-widget/booking-widget';

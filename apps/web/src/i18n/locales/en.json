@@ -1,0 +1,459 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "empty": "No results found",
+    "app_name": "RentStar",
+    "tagline": "Short-term rentals in Armenia and beyond",
+    "show_password": "Show password",
+    "hide_password": "Hide password"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account to continue",
+      "email": "Email address",
+      "password": "Password",
+      "forgot_password": "Forgot password?",
+      "submit": "Sign in",
+      "no_account": "Don't have an account?",
+      "go_to_register": "Create one",
+      "invalid_credentials": "Invalid email or password"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Sign up and start your journey",
+      "role_guest": "I'm a Guest",
+      "role_guest_hint": "Find & book places",
+      "role_host": "I'm a Host",
+      "role_host_hint": "List your property",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "email": "Email address",
+      "password": "Password",
+      "confirm_password": "Confirm Password",
+      "wants_to_host": "I want to list my property",
+      "wants_to_host_hint": "We'll guide you through setting up your host profile after sign up.",
+      "submit": "Create account",
+      "have_account": "Already have an account?",
+      "go_to_login": "Sign in",
+      "email_taken": "An account with this email already exists"
+    },
+    "forgot_password": {
+      "title": "Forgot password?",
+      "subtitle": "No worries, we'll send you a reset link.",
+      "email_label": "Email address",
+      "submit": "Send reset link",
+      "sent_hint": "Check your email for a reset link. It may take a few minutes to arrive.",
+      "back_to_login": "Back to sign in"
+    },
+    "oauth": {
+      "google": "Continue with Google",
+      "apple": "Continue with Apple",
+      "apple_coming_soon": "Apple sign-in coming soon"
+    },
+    "callback": {
+      "title": "Signing you in",
+      "processing": "Completing sign-in…",
+      "error": "We couldn't sign you in. Please try again.",
+      "missing_tokens": "Missing authentication tokens.",
+      "back_to_login": "Back to sign in"
+    },
+    "divider": "or"
+  },
+  "nav": {
+    "home": "Home",
+    "properties": "Properties",
+    "trips": "My Trips",
+    "messages": "Messages",
+    "dashboard": "Dashboard",
+    "explore": "Explore",
+    "become_host": "Become a Host",
+    "sign_in": "Log in",
+    "sign_up": "Sign up",
+    "logout": "Sign out",
+    "account": "Account",
+    "menu": "Menu"
+  },
+  "search": {
+    "where": "Where",
+    "where_placeholder": "Anywhere",
+    "check_in": "Check in",
+    "check_out": "Check out",
+    "add_dates": "Add dates",
+    "guests": "Guests",
+    "search": "Search"
+  },
+  "footer": {
+    "tagline": "Discover Armenia, one stay at a time",
+    "about": "About RentStar",
+    "support": "Support",
+    "hosting": "Hosting",
+    "careers": "Careers",
+    "press": "Press",
+    "contact": "Contact us",
+    "help_center": "Help Center",
+    "safety": "Safety info",
+    "become_host": "Become a Host",
+    "host_resources": "Host resources",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "copyright": "© {year} RentStar. All rights reserved."
+  },
+  "property": {
+    "per_night": "/ night",
+    "guests": "{count} guests",
+    "bedrooms": "{count} bedrooms",
+    "book_now": "Request to Book",
+    "contact_host": "Contact host directly",
+    "show_all_photos": "Show all photos",
+    "show_more": "Show more",
+    "amenities": "Amenities",
+    "house_rules": "House rules",
+    "cancellation_policy": "Cancellation policy",
+    "availability": "Availability",
+    "status": {
+      "DRAFT": "Draft",
+      "PENDING_REVIEW": "Pending review",
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "SUSPENDED": "Suspended"
+    }
+  },
+  "booking": {
+    "status": {
+      "PENDING": "Pending",
+      "CONFIRMED": "Confirmed",
+      "CANCELLED_BY_GUEST": "Cancelled",
+      "CANCELLED_BY_HOST": "Cancelled by host",
+      "COMPLETED": "Completed",
+      "NO_SHOW": "No show"
+    },
+    "confirm": "Confirm booking",
+    "decline": "Decline",
+    "cancel": "Cancel booking",
+    "cancel_confirm": "Are you sure you want to cancel this booking?",
+    "special_requests": "Special requests",
+    "check_in": "Check-in",
+    "check_out": "Check-out",
+    "select_dates": "Select dates",
+    "dates_unavailable": "These dates are no longer available. Please choose different dates.",
+    "total": "Total",
+    "per_night": "/ night",
+    "night": "{count, plural, =1 {1 night} other {# nights}}",
+    "select_dates_hint": "Select dates to see total price",
+    "guests": "Guests",
+    "guests_max": "Max {max} guests",
+    "book_now": "Request to Book",
+    "submitting": "Booking…",
+    "nights_subtotal": "{count} nights × {price}",
+    "cleaning_fee": "Cleaning fee",
+    "validation": {
+      "dates_required": "Please select check-in and check-out dates",
+      "invalid_range": "Check-out must be after check-in",
+      "min_nights": "Minimum stay is {min} nights",
+      "max_nights": "Maximum stay is {max} nights",
+      "too_many_guests": "Maximum {max} guests allowed"
+    },
+    "confirmation": {
+      "title": "Booking requested!",
+      "subtitle": "Your stay is pending host confirmation. We'll notify you once confirmed.",
+      "continue_payment": "Continue to payment (coming soon)"
+    }
+  },
+  "property_detail": {
+    "back": "Back to search",
+    "guests_count": "{count, plural, =1 {1 guest} other {# guests}}",
+    "adults_count": "{count, plural, =1 {1 adult} other {# adults}}",
+    "children_count": "{count, plural, =1 {1 child} other {# children}}",
+    "infants_count": "{count, plural, =1 {1 infant} other {# infants}}",
+    "bedrooms_count": "{count, plural, =1 {1 bedroom} other {# bedrooms}}",
+    "bathrooms_count": "{count, plural, =1 {1 bathroom} other {# bathrooms}}",
+    "gallery": {
+      "show_all": "Show all {count} photos"
+    },
+    "about": {
+      "title": "About this place"
+    },
+    "amenities": {
+      "title": "Amenities"
+    },
+    "host": {
+      "title": "Hosted by",
+      "individual": "Individual host",
+      "company": "Company",
+      "verified": "Identity verified"
+    },
+    "where": {
+      "title": "Where you'll be"
+    },
+    "reviews": {
+      "title": "Guest reviews",
+      "empty": "No reviews yet — be the first to stay!",
+      "no_comment": "No written review",
+      "write_review": "Write a review",
+      "write_review_subtitle": "Share your experience with future guests.",
+      "sort_label": "Sort",
+      "sort_newest": "Newest",
+      "sort_oldest": "Oldest",
+      "verified": "Verified",
+      "filter_by_stars": "{count} stars",
+      "filtering_by": "Showing {count}-star reviews",
+      "clear_filter": "Clear filter",
+      "based_on": "Based on {count, plural, =1 {1 verified review} other {# verified reviews}}",
+      "rating_label": "Your rating",
+      "comment_label": "Your review (optional)",
+      "comment_placeholder": "Tell others about your stay…",
+      "submit": "Submit review",
+      "submitting": "Submitting…",
+      "submit_success": "Review submitted successfully!",
+      "submit_error": "Failed to submit review. Please try again.",
+      "already_reviewed": "You have already reviewed this stay.",
+      "no_eligible_booking": "You need a completed stay at this property to leave a review.",
+      "checking": "Checking eligibility…",
+      "cancel": "Cancel",
+      "no_reviews_for_filter": "No reviews for this star rating."
+    }
+  },
+  "dashboard": {
+    "title": "Host Dashboard",
+    "welcome": "Welcome back, {name}",
+    "add_listing": "Add Listing",
+    "per_night": "night",
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "soft_delete": "Disable"
+    },
+    "deleting": "Disabling…",
+    "soft_delete_title": "Disable listing",
+    "soft_delete_confirm": "This listing will be hidden from guests. You can view it under Disabled Properties.",
+    "empty_listings": "You have no active listings yet.",
+    "empty_disabled": "No disabled properties.",
+    "tabs": {
+      "listings": "My Listings",
+      "disabled": "Disabled Properties",
+      "booking_requests": "Booking Requests"
+    },
+    "pagination": {
+      "page_size": "Per page",
+      "page_of": "Page {page} of {totalPages} · {total} total"
+    },
+    "overview": "Dashboard",
+    "properties": "My Properties",
+    "bookings": "Bookings",
+    "messages": "Messages",
+    "analytics": "Analytics",
+    "reviews": "Reviews",
+    "settings": "Settings",
+    "stats": {
+      "total_properties": "Total Properties",
+      "active_listings": "Active Listings",
+      "active_bookings": "Active Bookings",
+      "pending_requests": "Pending Requests",
+      "total_earned": "Total Earned"
+    },
+    "sidebar_preview": "Host sidebar preview",
+    "capacity": {
+      "title": "Edit Guest Capacity",
+      "total_guests": "Total guests",
+      "total_guests_hint": "Maximum number of guests allowed",
+      "total_guests_label": "guests total",
+      "adults": "Adults",
+      "adults_hint": "Guests aged 13 and above",
+      "children": "Children",
+      "children_hint": "Guests aged 2–12",
+      "infants": "Infants",
+      "infants_hint": "Guests under 2",
+      "hint": "Adults + children count toward the total. Infants are tracked separately.",
+      "edit_capacity": "Edit capacity",
+      "no_breakdown": "No breakdown set",
+      "no_properties": "You have no properties yet.",
+      "save": "Save",
+      "saving": "Saving…",
+      "save_success": "Capacity updated successfully.",
+      "save_error": "Failed to save. Please try again.",
+      "cancel": "Cancel"
+    }
+  },
+  "property_form": {
+    "step1": "Property basics",
+    "step2": "Details & capacity",
+    "step3": "Pricing",
+    "step4": "House rules",
+    "step5": "Review & submit",
+    "save_draft": "Save as draft",
+    "submit": "Submit for review"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalid_email": "Invalid email address",
+    "password_min": "Password must be at least 8 characters",
+    "passwords_match": "Passwords do not match",
+    "generic": "Something went wrong. Please try again."
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "switch": "Change language",
+    "en": "English",
+    "hy": "Հայերեն",
+    "ru": "Русский"
+  },
+  "trips": {
+    "title": "My Dashboard",
+    "welcome": "Welcome, {name}",
+    "stat_upcoming": "Upcoming",
+    "stat_past": "Past Stays",
+    "stat_spent": "Total Spent",
+    "tab_upcoming": "Upcoming",
+    "tab_past": "Past Stays",
+    "tab_cancelled": "Cancelled",
+    "empty_upcoming": "No bookings yet. Start exploring!",
+    "empty_past": "No completed stays yet.",
+    "empty_cancelled": "No cancelled bookings.",
+    "explore_button": "Explore Stays"
+  },
+  "auth_guard": {
+    "login_title": "Sign in",
+    "login_subtitle": "Auth pages arrive in the next task. Protected routes redirect here when you are not signed in.",
+    "dashboard_title": "Host dashboard",
+    "dashboard_subtitle": "Protected route — you reached this page because a session cookie is present.",
+    "trips_title": "My trips",
+    "trips_subtitle": "Guest portal placeholder for authenticated users."
+  },
+  "property_card": {
+    "per_night": "/ night",
+    "guests_max": "{count} guests max",
+    "bedrooms": "{count} bedroom",
+    "reviews": "{count} reviews",
+    "categories": {
+      "apartment": "Apartment",
+      "house": "House",
+      "villa": "Villa",
+      "guesthouse": "Guesthouse"
+    }
+  },
+  "search": {
+    "page_title": "Search stays",
+    "page_subtitle": "Find featured properties across Armenia",
+    "destination_placeholder": "Search destinations",
+    "check_in": "Check-in",
+    "check_out": "Check-out",
+    "guests": "Guests",
+    "search_button": "Search",
+    "filters": "Filters",
+    "sort": {
+      "label": "Sort by",
+      "newest": "Newest First",
+      "price_asc": "Price: Low to High"
+    },
+    "count": "{count, plural, =0 {No properties found} =1 {1 property found} other {# properties found}}",
+    "map_button": "Map",
+    "empty": {
+      "title": "No featured stays match your search",
+      "description": "Try a different destination or clear your filters.",
+      "clear": "Clear filters"
+    }
+  },
+  "home": {
+    "hero": {
+      "badge": "Trusted stays across Armenia",
+      "title": "Find your perfect stay in Armenia",
+      "subtitle": "Discover unique apartments, houses, villas and guesthouses across Armenia's most beautiful destinations",
+      "search_placeholder": "Search destinations",
+      "search_button": "Search"
+    },
+    "featured": {
+      "title": "Featured Stays",
+      "subtitle": "Handpicked properties our guests love",
+      "search_all": "Search all",
+      "instant_book": "Instant Book",
+      "per_night": "/ night",
+      "guests_max": "{count} guests max",
+      "bedrooms": "{count} bedroom",
+      "reviews": "{count} reviews",
+      "empty": "No featured properties available right now.",
+      "categories": {
+        "all": "All Types",
+        "apartment": "Apartment",
+        "house": "House",
+        "villa": "Villa",
+        "guesthouse": "Guesthouse"
+      }
+    },
+    "destinations": {
+      "title": "Popular Destinations",
+      "subtitle": "Explore Armenia's most loved places"
+    },
+    "how_it_works": {
+      "title": "How RentStar works",
+      "steps": {
+        "search": {
+          "title": "Search",
+          "description": "Find the perfect property across Armenia with powerful filters"
+        },
+        "book": {
+          "title": "Book",
+          "description": "Book instantly or send a request — pay securely with Idram or ARCA"
+        },
+        "enjoy": {
+          "title": "Enjoy",
+          "description": "Check in, explore Armenia, and leave a review after your stay"
+        }
+      }
+    },
+    "become_host": {
+      "title": "Become a Host",
+      "description": "Share your apartment, house, villa or guesthouse and earn while welcoming travellers from around the world",
+      "cta": "List Your Property"
+    }
+  },
+  "account": {
+    "title": "Account Settings",
+    "subtitle": "Manage your profile and preferences",
+    "photo": {
+      "title": "Profile Photo",
+      "upload": "Upload photo"
+    },
+    "personal": {
+      "title": "Personal Information",
+      "full_name": "Full Name",
+      "full_name_placeholder": "Your full name",
+      "email": "Email",
+      "email_note": "Email cannot be changed.",
+      "phone": "Phone Number",
+      "bio": "Bio",
+      "bio_placeholder": "Tell others a little about yourself...",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "save_success": "Profile saved successfully."
+    },
+    "language": {
+      "title": "Language"
+    },
+    "password": {
+      "title": "Change Password",
+      "current": "Current Password",
+      "current_placeholder": "Your current password",
+      "new": "New Password",
+      "new_placeholder": "Min. 6 characters",
+      "confirm": "Confirm New Password",
+      "confirm_placeholder": "Repeat new password",
+      "update": "Update Password",
+      "updating": "Updating...",
+      "update_success": "Password updated successfully."
+    },
+    "signout": {
+      "title": "Sign Out",
+      "description": "Sign out of your account on this device.",
+      "button": "Sign Out"
+    }
+  }
+}

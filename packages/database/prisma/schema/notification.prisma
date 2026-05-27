@@ -1,0 +1,29 @@
+// Notifications
+
+enum NotificationType {
+  BOOKING_REQUEST
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  NEW_MESSAGE
+  NEW_REVIEW
+  PAYOUT_SENT
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String?
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  refId     String?
+  refType   String?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}

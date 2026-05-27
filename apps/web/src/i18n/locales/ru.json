@@ -1,0 +1,459 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "empty": "No results found",
+    "app_name": "RentStar",
+    "tagline": "Short-term rentals in Armenia and beyond",
+    "show_password": "Показать пароль",
+    "hide_password": "Скрыть пароль"
+  },
+  "auth": {
+    "login": {
+      "title": "С возвращением",
+      "subtitle": "Войдите в свой аккаунт",
+      "email": "Электронная почта",
+      "password": "Пароль",
+      "forgot_password": "Забыли пароль?",
+      "submit": "Войти",
+      "no_account": "Нет аккаунта?",
+      "go_to_register": "Создать",
+      "invalid_credentials": "Неверный email или пароль"
+    },
+    "register": {
+      "title": "Создать аккаунт",
+      "subtitle": "Зарегистрируйтесь и начните путешествие",
+      "role_guest": "Я гость",
+      "role_guest_hint": "Найти и забронировать",
+      "role_host": "Я хозяин",
+      "role_host_hint": "Добавить объект",
+      "first_name": "Имя",
+      "last_name": "Фамилия",
+      "email": "Электронная почта",
+      "password": "Пароль",
+      "confirm_password": "Подтвердить пароль",
+      "wants_to_host": "Хочу добавить своё жильё",
+      "wants_to_host_hint": "Мы поможем вам настроить профиль хозяина после регистрации.",
+      "submit": "Создать аккаунт",
+      "have_account": "Уже есть аккаунт?",
+      "go_to_login": "Войти",
+      "email_taken": "Аккаунт с этим email уже существует"
+    },
+    "forgot_password": {
+      "title": "Забыли пароль?",
+      "subtitle": "Не волнуйтесь, мы отправим вам ссылку для сброса.",
+      "email_label": "Электронная почта",
+      "submit": "Отправить ссылку",
+      "sent_hint": "Проверьте почту — ссылка для сброса придёт в течение нескольких минут.",
+      "back_to_login": "Назад к входу"
+    },
+    "oauth": {
+      "google": "Продолжить с Google",
+      "apple": "Продолжить с Apple",
+      "apple_coming_soon": "Вход через Apple скоро"
+    },
+    "callback": {
+      "title": "Выполняем вход",
+      "processing": "Завершаем авторизацию…",
+      "error": "Не удалось войти. Попробуйте снова.",
+      "missing_tokens": "Токены авторизации отсутствуют.",
+      "back_to_login": "Назад к входу"
+    },
+    "divider": "или"
+  },
+  "nav": {
+    "home": "Главная",
+    "properties": "Объекты",
+    "trips": "Мои поездки",
+    "messages": "Сообщения",
+    "dashboard": "Панель",
+    "explore": "Поиск",
+    "become_host": "Стать хозяином",
+    "sign_in": "Войти",
+    "sign_up": "Регистрация",
+    "logout": "Выйти",
+    "account": "Аккаунт",
+    "menu": "Меню"
+  },
+  "search": {
+    "where": "Куда",
+    "where_placeholder": "Куда угодно",
+    "check_in": "Заезд",
+    "check_out": "Выезд",
+    "add_dates": "Добавить даты",
+    "guests": "Гости",
+    "search": "Искать"
+  },
+  "footer": {
+    "tagline": "Откройте Армению — одно жильё за раз",
+    "about": "О RentStar",
+    "support": "Поддержка",
+    "hosting": "Хостинг",
+    "careers": "Карьера",
+    "press": "Пресса",
+    "contact": "Связаться с нами",
+    "help_center": "Справочный центр",
+    "safety": "Безопасность",
+    "become_host": "Стать хозяином",
+    "host_resources": "Материалы для хозяев",
+    "terms": "Условия использования",
+    "privacy": "Политика конфиденциальности",
+    "copyright": "© {year} RentStar. Все права защищены."
+  },
+  "property": {
+    "per_night": "/ night",
+    "guests": "{count} guests",
+    "bedrooms": "{count} bedrooms",
+    "book_now": "Request to Book",
+    "contact_host": "Contact host directly",
+    "show_all_photos": "Show all photos",
+    "show_more": "Show more",
+    "amenities": "Amenities",
+    "house_rules": "House rules",
+    "cancellation_policy": "Cancellation policy",
+    "availability": "Availability",
+    "status": {
+      "DRAFT": "Draft",
+      "PENDING_REVIEW": "Pending review",
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "SUSPENDED": "Suspended"
+    }
+  },
+  "booking": {
+    "status": {
+      "PENDING": "Ожидает",
+      "CONFIRMED": "Подтверждено",
+      "CANCELLED_BY_GUEST": "Отменено",
+      "CANCELLED_BY_HOST": "Отменено хозяином",
+      "COMPLETED": "Завершено",
+      "NO_SHOW": "Не явился"
+    },
+    "confirm": "Подтвердить",
+    "decline": "Отклонить",
+    "cancel": "Отменить",
+    "cancel_confirm": "Вы уверены, что хотите отменить бронирование?",
+    "special_requests": "Особые пожелания",
+    "check_in": "Заезд",
+    "check_out": "Выезд",
+    "select_dates": "Выберите даты",
+    "dates_unavailable": "Выбранные даты больше недоступны. Пожалуйста, выберите другие даты.",
+    "total": "Итого",
+    "per_night": "/ ночь",
+    "night": "{count, plural, =1 {1 ночь} few {# ночи} other {# ночей}}",
+    "select_dates_hint": "Выберите даты, чтобы увидеть итоговую цену",
+    "guests": "Гости",
+    "guests_max": "Максимум {max} гостей",
+    "book_now": "Забронировать",
+    "submitting": "Бронирование…",
+    "nights_subtotal": "{count} ночей × {price}",
+    "cleaning_fee": "Уборка",
+    "validation": {
+      "dates_required": "Пожалуйста, выберите даты заезда и выезда",
+      "invalid_range": "Дата выезда должна быть позже даты заезда",
+      "min_nights": "Минимальный срок проживания — {min} ночей",
+      "max_nights": "Максимальный срок проживания — {max} ночей",
+      "too_many_guests": "Максимально разрешено {max} гостей"
+    },
+    "confirmation": {
+      "title": "Запрос на бронирование отправлен!",
+      "subtitle": "Ваше проживание ожидает подтверждения хозяина. Мы уведомим вас после подтверждения.",
+      "continue_payment": "Перейти к оплате (скоро)"
+    }
+  },
+  "property_detail": {
+    "back": "Назад",
+    "guests_count": "{count, plural, =1 {1 гость} few {# гостя} other {# гостей}}",
+    "adults_count": "{count, plural, =1 {1 взрослый} few {# взрослых} other {# взрослых}}",
+    "children_count": "{count, plural, =1 {1 ребёнок} few {# ребёнка} other {# детей}}",
+    "infants_count": "{count, plural, =1 {1 младенец} few {# младенца} other {# младенцев}}",
+    "bedrooms_count": "{count, plural, =1 {1 спальня} few {# спальни} other {# спален}}",
+    "bathrooms_count": "{count, plural, =1 {1 ванная} few {# ванные} other {# ванных}}",
+    "gallery": {
+      "show_all": "Показать все {count} фото"
+    },
+    "about": {
+      "title": "Об этом месте"
+    },
+    "amenities": {
+      "title": "Удобства"
+    },
+    "host": {
+      "title": "Хозяин",
+      "individual": "Частное лицо",
+      "company": "Компания",
+      "verified": "Личность подтверждена"
+    },
+    "where": {
+      "title": "Где вы будете"
+    },
+    "reviews": {
+      "title": "Отзывы гостей",
+      "empty": "Отзывов пока нет — будьте первым!",
+      "no_comment": "Без письменного отзыва",
+      "write_review": "Написать отзыв",
+      "write_review_subtitle": "Поделитесь своим опытом с будущими гостями.",
+      "sort_label": "Сортировка",
+      "sort_newest": "Сначала новые",
+      "sort_oldest": "Сначала старые",
+      "verified": "Подтверждён",
+      "filter_by_stars": "{count} звезды",
+      "filtering_by": "Показаны отзывы на {count} звезды",
+      "clear_filter": "Сбросить фильтр",
+      "based_on": "На основе {count, plural, one {# отзыва} few {# отзывов} other {# отзывов}}",
+      "rating_label": "Ваша оценка",
+      "comment_label": "Ваш отзыв (необязательно)",
+      "comment_placeholder": "Расскажите другим о вашем пребывании…",
+      "submit": "Отправить отзыв",
+      "submitting": "Отправляем…",
+      "submit_success": "Отзыв успешно отправлен!",
+      "submit_error": "Не удалось отправить отзыв. Попробуйте снова.",
+      "already_reviewed": "Вы уже оставили отзыв об этом пребывании.",
+      "no_eligible_booking": "Чтобы оставить отзыв, нужно завершённое проживание в этом объекте.",
+      "checking": "Проверяем…",
+      "cancel": "Отмена",
+      "no_reviews_for_filter": "Нет отзывов с такой оценкой."
+    }
+  },
+  "dashboard": {
+    "title": "Панель хозяина",
+    "welcome": "С возвращением, {name}",
+    "add_listing": "Добавить объект",
+    "per_night": "ночь",
+    "actions": {
+      "view": "Просмотр",
+      "edit": "Редактировать",
+      "soft_delete": "Отключить"
+    },
+    "deleting": "Отключение…",
+    "soft_delete_title": "Отключить объявление",
+    "soft_delete_confirm": "Объявление будет скрыто от гостей. Вы можете найти его в разделе «Отключённые».",
+    "empty_listings": "Активных объявлений пока нет.",
+    "empty_disabled": "Отключённых объявлений нет.",
+    "tabs": {
+      "listings": "Мои объявления",
+      "disabled": "Отключённые",
+      "booking_requests": "Запросы на бронирование"
+    },
+    "pagination": {
+      "page_size": "На странице",
+      "page_of": "Страница {page} из {totalPages} · {total} всего"
+    },
+    "overview": "Dashboard",
+    "properties": "Properties",
+    "bookings": "Bookings",
+    "messages": "Messages",
+    "analytics": "Analytics",
+    "reviews": "Reviews",
+    "settings": "Settings",
+    "stats": {
+      "total_properties": "Total Properties",
+      "active_listings": "Активные объявления",
+      "active_bookings": "Active Bookings",
+      "pending_requests": "Pending Requests",
+      "total_earned": "Total Earned"
+    },
+    "sidebar_preview": "Host sidebar preview",
+    "capacity": {
+      "title": "Редактировать вместимость",
+      "total_guests": "Всего гостей",
+      "total_guests_hint": "Максимальное количество гостей",
+      "total_guests_label": "гостей всего",
+      "adults": "Взрослые",
+      "adults_hint": "Гости от 13 лет",
+      "children": "Дети",
+      "children_hint": "Гости от 2 до 12 лет",
+      "infants": "Младенцы",
+      "infants_hint": "Гости до 2 лет",
+      "hint": "Взрослые + дети учитываются в общем счёте. Младенцы отслеживаются отдельно.",
+      "edit_capacity": "Редактировать",
+      "no_breakdown": "Разбивка не задана",
+      "no_properties": "У вас пока нет объектов.",
+      "save": "Сохранить",
+      "saving": "Сохраняем…",
+      "save_success": "Вместимость успешно обновлена.",
+      "save_error": "Не удалось сохранить. Попробуйте снова.",
+      "cancel": "Отмена"
+    }
+  },
+  "property_form": {
+    "step1": "Property basics",
+    "step2": "Details & capacity",
+    "step3": "Pricing",
+    "step4": "House rules",
+    "step5": "Review & submit",
+    "save_draft": "Save as draft",
+    "submit": "Submit for review"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalid_email": "Invalid email address",
+    "password_min": "Password must be at least 8 characters",
+    "passwords_match": "Passwords do not match",
+    "generic": "Something went wrong. Please try again."
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "switch": "Change language",
+    "en": "English",
+    "hy": "Հայերեն",
+    "ru": "Русский"
+  },
+  "trips": {
+    "title": "Мой кабинет",
+    "welcome": "Добро пожаловать, {name}",
+    "stat_upcoming": "Предстоящие",
+    "stat_past": "Прошедшие",
+    "stat_spent": "Всего потрачено",
+    "tab_upcoming": "Предстоящие",
+    "tab_past": "Прошедшие",
+    "tab_cancelled": "Отменённые",
+    "empty_upcoming": "Бронирований пока нет. Исследуйте варианты!",
+    "empty_past": "Завершённых бронирований нет.",
+    "empty_cancelled": "Отменённых бронирований нет.",
+    "explore_button": "Найти жильё"
+  },
+  "auth_guard": {
+    "login_title": "Sign in",
+    "login_subtitle": "Auth pages arrive in the next task. Protected routes redirect here when you are not signed in.",
+    "dashboard_title": "Host dashboard",
+    "dashboard_subtitle": "Protected route — you reached this page because a session cookie is present.",
+    "trips_title": "My trips",
+    "trips_subtitle": "Guest portal placeholder for authenticated users."
+  },
+  "property_card": {
+    "per_night": "/ ночь",
+    "guests_max": "до {count} гостей",
+    "bedrooms": "{count} спальня",
+    "reviews": "{count} отзывов",
+    "categories": {
+      "apartment": "Квартира",
+      "house": "Дом",
+      "villa": "Вилла",
+      "guesthouse": "Гостевой дом"
+    }
+  },
+  "search": {
+    "page_title": "Поиск жилья",
+    "page_subtitle": "Найдите избранные объекты по Армении",
+    "destination_placeholder": "Поиск направления",
+    "check_in": "Заезд",
+    "check_out": "Выезд",
+    "guests": "Гости",
+    "search_button": "Найти",
+    "filters": "Фильтры",
+    "sort": {
+      "label": "Сортировка",
+      "newest": "Сначала новые",
+      "price_asc": "Цена: по возрастанию"
+    },
+    "count": "{count, plural, =0 {Ничего не найдено} one {Найден # объект} few {Найдено # объекта} many {Найдено # объектов} other {Найдено # объектов}}",
+    "map_button": "Карта",
+    "empty": {
+      "title": "Подходящих избранных объектов нет",
+      "description": "Попробуйте другое направление или сбросьте фильтры.",
+      "clear": "Сбросить фильтры"
+    }
+  },
+  "home": {
+    "hero": {
+      "badge": "Надёжное жильё по всей Армении",
+      "title": "Найдите идеальное жильё в Армении",
+      "subtitle": "Уникальные квартиры, дома, виллы и гостевые дома в самых красивых уголках Армении",
+      "search_placeholder": "Куда вы хотите поехать?",
+      "search_button": "Найти"
+    },
+    "featured": {
+      "title": "Избранное жильё",
+      "subtitle": "Тщательно отобранные объекты, которые любят наши гости",
+      "search_all": "Смотреть все",
+      "instant_book": "Мгновенное бронирование",
+      "per_night": "/ ночь",
+      "guests_max": "до {count} гостей",
+      "bedrooms": "{count} спальня",
+      "reviews": "{count} отзывов",
+      "empty": "Сейчас нет избранных объектов.",
+      "categories": {
+        "all": "Все типы",
+        "apartment": "Квартира",
+        "house": "Дом",
+        "villa": "Вилла",
+        "guesthouse": "Гостевой дом"
+      }
+    },
+    "destinations": {
+      "title": "Популярные направления",
+      "subtitle": "Самые любимые места Армении"
+    },
+    "how_it_works": {
+      "title": "Как работает RentStar",
+      "steps": {
+        "search": {
+          "title": "Ищите",
+          "description": "Найдите идеальное жильё по всей Армении с мощными фильтрами"
+        },
+        "book": {
+          "title": "Бронируйте",
+          "description": "Бронируйте мгновенно или отправьте запрос — оплата через Idram или ARCA"
+        },
+        "enjoy": {
+          "title": "Наслаждайтесь",
+          "description": "Заезжайте, исследуйте Армению и оставьте отзыв после поездки"
+        }
+      }
+    },
+    "become_host": {
+      "title": "Станьте хозяином",
+      "description": "Поделитесь своей квартирой, домом, виллой или гостевым домом и зарабатывайте, принимая гостей со всего мира",
+      "cta": "Разместить жильё"
+    }
+  },
+  "account": {
+    "title": "Настройки аккаунта",
+    "subtitle": "Управляйте своим профилем и настройками",
+    "photo": {
+      "title": "Фото профиля",
+      "upload": "Загрузить фото"
+    },
+    "personal": {
+      "title": "Личная информация",
+      "full_name": "Полное имя",
+      "full_name_placeholder": "Ваше полное имя",
+      "email": "Эл. почта",
+      "email_note": "Изменить эл. почту невозможно.",
+      "phone": "Номер телефона",
+      "bio": "О себе",
+      "bio_placeholder": "Расскажите другим немного о себе...",
+      "save": "Сохранить изменения",
+      "saving": "Сохранение...",
+      "save_success": "Профиль успешно сохранён."
+    },
+    "language": {
+      "title": "Язык"
+    },
+    "password": {
+      "title": "Изменить пароль",
+      "current": "Текущий пароль",
+      "current_placeholder": "Ваш текущий пароль",
+      "new": "Новый пароль",
+      "new_placeholder": "Мин. 6 символов",
+      "confirm": "Подтвердите новый пароль",
+      "confirm_placeholder": "Повторите новый пароль",
+      "update": "Обновить пароль",
+      "updating": "Обновление...",
+      "update_success": "Пароль успешно обновлён."
+    },
+    "signout": {
+      "title": "Выйти",
+      "description": "Выйти из аккаунта на этом устройстве.",
+      "button": "Выйти"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+---
+description: Next.js App Router conventions for apps/web
+globs: apps/web/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Next.js App Router Rules
+
+- **Routing**: App Router only. Pages and layouts live in `app/`.
+- **Components**: Default to Server Components. Use `"use client"` only for hooks/interactivity. Default exports for pages and layouts.
+- **Styling**: Tailwind CSS for all styling. Avoid global CSS; CSS Modules only when Tailwind is insufficient.
+- **Data fetching**: Server Actions for mutations; fetch in Server Components for reads. Use `@/lib/api` client — not raw `fetch` in components.
+- **Naming**: `kebab-case` directories; `PascalCase` React components.
+- **State**: Zustand for client state only — not raw DB records.
+- **After changes**: `pnpm --filter web lint --fix && pnpm --filter web format && pnpm --filter web typecheck`

@@ -1,0 +1,35 @@
+{
+  "name": "@repo/shared",
+  "version": "0.0.1",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./constants": {
+      "types": "./src/constants/index.ts",
+      "default": "./dist/constants/index.js"
+    },
+    "./utils": {
+      "types": "./src/utils/index.ts",
+      "default": "./dist/utils/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "format": "prettier --write 'src/**/*.ts'"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@repo/prettier-config": "workspace:*",
+    "@repo/tsconfig": "workspace:*",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  },
+  "prettier": "@repo/prettier-config"
+}

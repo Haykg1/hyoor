@@ -1,0 +1,63 @@
+// Bookings
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED_BY_GUEST
+  CANCELLED_BY_HOST
+  COMPLETED
+  NO_SHOW
+}
+
+enum PaymentProvider {
+  IDRAM
+  ARCA
+  CASH
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Booking {
+  id                 String           @id @default(cuid())
+  propertyId         String
+  guestId            String
+  status             BookingStatus    @default(PENDING)
+  checkIn            DateTime         @db.Date
+  checkOut           DateTime         @db.Date
+  guestCount         Int
+  specialRequests    String?
+  currency           String
+  nightlyRate        Int
+  nightsCount        Int
+  cleaningFee        Int              @default(0)
+  securityDeposit    Int              @default(0)
+  totalAmount        Int
+  paymentProvider    PaymentProvider?
+  paymentStatus      PaymentStatus    @default(UNPAID)
+  paymentInitiatedAt DateTime?
+  paymentCompletedAt DateTime?
+  externalPaymentRef String?
+  cancellationReason String?
+  cancelledAt        DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  property     Property      @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  guest        User          @relation("GuestBookings", fields: [guestId], references: [id], onDelete: Restrict)
+  conversation Conversation?
+  reviews      Review[]
+
+  @@index([propertyId])
+  @@index([guestId])
+  @@index([checkIn])
+  @@index([checkOut])
+  @@index([status])
+  @@index([paymentStatus])
+  @@map("bookings")
+}

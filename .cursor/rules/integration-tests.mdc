@@ -1,0 +1,53 @@
+---
+description: Integration (e2e) test standards for apps/api — FIRST principles
+globs: apps/api/**/*.ts
+alwaysApply: false
+---
+
+# Integration Test Rules
+
+Write or update integration tests when API behavior changes (new routes, auth rules, validation, response shape).
+
+## Run command
+
+```bash
+npm run e2e:tests
+# or: pnpm e2e:tests
+```
+
+This starts an isolated Postgres container (`docker-compose.e2e.yml` on port **5434**), runs migrations, executes Jest e2e specs, then tears down.
+
+## FIRST principles (required)
+
+| Principle | Rule in this repo |
+|-----------|-------------------|
+| **Fast** | Use Supertest against an in-process Nest app; one worker (`maxWorkers: 1`); truncate tables, don't rebuild Docker per test |
+| **Independent** | `beforeEach` → `resetE2eDatabase()`; each test creates its own users/data via helpers (`registerUser`, `uniqueEmail`); never assert on shared seed rows |
+| **Repeatable** | Tests run against dedicated e2e DB; env loaded from `test/setup/e2e-env.ts`; S3 mocked via `MockStorageService` |
+| **Self-validating** | Assert HTTP status + `{ success, data \| message }` body; no manual verification steps |
+| **Timely** | Add/update e2e specs in the same PR as the API change |
+
+## File layout
+
+```
+apps/api/test/
+├── e2e/                    # *.e2e-spec.ts — one file per module
+├── helpers/                # createTestApp, resetE2eDatabase, test-data helpers
+└── setup/e2e-env.ts        # required env for e2e (fail fast if missing)
+```
+
+## Conventions
+
+- Name files `*.e2e-spec.ts` under `apps/api/test/e2e/`.
+- Use `createTestApp()` — mirrors production pipes, filters, interceptors; mocks `StorageService`.
+- Prefer API helpers (`registerUser`) over raw Prisma unless testing relations seed can't create (e.g. host profile).
+- Cover happy path + main error cases (401, 409, 400) per endpoint.
+- Do not depend on `packages/database/prisma/seed.ts` for e2e assertions.
+
+## Quality gate
+
+After changing API routes or e2e tests:
+
+```bash
+pnpm --filter api lint --fix && pnpm --filter api typecheck && npm run e2e:tests
+```

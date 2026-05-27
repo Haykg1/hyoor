@@ -1,0 +1,32 @@
+// Reviews (bidirectional: guest ↔ property/host)
+
+enum ReviewTarget {
+  PROPERTY
+  GUEST
+}
+
+model Review {
+  id          String       @id @default(cuid())
+  bookingId   String
+  authorId    String
+  subjectId   String
+  target      ReviewTarget
+  rating      Int
+  comment     String?
+  isPublished Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  propertyId  String?
+
+  booking  Booking   @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  author   User      @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  subject  User      @relation("ReviewSubject", fields: [subjectId], references: [id], onDelete: Restrict)
+  property Property? @relation("PropertyReviews", fields: [propertyId], references: [id], onDelete: SetNull)
+
+  @@unique([bookingId, authorId, target])
+  @@index([bookingId])
+  @@index([authorId])
+  @@index([subjectId])
+  @@index([propertyId])
+  @@map("reviews")
+}

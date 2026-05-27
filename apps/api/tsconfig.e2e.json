@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "paths": {
+      "@repo/database/client": ["../../packages/database/src/generated/client"],
+      "@repo/shared": ["../../packages/shared/src/index.ts"],
+      "@repo/shared/constants": ["../../packages/shared/src/constants/index.ts"],
+      "@repo/shared/utils": ["../../packages/shared/src/utils/index.ts"]
+    }
+  },
+  "include": ["src/**/*", "test/**/*"]
+}

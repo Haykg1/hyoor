@@ -1,0 +1,459 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "empty": "No results found",
+    "app_name": "RentStar",
+    "tagline": "Short-term rentals in Armenia and beyond",
+    "show_password": "Ցույց տալ գաղտնաբառը",
+    "hide_password": "Թաքցնել գաղտնաբառը"
+  },
+  "auth": {
+    "login": {
+      "title": "Բարի վերադարձ",
+      "subtitle": "Մուտք գործեք ձեր հաշիվ",
+      "email": "Էլ. հասցե",
+      "password": "Գաղտնաբառ",
+      "forgot_password": "Մոռացե՞լ եք գաղտնաբառը",
+      "submit": "Մուտք",
+      "no_account": "Հաշիվ չունե՞ք",
+      "go_to_register": "Ստեղծել",
+      "invalid_credentials": "Սխալ էլ. հասցե կամ գաղտնաբառ"
+    },
+    "register": {
+      "title": "Ստեղծել հաշիվ",
+      "subtitle": "Գրանցվեք և սկսեք ձեր ուղևորությունը",
+      "role_guest": "Ես հյուր եմ",
+      "role_guest_hint": "Գտնել և ամրագրել",
+      "role_host": "Ես հյուրանոցատեր եմ",
+      "role_host_hint": "Ավելացնել օբյեկտ",
+      "first_name": "Անուն",
+      "last_name": "Ազգանուն",
+      "email": "Էլ. հասցե",
+      "password": "Գաղտնաբառ",
+      "confirm_password": "Հաստատել գաղտնաբառը",
+      "wants_to_host": "Ուզում եմ ավելացնել իմ անշարժ գույքը",
+      "wants_to_host_hint": "Մենք ձեզ կառաջնորդենք հյուրընկալողի պրոֆիլ ստեղծելու հարցում։",
+      "submit": "Ստեղծել հաշիվ",
+      "have_account": "Արդեն հաշիվ ունե՞ք",
+      "go_to_login": "Մուտք",
+      "email_taken": "Այս էլ. հասցեով հաշիվ արդեն գոյություն ունի"
+    },
+    "forgot_password": {
+      "title": "Մոռացե՞լ եք գաղտնաբառը",
+      "subtitle": "Չանհանգստացեք, մենք կուղարկենք վերականգնման հղումը։",
+      "email_label": "Էլ. հասցե",
+      "submit": "Ուղարկել հղումը",
+      "sent_hint": "Ստուգեք ձեր էլ. փոստը վերականգնման հղման համար։",
+      "back_to_login": "Վերադառնալ մուտք"
+    },
+    "oauth": {
+      "google": "Շարունակել Google-ով",
+      "apple": "Շարունակել Apple-ով",
+      "apple_coming_soon": "Apple-ով մուտքը շուտով"
+    },
+    "callback": {
+      "title": "Մուտք ենք կատարում",
+      "processing": "Ավարտում ենք մուտքը…",
+      "error": "Չհաջողվեց մուտք գործել։ Փորձեք նորից։",
+      "missing_tokens": "Վավերացման նշաններ չկան։",
+      "back_to_login": "Վերադառնալ մուտք"
+    },
+    "divider": "կամ"
+  },
+  "nav": {
+    "home": "Գլխավոր",
+    "properties": "Անշարժ գույք",
+    "trips": "Իմ ուղևորությունները",
+    "messages": "Հաղորդագրություններ",
+    "dashboard": "Վահանակ",
+    "explore": "Փնտրել",
+    "become_host": "Դառնալ տանտեր",
+    "sign_in": "Մուտք",
+    "sign_up": "Գրանցում",
+    "logout": "Դուրս գալ",
+    "account": "Հաշիվ",
+    "menu": "Մենյու"
+  },
+  "search": {
+    "where": "Որտեղ",
+    "where_placeholder": "Ցանկացած վայր",
+    "check_in": "Մուտք",
+    "check_out": "Ելք",
+    "add_dates": "Ավելացնել ամսաթվեր",
+    "guests": "Հյուրեր",
+    "search": "Որոնել"
+  },
+  "footer": {
+    "tagline": "Բացահայտիր Հայաստանը՝ մեկ կացարան՝ մեկ քայլ",
+    "about": "RentStar-ի մասին",
+    "support": "Աջակցություն",
+    "hosting": "Տանտերեր",
+    "careers": "Կարիերա",
+    "press": "Մամուլ",
+    "contact": "Կապ մեզ հետ",
+    "help_center": "Օգնության կենտրոն",
+    "safety": "Անվտանգություն",
+    "become_host": "Դառնալ տանտեր",
+    "host_resources": "Տանտերերի ռեսուրսներ",
+    "terms": "Ծառայության պայմաններ",
+    "privacy": "Գաղտնիության քաղաքականություն",
+    "copyright": "© {year} RentStar. Բոլոր իրավունքները պաշտպանված են։"
+  },
+  "property": {
+    "per_night": "/ night",
+    "guests": "{count} guests",
+    "bedrooms": "{count} bedrooms",
+    "book_now": "Request to Book",
+    "contact_host": "Contact host directly",
+    "show_all_photos": "Show all photos",
+    "show_more": "Show more",
+    "amenities": "Amenities",
+    "house_rules": "House rules",
+    "cancellation_policy": "Cancellation policy",
+    "availability": "Availability",
+    "status": {
+      "DRAFT": "Draft",
+      "PENDING_REVIEW": "Pending review",
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
+      "SUSPENDED": "Suspended"
+    }
+  },
+  "booking": {
+    "status": {
+      "PENDING": "Ակնկալվում է",
+      "CONFIRMED": "Հաստատված",
+      "CANCELLED_BY_GUEST": "Չեղարկված",
+      "CANCELLED_BY_HOST": "Հյուրանոցատիրոջ կողմից չեղարկված",
+      "COMPLETED": "Ավարտված",
+      "NO_SHOW": "Չի ներկայացել"
+    },
+    "confirm": "Հաստատել",
+    "decline": "Մերժել",
+    "cancel": "Չեղարկել",
+    "cancel_confirm": "Վստա՞հ եք, որ ուզում եք չեղարկել ամրագրումը։",
+    "special_requests": "Հատուկ պահանջներ",
+    "check_in": "Ժամանում",
+    "check_out": "Մեկնում",
+    "select_dates": "Ընտրեք ամսաթվեր",
+    "dates_unavailable": "Ընտրված ամսաթվերն այլևս հասանելի չեն: Խնդրում ենք ընտրել այլ ամսաթվեր:",
+    "total": "Ընդամենը",
+    "per_night": "/ գիշեր",
+    "night": "{count} գիշեր",
+    "select_dates_hint": "Ընտրեք ամսաթվեր ընդհանուր գինը տեսնելու համար",
+    "guests": "Հյուրեր",
+    "guests_max": "Առավելագույնը {max} հյուր",
+    "book_now": "Ամրագրել",
+    "submitting": "Ամրագրում…",
+    "nights_subtotal": "{count} գիշեր × {price}",
+    "cleaning_fee": "Մաքրման վճար",
+    "validation": {
+      "dates_required": "Խնդրում ենք ընտրել ժամանման և մեկնման ամսաթվերը",
+      "invalid_range": "Մեկնման ամսաթիվը պետք է ուշ լինի ժամանմանից",
+      "min_nights": "Նվազագույն կեցությունը {min} գիշեր է",
+      "max_nights": "Առավելագույն կեցությունը {max} գիշեր է",
+      "too_many_guests": "Թույլատրված է առավելագույնը {max} հյուր"
+    },
+    "confirmation": {
+      "title": "Ամրագրումը կատարված է։",
+      "subtitle": "Ձեր կեցությունը սպասում է հաստատման։ Կտեղեկացնենք հաստատումից հետո։",
+      "continue_payment": "Անցնել վճարման (շուտով)"
+    }
+  },
+  "property_detail": {
+    "back": "Վերադառնալ",
+    "guests_count": "{count} հյուր",
+    "adults_count": "{count} մեծահասակ",
+    "children_count": "{count} երեխա",
+    "infants_count": "{count} նորածին",
+    "bedrooms_count": "{count} ննջասենյակ",
+    "bathrooms_count": "{count} լոգասենյակ",
+    "gallery": {
+      "show_all": "Ցուցադրել բոլոր {count} լուսանկարները"
+    },
+    "about": {
+      "title": "Այս վայրի մասին"
+    },
+    "amenities": {
+      "title": "Հարմարությունները"
+    },
+    "host": {
+      "title": "Հյուրընկալողը",
+      "individual": "Անհատ",
+      "company": "Ընկերություն",
+      "verified": "Ինքնությունը հաստատված է"
+    },
+    "where": {
+      "title": "Գտնվելու վայրը"
+    },
+    "reviews": {
+      "title": "Հյուրերի կարծիքները",
+      "empty": "Դեռ կարծիքներ չկան — եղեք առաջինը։",
+      "no_comment": "Գրավոր կարծիք չկա",
+      "write_review": "Թողնել կարծիք",
+      "write_review_subtitle": "Կիսվեք ձեր փորձով ապագա հյուրերի հետ։",
+      "sort_label": "Դասավորել",
+      "sort_newest": "Նորեր",
+      "sort_oldest": "Հներ",
+      "verified": "Հաստատված",
+      "filter_by_stars": "{count} աստղ",
+      "filtering_by": "Ցուցադրվում են {count}-աստղ կարծիքները",
+      "clear_filter": "Մաքրել ֆիլտրը",
+      "based_on": "Հիմնված {count} հաստատված կարծիքի վրա",
+      "rating_label": "Ձեր գնահատականը",
+      "comment_label": "Ձեր կարծիքը (կամընտիր)",
+      "comment_placeholder": "Պատմեք ուրիշներին ձեր կեցության մասին…",
+      "submit": "Ուղարկել",
+      "submitting": "Ուղարկվում է…",
+      "submit_success": "Կարծիքն ուղարկված է։",
+      "submit_error": "Չհաջողվեց ուղարկել կարծիքը։ Փորձեք նորից։",
+      "already_reviewed": "Դուք արդեն կարծիք եք թողել այս կեցության մասին։",
+      "no_eligible_booking": "Կարծիք թողնելու համար անհրաժեշտ է ավարտված կեցություն այս անշարժ գույքում։",
+      "checking": "Ստուգվում է…",
+      "cancel": "Չեղարկել",
+      "no_reviews_for_filter": "Այս գնահատականով կարծիքներ չկան։"
+    }
+  },
+  "dashboard": {
+    "title": "Հյուրընկալողի վահանակ",
+    "welcome": "Բարի վերադարձ, {name}",
+    "add_listing": "Ավելացնել հայտ",
+    "per_night": "գիշեր",
+    "actions": {
+      "view": "Դիտել",
+      "edit": "Խմբագրել",
+      "soft_delete": "Անջատել"
+    },
+    "deleting": "Անջատվում է…",
+    "soft_delete_title": "Անջատել հայտը",
+    "soft_delete_confirm": "Հայտը կթաքցվի հյուրերից։ Այն կարող եք տեսնել «Անջատված» բաժնում։",
+    "empty_listings": "Ակտիվ հայտեր չկան։",
+    "empty_disabled": "Անջատված հայտեր չկան։",
+    "tabs": {
+      "listings": "Իմ հայտերը",
+      "disabled": "Անջատված",
+      "booking_requests": "Ամրագրման հայտեր"
+    },
+    "pagination": {
+      "page_size": "Էջում",
+      "page_of": "Էջ {page} / {totalPages} · {total} ընդամենը"
+    },
+    "overview": "Dashboard",
+    "properties": "Properties",
+    "bookings": "Bookings",
+    "messages": "Messages",
+    "analytics": "Analytics",
+    "reviews": "Reviews",
+    "settings": "Settings",
+    "stats": {
+      "total_properties": "Total Properties",
+      "active_listings": "Ակտիվ հայտեր",
+      "active_bookings": "Active Bookings",
+      "pending_requests": "Pending Requests",
+      "total_earned": "Total Earned"
+    },
+    "sidebar_preview": "Host sidebar preview",
+    "capacity": {
+      "title": "Խմբագրել հյուրերի քանակը",
+      "total_guests": "Ընդամենը հյուրեր",
+      "total_guests_hint": "Թույլատրված հյուրերի առավելագույն քանակ",
+      "total_guests_label": "հյուր ընդամենը",
+      "adults": "Մեծահասակներ",
+      "adults_hint": "13 և ավելի տարեկան հյուրեր",
+      "children": "Երեխաներ",
+      "children_hint": "2–12 տարեկան հյուրեր",
+      "infants": "Նորածիններ",
+      "infants_hint": "2 տարեկանից փոքր հյուրեր",
+      "hint": "Մեծահասակները + երեխաները հաշվվում են ընդհանուր թվի մեջ։ Նորածինները հաշվվում են առանձին։",
+      "edit_capacity": "Խմբագրել",
+      "no_breakdown": "Բաժանում չի սահմանված",
+      "no_properties": "Դեռ անշարժ գույք չկա։",
+      "save": "Պահպանել",
+      "saving": "Պահպանվում է…",
+      "save_success": "Տվյալները հաջողությամբ պահպանված են։",
+      "save_error": "Չհաջողվեց պահպանել։ Փորձեք նորից։",
+      "cancel": "Չեղարկել"
+    }
+  },
+  "property_form": {
+    "step1": "Property basics",
+    "step2": "Details & capacity",
+    "step3": "Pricing",
+    "step4": "House rules",
+    "step5": "Review & submit",
+    "save_draft": "Save as draft",
+    "submit": "Submit for review"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalid_email": "Invalid email address",
+    "password_min": "Password must be at least 8 characters",
+    "passwords_match": "Passwords do not match",
+    "generic": "Something went wrong. Please try again."
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "switch": "Change language",
+    "en": "English",
+    "hy": "Հայերեն",
+    "ru": "Русский"
+  },
+  "trips": {
+    "title": "Իմ Վահանակ",
+    "welcome": "Բարի գալուստ, {name}",
+    "stat_upcoming": "Առաջիկա",
+    "stat_past": "Անցած",
+    "stat_spent": "Ծախսված",
+    "tab_upcoming": "Առաջիկա",
+    "tab_past": "Անցած",
+    "tab_cancelled": "Չեղարկված",
+    "empty_upcoming": "Ամրագրումներ չկան։ Ուսումնասիրե՛ք!",
+    "empty_past": "Ավարտված ամրագրումներ չկան։",
+    "empty_cancelled": "Չեղարկված ամրագրումներ չկան։",
+    "explore_button": "Ուսումնասիրել"
+  },
+  "auth_guard": {
+    "login_title": "Sign in",
+    "login_subtitle": "Auth pages arrive in the next task. Protected routes redirect here when you are not signed in.",
+    "dashboard_title": "Host dashboard",
+    "dashboard_subtitle": "Protected route — you reached this page because a session cookie is present.",
+    "trips_title": "My trips",
+    "trips_subtitle": "Guest portal placeholder for authenticated users."
+  },
+  "property_card": {
+    "per_night": "/ գիշեր",
+    "guests_max": "մինչև {count} հյուր",
+    "bedrooms": "{count} ննջասենյակ",
+    "reviews": "{count} ակնարկ",
+    "categories": {
+      "apartment": "Բնակարան",
+      "house": "Տուն",
+      "villa": "Վիլլա",
+      "guesthouse": "Հյուրատուն"
+    }
+  },
+  "search": {
+    "page_title": "Որոնել կացարան",
+    "page_subtitle": "Գտեք ընտրված կացարաններ Հայաստանում",
+    "destination_placeholder": "Որոնել ուղղություն",
+    "check_in": "Մուտք",
+    "check_out": "Ելք",
+    "guests": "Հյուրեր",
+    "search_button": "Որոնել",
+    "filters": "Զտիչներ",
+    "sort": {
+      "label": "Դասավորել ըստ",
+      "newest": "Նորագույնները",
+      "price_asc": "Գին․ էժանից թանկ"
+    },
+    "count": "{count, plural, =0 {Կացարաններ չեն գտնվել} =1 {գտնվել է 1 կացարան} other {գտնվել է # կացարան}}",
+    "map_button": "Քարտեզ",
+    "empty": {
+      "title": "Ձեր որոնմանը համապատասխանող ընտրված կացարան չկա",
+      "description": "Փորձեք այլ ուղղություն կամ վերականգնեք զտիչները։",
+      "clear": "Մաքրել զտիչները"
+    }
+  },
+  "home": {
+    "hero": {
+      "badge": "Վստահելի կացարաններ ողջ Հայաստանում",
+      "title": "Գտի՛ր քո կատարյալ կացարանը Հայաստանում",
+      "subtitle": "Հայտնաբերի՛ր եզակի բնակարաններ, տներ, վիլլաներ և հյուրատներ Հայաստանի ամենագեղեցիկ վայրերում",
+      "search_placeholder": "Որոնել ուղղություններ",
+      "search_button": "Որոնել"
+    },
+    "featured": {
+      "title": "Ընտրված կացարաններ",
+      "subtitle": "Մեր հյուրերի սիրած անշարժ գույքը՝ ընտրված ձեռքով",
+      "search_all": "Տեսնել բոլորը",
+      "instant_book": "Ակնթարթային ամրագրում",
+      "per_night": "/ գիշեր",
+      "guests_max": "մինչև {count} հյուր",
+      "bedrooms": "{count} ննջասենյակ",
+      "reviews": "{count} ակնարկ",
+      "empty": "Ընտրված կացարաններ ներկայումս չկան։",
+      "categories": {
+        "all": "Բոլոր տեսակները",
+        "apartment": "Բնակարան",
+        "house": "Տուն",
+        "villa": "Վիլլա",
+        "guesthouse": "Հյուրատուն"
+      }
+    },
+    "destinations": {
+      "title": "Հանրաճանաչ ուղղություններ",
+      "subtitle": "Հայտնագործիր Հայաստանի ամենասիրված վայրերը"
+    },
+    "how_it_works": {
+      "title": "Ինչպես է աշխատում RentStar-ը",
+      "steps": {
+        "search": {
+          "title": "Որոնել",
+          "description": "Գտիր կատարյալ անշարժ գույքը Հայաստանում՝ հզոր ֆիլտրերով"
+        },
+        "book": {
+          "title": "Ամրագրել",
+          "description": "Ամրագրիր ակնթարթորեն կամ հայտ ուղարկիր՝ վճարելով Idram-ով կամ ARCA-ով"
+        },
+        "enjoy": {
+          "title": "Վայելել",
+          "description": "Գրանցվիր, շրջիր Հայաստանում և թող կարծիք՝ քո ուղևորությունից հետո"
+        }
+      }
+    },
+    "become_host": {
+      "title": "Դառնալ տանտեր",
+      "description": "Կիսվիր քո բնակարանի, տան, վիլլայի կամ հյուրատան հետ և եկամուտ ստացիր՝ ընդունելով հյուրեր ողջ աշխարհից",
+      "cta": "Տեղադրել գույք"
+    }
+  },
+  "account": {
+    "title": "Հաշվի կարգավորումներ",
+    "subtitle": "Կառավարեք ձեր պրոֆիլը և նախընտրությունները",
+    "photo": {
+      "title": "Պրոֆիլի լուսանկար",
+      "upload": "Վերբեռնել լուսանկար"
+    },
+    "personal": {
+      "title": "Անձնական տվյալներ",
+      "full_name": "Անուն Ազգանուն",
+      "full_name_placeholder": "Ձեր լրիվ անունը",
+      "email": "Էլ. փոստ",
+      "email_note": "Էլ. փոստը հնարավոր չէ փոխել։",
+      "phone": "Հեռախոսի համար",
+      "bio": "Կենսագրություն",
+      "bio_placeholder": "Պատմեք ուրիշներին ձեր մասին...",
+      "save": "Պահպանել փոփոխությունները",
+      "saving": "Պահպանվում է...",
+      "save_success": "Պրոֆիլը հաջողությամբ պահպանվեց։"
+    },
+    "language": {
+      "title": "Լեզու"
+    },
+    "password": {
+      "title": "Փոխել գաղտնաբառը",
+      "current": "Ընթացիկ գաղտնաբառ",
+      "current_placeholder": "Ձեր ընթացիկ գաղտնաբառը",
+      "new": "Նոր գաղտնաբառ",
+      "new_placeholder": "Նվ. 6 նիշ",
+      "confirm": "Հաստատել նոր գաղտնաբառը",
+      "confirm_placeholder": "Կրկնել նոր գաղտնաբառը",
+      "update": "Թարմացնել գաղտնաբառը",
+      "updating": "Թարմացվում է...",
+      "update_success": "Գաղտնաբառը հաջողությամբ թարմացվեց։"
+    },
+    "signout": {
+      "title": "Ելք",
+      "description": "Ելք կատարել հաշվից այս սարքում։",
+      "button": "Ելք"
+    }
+  }
+}

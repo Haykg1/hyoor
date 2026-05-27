@@ -1,0 +1,34 @@
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.dev
+    volumes:
+      - ./apps/api/src:/app/apps/api/src
+      - ./packages:/app/packages
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/appdb
+      PORT: 3001
+      FRONTEND_URL: http://localhost:3000
+    env_file:
+      - apps/api/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "sh packages/database/scripts/docker-init.sh && pnpm --filter @repo/shared build && pnpm --filter api start:dev"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.dev
+    volumes:
+      - ./apps/web/src:/app/apps/web/src
+      - ./apps/web/public:/app/apps/web/public
+    environment:
+      NODE_ENV: development
+    command: pnpm --filter web dev

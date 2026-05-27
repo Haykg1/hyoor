@@ -1,0 +1,53 @@
+{
+  "name": "monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api start:dev",
+    "db:migrate": "pnpm --filter database migrate:dev",
+    "db:generate": "pnpm --filter database generate",
+    "db:studio": "pnpm --filter database studio",
+    "db:seed": "pnpm --filter database seed",
+    "lint": "pnpm -r lint",
+    "format": "pnpm -r format",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "e2e:tests": "bash scripts/e2e-tests.sh",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "prettier": "^3.0.0",
+    "turbo": "^2.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "unrs-resolver"
+    ]
+  },
+  "lint-staged": {
+    "apps/web/**/*.{ts,tsx}": [
+      "pnpm --filter web lint --fix",
+      "prettier --write"
+    ],
+    "apps/api/**/*.ts": [
+      "pnpm --filter api lint --fix",
+      "prettier --write"
+    ],
+    "packages/database/**/*.{prisma,ts}": [
+      "prettier --write"
+    ],
+    "packages/**/*.{ts,tsx,js}": [
+      "prettier --write"
+    ],
+    "**/*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  }
+}

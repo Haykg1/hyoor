@@ -1,0 +1,126 @@
+// Properties, photos, amenities, availability
+
+enum PropertyStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  VILLA
+  STUDIO
+  GUESTHOUSE
+  HOTEL_ROOM
+  OTHER
+}
+
+enum CancellationPolicy {
+  FLEXIBLE
+  MODERATE
+  STRICT
+  NON_REFUNDABLE
+}
+
+model Property {
+  id                 String             @id @default(cuid())
+  hostId             String
+  status             PropertyStatus     @default(DRAFT)
+  propertyType       PropertyType
+  title              String
+  slug               String             @unique
+  description        String
+  cancellationPolicy CancellationPolicy @default(MODERATE)
+  country            String             @default("AM")
+  region             String?
+  city               String
+  addressLine        String?
+  latitude           Decimal?           @db.Decimal(10, 7)
+  longitude          Decimal?           @db.Decimal(10, 7)
+  maxGuests          Int
+  maxAdults          Int                @default(0)
+  maxChildren        Int                @default(0)
+  maxInfants         Int                @default(0)
+  bedrooms           Int
+  beds               Int
+  bathrooms          Decimal            @db.Decimal(3, 1)
+  currency           String             @default("AMD")
+  pricePerNight      Int
+  cleaningFee        Int                @default(0)
+  securityDeposit    Int                @default(0)
+  minNights          Int                @default(1)
+  maxNights          Int?
+  checkInTime        String?
+  checkOutTime       String?
+  smokingAllowed     Boolean            @default(false)
+  petsAllowed        Boolean            @default(false)
+  partiesAllowed     Boolean            @default(false)
+  quietHoursStart    String?
+  quietHoursEnd      String?
+  additionalRules    String?
+  externalBookingUrl String?
+  featured           Boolean            @default(false)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  host           HostProfile       @relation(fields: [hostId], references: [id], onDelete: Restrict)
+  photos         PropertyPhoto[]
+  amenities      PropertyAmenity[]
+  availabilities Availability[]
+  bookings       Booking[]
+  reviews        Review[]          @relation("PropertyReviews")
+
+  @@index([hostId])
+  @@index([city])
+  @@index([status])
+  @@index([pricePerNight])
+  @@index([featured])
+  @@map("properties")
+}
+
+model PropertyPhoto {
+  id         String   @id @default(cuid())
+  propertyId String
+  key        String   @unique
+  caption    String?
+  sortOrder  Int      @default(0)
+  isCover    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@map("property_photos")
+}
+
+model PropertyAmenity {
+  id         String  @id @default(cuid())
+  propertyId String
+  name       String
+  category   String?
+  iconKey    String?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, name])
+  @@index([propertyId])
+  @@map("property_amenities")
+}
+
+model Availability {
+  id            String   @id @default(cuid())
+  propertyId    String
+  date          DateTime @db.Date
+  isAvailable   Boolean  @default(true)
+  priceOverride Int?
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, date])
+  @@index([propertyId])
+  @@index([date])
+  @@map("availabilities")
+}

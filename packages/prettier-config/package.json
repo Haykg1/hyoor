@@ -1,0 +1,14 @@
+{
+  "name": "@repo/prettier-config",
+  "version": "0.0.1",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "dependencies": {
+    "prettier-plugin-prisma": "^5.0.0"
+  },
+  "peerDependencies": {
+    "prettier": ">=3"
+  }
+}
