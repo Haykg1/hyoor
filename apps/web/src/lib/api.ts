@@ -163,6 +163,14 @@ class ApiClient {
     });
   }
 
+  put<T>(path: string, body: unknown, init?: RequestInit): Promise<T> {
+    return this.request<T>(path, {
+      ...init,
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
   delete<T>(path: string, init?: RequestInit): Promise<T> {
     return this.request<T>(path, { ...init, method: 'DELETE' });
   }

@@ -96,7 +96,9 @@ export interface PropertyPhotoView {
   key: string;
   url: string;
   caption: string | null;
-  displayOrder: number;
+  sortOrder: number;
+  isCover: boolean;
+  displayOrder?: number;
 }
 
 export interface PropertyAmenityView {
@@ -131,6 +133,7 @@ export interface PropertyDetail {
   pricePerNight: number;
   cleaningFee: number | null;
   securityDeposit: number | null;
+  cancellationPolicy: string;
   minNights: number;
   maxNights: number | null;
   checkInTime: string | null;

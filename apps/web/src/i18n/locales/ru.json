@@ -241,6 +241,28 @@
       "page_size": "На странице",
       "page_of": "Страница {page} из {totalPages} · {total} всего"
     },
+    "filters": {
+      "search_placeholder": "Поиск по названию, адресу или slug",
+      "property_type": "Тип объекта",
+      "all_types": "Все типы",
+      "status": "Статус",
+      "all_statuses": "Все статусы",
+      "reset": "Сбросить",
+      "types": {
+        "APARTMENT": "Квартира",
+        "HOUSE": "Дом",
+        "VILLA": "Вилла",
+        "STUDIO": "Студия",
+        "GUESTHOUSE": "Гостевой дом",
+        "HOTEL_ROOM": "Гостиничный номер",
+        "OTHER": "Другое"
+      },
+      "statuses": {
+        "DRAFT": "Черновик",
+        "PENDING_REVIEW": "На проверке",
+        "ACTIVE": "Активный"
+      }
+    },
     "overview": "Dashboard",
     "properties": "Properties",
     "bookings": "Bookings",
@@ -276,6 +298,78 @@
       "save_success": "Вместимость успешно обновлена.",
       "save_error": "Не удалось сохранить. Попробуйте снова.",
       "cancel": "Отмена"
+    }
+  },
+  "listing_wizard": {
+    "title": "Разместить объект",
+    "back_dashboard": "Назад в панель",
+    "back": "Назад",
+    "next": "Далее",
+    "submit": "Отправить на проверку",
+    "submitting": "Отправка…",
+    "loading": "Загрузка…",
+    "created_success": "Объявление создано.",
+    "updated_success": "Объявление обновлено.",
+    "submit_error": "Не удалось сохранить. Попробуйте снова.",
+    "steps": {
+      "basics": "Основное",
+      "details": "Детали",
+      "media": "Фото и удобства",
+      "pricing": "Цена"
+    },
+    "basics": {
+      "property_type": "Тип жилья",
+      "more_types": "Другие типы…",
+      "title": "Название",
+      "title_placeholder": "напр. Уютная квартира в центре Еревана",
+      "description": "Описание",
+      "description_placeholder": "Опишите жильё, район и особенности…",
+      "city": "Город",
+      "city_placeholder": "напр. Ереван",
+      "region": "Регион",
+      "region_placeholder": "напр. Тавуш",
+      "address": "Адрес",
+      "address_placeholder": "Полный адрес",
+      "types": {
+        "APARTMENT": "Квартира",
+        "HOUSE": "Дом",
+        "VILLA": "Вилла",
+        "GUESTHOUSE": "Гостевой дом",
+        "STUDIO": "Студия",
+        "HOTEL_ROOM": "Номер в отеле",
+        "OTHER": "Другое"
+      }
+    },
+    "details": {
+      "bedrooms": "Спальни",
+      "beds": "Кровати",
+      "bathrooms": "Ванные",
+      "max_guests": "Гости",
+      "max_adults": "Взрослые",
+      "max_children": "Дети",
+      "max_infants": "Младенцы"
+    },
+    "media": {
+      "dropzone_title": "Перетащите фото сюда",
+      "dropzone_hint": "JPEG, PNG или WebP · до 5 МБ",
+      "uploading": "Загрузка…",
+      "amenities_label": "Удобства",
+      "amenities_search": "Поиск…",
+      "pinned": "Популярные"
+    },
+    "pricing": {
+      "price_per_night": "Цена за ночь (AMD)",
+      "price_placeholder": "напр. 25000",
+      "price_required": "Укажите цену больше нуля",
+      "cleaning_fee": "Уборка (AMD)",
+      "cleaning_placeholder": "напр. 5000",
+      "cancellation_policy": "Политика отмены",
+      "policies": {
+        "FLEXIBLE": "Гибкая",
+        "MODERATE": "Умеренная",
+        "STRICT": "Строгая",
+        "NON_REFUNDABLE": "Без возврата"
+      }
     }
   },
   "property_form": {

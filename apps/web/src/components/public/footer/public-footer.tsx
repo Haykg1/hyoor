@@ -43,10 +43,12 @@ export function PublicFooter(): React.JSX.Element {
   const t = useTranslations('footer');
   const { user } = useAuthStore();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
-  const visibleColumns =
-    mounted && user ? FOOTER_COLUMNS.filter((c) => c.headingKey !== 'hosting') : FOOTER_COLUMNS;
-  const columns = visibleColumns.map((column) => ({
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const hideHosting = mounted && !!user;
+  const columns = FOOTER_COLUMNS.map((column) => ({
+    headingKey: column.headingKey,
     heading: t(column.headingKey),
     links: column.links.map<FooterColumnLink>((link) => ({
       href: link.href,
@@ -62,7 +64,12 @@ export function PublicFooter(): React.JSX.Element {
             <p className="text-sm leading-relaxed text-muted-foreground">{t('tagline')}</p>
           </div>
           {columns.map((column) => (
-            <FooterColumn key={column.heading} heading={column.heading} links={column.links} />
+            <FooterColumn
+              key={column.headingKey}
+              heading={column.heading}
+              links={column.links}
+              hidden={column.headingKey === 'hosting' && hideHosting}
+            />
           ))}
         </div>
         <FooterBottom />

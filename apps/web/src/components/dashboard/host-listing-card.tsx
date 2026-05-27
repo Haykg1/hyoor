@@ -48,6 +48,7 @@ export function HostListingCard({
   }
 
   const location = listing.region ? `${listing.city}, ${listing.region}` : listing.city;
+  const canView = listing.status !== 'DRAFT' && listing.status !== 'INACTIVE';
 
   return (
     <>
@@ -72,16 +73,20 @@ export function HostListingCard({
           </p>
         </div>
         <div className="flex items-center gap-2 self-end sm:self-auto">
-          <Button size="sm" variant="outline" disabled className="gap-1 text-xs">
-            <Pencil className="h-3 w-3" />
-            {t('actions.edit')}
-          </Button>
-          <Button size="sm" variant="ghost" className="text-xs" asChild>
-            <Link href={`/property/${listing.id}`}>
-              <Eye className="mr-1 h-3 w-3" />
-              {t('actions.view')}
+          <Button size="sm" variant="outline" className="gap-1 text-xs" asChild>
+            <Link href={`/dashboard/listings/${listing.id}/edit`}>
+              <Pencil className="h-3 w-3" />
+              {t('actions.edit')}
             </Link>
           </Button>
+          {canView && (
+            <Button size="sm" variant="ghost" className="text-xs" asChild>
+              <Link href={`/property/${listing.id}`}>
+                <Eye className="mr-1 h-3 w-3" />
+                {t('actions.view')}
+              </Link>
+            </Button>
+          )}
           {showDelete && (
             <Button
               size="sm"

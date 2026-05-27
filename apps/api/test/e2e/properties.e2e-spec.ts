@@ -3,9 +3,9 @@ import request from 'supertest';
 
 import { PrismaService } from '../../src/database/prisma.service';
 import { createTestApp, type TestAppContext } from '../helpers/create-test-app';
-import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
 import { registerHostUser, sampleProperty } from '../helpers/property-test.helper';
 import { resetE2eDatabase } from '../helpers/reset-database';
+import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
 
 describe('Properties (e2e)', () => {
   let app: INestApplication;
@@ -130,7 +130,12 @@ describe('Properties (e2e)', () => {
       page: number;
       limit: number;
       totalPages: number;
-      stats: { totalListings: number; activeListings: number; pendingRequests: number; totalEarnings: number };
+      stats: {
+        totalListings: number;
+        activeListings: number;
+        pendingRequests: number;
+        totalEarnings: number;
+      };
     };
     expect(body.data).toHaveLength(1);
     expect(body.total).toBe(1);
@@ -192,6 +197,101 @@ describe('Properties (e2e)', () => {
       .expect(400);
   });
 
+  it('filters /properties/my by status within active tab', async () => {
+    const host = await registerHostUser(app);
+    const draft = await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send(sampleProperty)
+      .expect(201);
+    const prisma = app.get(PrismaService);
+    const activeProperty = await prisma.property.create({
+      data: {
+        hostId: host.hostProfileId,
+        title: 'Active Apartment Title',
+        slug: 'active-apartment-title',
+        description: 'desc',
+        propertyType: 'APARTMENT',
+        city: 'Yerevan',
+        country: 'AM',
+        maxGuests: 2,
+        bedrooms: 1,
+        beds: 1,
+        bathrooms: 1,
+        pricePerNight: 30000,
+        currency: 'AMD',
+        cancellationPolicy: 'MODERATE',
+        status: 'ACTIVE',
+      },
+    });
+    const draftResp = await request(app.getHttpServer())
+      .get('/api/v1/properties/my?status=DRAFT')
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    const draftBody = draftResp.body.data as { data: Array<{ id: string; status: string }> };
+    expect(draftBody.data).toHaveLength(1);
+    expect(draftBody.data[0]?.id).toBe(draft.body.data.id);
+    expect(draftBody.data[0]?.status).toBe('DRAFT');
+    const activeResp = await request(app.getHttpServer())
+      .get('/api/v1/properties/my?status=ACTIVE')
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    const activeBody = activeResp.body.data as { data: Array<{ id: string }> };
+    expect(activeBody.data).toHaveLength(1);
+    expect(activeBody.data[0]?.id).toBe(activeProperty.id);
+  });
+
+  it('rejects status=INACTIVE on /properties/my (use tab=disabled)', async () => {
+    const host = await registerHostUser(app);
+    await request(app.getHttpServer())
+      .get('/api/v1/properties/my?status=INACTIVE')
+      .set(authHeader(host.accessToken))
+      .expect(400);
+  });
+
+  it('filters /properties/my by propertyType', async () => {
+    const host = await registerHostUser(app);
+    await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send(sampleProperty)
+      .expect(201);
+    const villaMatches = await request(app.getHttpServer())
+      .get('/api/v1/properties/my?propertyType=VILLA')
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    expect((villaMatches.body.data as { data: unknown[] }).data).toHaveLength(0);
+    const apartmentMatches = await request(app.getHttpServer())
+      .get('/api/v1/properties/my?propertyType=APARTMENT')
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    expect((apartmentMatches.body.data as { data: unknown[] }).data).toHaveLength(1);
+  });
+
+  it('searches /properties/my by title, slug, and city', async () => {
+    const host = await registerHostUser(app);
+    await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send(sampleProperty)
+      .expect(201);
+    const titleHit = await request(app.getHttpServer())
+      .get('/api/v1/properties/my?search=cozy')
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    expect((titleHit.body.data as { data: unknown[] }).data).toHaveLength(1);
+    const slugHit = await request(app.getHttpServer())
+      .get('/api/v1/properties/my?search=yerevan-apartment')
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    expect((slugHit.body.data as { data: unknown[] }).data).toHaveLength(1);
+    const miss = await request(app.getHttpServer())
+      .get('/api/v1/properties/my?search=nonexistent-xyz')
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    expect((miss.body.data as { data: unknown[] }).data).toHaveLength(0);
+  });
+
   it('updates and soft-deletes owned property', async () => {
     const host = await registerHostUser(app);
     const create = await request(app.getHttpServer())
@@ -236,6 +336,77 @@ describe('Properties (e2e)', () => {
       .send({ status: 'ACTIVE' })
       .expect(200);
     expect(response.body.data.status).toBe('ACTIVE');
+  });
+
+  it('returns presigned upload URL and confirms photo for property owner', async () => {
+    const host = await registerHostUser(app);
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send(sampleProperty)
+      .expect(201);
+    const propertyId = create.body.data.id as string;
+    const presigned = await request(app.getHttpServer())
+      .post(`/api/v1/properties/${propertyId}/photos/presigned-url`)
+      .set(authHeader(host.accessToken))
+      .send({ mimeType: 'image/jpeg' })
+      .expect(201);
+    const { uploadUrl, key } = presigned.body.data as { uploadUrl: string; key: string };
+    expect(uploadUrl).toContain('https://');
+    expect(key).toMatch(new RegExp(`^properties/${propertyId}/`));
+    const confirm = await request(app.getHttpServer())
+      .post(`/api/v1/properties/${propertyId}/photos/confirm`)
+      .set(authHeader(host.accessToken))
+      .send({ key, isCover: true })
+      .expect(201);
+    expect(confirm.body.data.key).toBe(key);
+    expect(confirm.body.data.isCover).toBe(true);
+  });
+
+  it('rejects presigned photo URL for non-owner host', async () => {
+    const hostA = await registerHostUser(app);
+    const hostB = await registerHostUser(app);
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(hostA.accessToken))
+      .send(sampleProperty)
+      .expect(201);
+    const propertyId = create.body.data.id as string;
+    await request(app.getHttpServer())
+      .post(`/api/v1/properties/${propertyId}/photos/presigned-url`)
+      .set(authHeader(hostB.accessToken))
+      .send({ mimeType: 'image/jpeg' })
+      .expect(403);
+  });
+
+  it('rejects invalid mime type for presigned photo URL', async () => {
+    const host = await registerHostUser(app);
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send(sampleProperty)
+      .expect(201);
+    const propertyId = create.body.data.id as string;
+    await request(app.getHttpServer())
+      .post(`/api/v1/properties/${propertyId}/photos/presigned-url`)
+      .set(authHeader(host.accessToken))
+      .send({ mimeType: 'image/gif' })
+      .expect(400);
+  });
+
+  it('rejects photo confirm when key prefix does not match property', async () => {
+    const host = await registerHostUser(app);
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send(sampleProperty)
+      .expect(201);
+    const propertyId = create.body.data.id as string;
+    await request(app.getHttpServer())
+      .post(`/api/v1/properties/${propertyId}/photos/confirm`)
+      .set(authHeader(host.accessToken))
+      .send({ key: 'properties/other-property/bad-key.jpg' })
+      .expect(400);
   });
 
   it('deletes property photo from storage and database', async () => {

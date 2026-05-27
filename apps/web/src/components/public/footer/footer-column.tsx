@@ -8,11 +8,12 @@ export interface FooterColumnLink {
 interface FooterColumnProps {
   heading: string;
   links: FooterColumnLink[];
+  hidden?: boolean;
 }
 
-export function FooterColumn({ heading, links }: FooterColumnProps): React.JSX.Element {
+export function FooterColumn({ heading, links, hidden }: FooterColumnProps): React.JSX.Element {
   return (
-    <div>
+    <div hidden={hidden}>
       <h4 className="mb-3 text-sm font-semibold">{heading}</h4>
       <ul className="space-y-2 text-sm text-muted-foreground">
         {links.map((link) => (

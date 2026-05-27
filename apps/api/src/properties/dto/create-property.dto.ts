@@ -1,4 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import type { CreatePropertyInput } from '@repo/shared';
+import { CancellationPolicies, PropertyTypes } from '@repo/shared';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -12,19 +14,10 @@ import {
   Min,
 } from 'class-validator';
 
-export const PROPERTY_TYPES = [
-  'APARTMENT',
-  'HOUSE',
-  'VILLA',
-  'STUDIO',
-  'GUESTHOUSE',
-  'HOTEL_ROOM',
-  'OTHER',
-] as const;
+export const PROPERTY_TYPES = PropertyTypes;
+export const CANCELLATION_POLICIES = CancellationPolicies;
 
-export const CANCELLATION_POLICIES = ['FLEXIBLE', 'MODERATE', 'STRICT', 'NON_REFUNDABLE'] as const;
-
-export class CreatePropertyDto {
+export class CreatePropertyDto implements CreatePropertyInput {
   @ApiProperty({ example: 'Cascade View Apartment', maxLength: 200 })
   @IsString()
   @MaxLength(200)

@@ -21,14 +21,20 @@ interface NavDesktopLinksProps {
   className?: string;
 }
 
-export function NavDesktopLinks({ className }: NavDesktopLinksProps): React.JSX.Element | null {
+export function NavDesktopLinks({ className }: NavDesktopLinksProps): React.JSX.Element {
   const t = useTranslations('nav');
   const { user } = useAuthStore();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
-  if (mounted && user) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const hideLinks = mounted && !!user;
   return (
-    <nav className={cn('items-center gap-6', className)} aria-label="Primary">
+    <nav
+      className={cn('items-center gap-6', className)}
+      style={hideLinks ? { display: 'none' } : undefined}
+      aria-label="Primary"
+    >
       {NAV_LINKS.map((link) => (
         <Link
           key={link.href}

@@ -26,8 +26,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { Property, PropertyAmenity, PropertyStatus } from '@repo/database/client';
-import type { PaginatedResponse, PropertySummary } from '@repo/shared';
-import type { HostListingsResponse } from '@repo/shared';
+import type {
+  HostListingsResponse,
+  PaginatedResponse,
+  PresignedPhotoUrlResponse,
+  PropertySummary,
+} from '@repo/shared';
 
 import type { RequestUser } from '../auth/decorators/current-user.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -37,6 +41,8 @@ import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
 
+import { ConfirmPhotoUploadDto } from './dto/confirm-photo-upload.dto';
+import { CreatePresignedPhotoUrlDto } from './dto/create-presigned-photo-url.dto';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { QueryMyPropertiesDto } from './dto/query-my-properties.dto';
 import { ReplaceAmenitiesDto } from './dto/replace-amenities.dto';
@@ -139,6 +145,36 @@ export class PropertiesController {
   @ApiStandardErrors({ notFound: true })
   updateStatus(@Param('id') id: string, @Body() dto: UpdatePropertyStatusDto): Promise<Property> {
     return this.propertiesService.updateStatus(id, dto.status as PropertyStatus);
+  }
+
+  @Post(':id/photos/presigned-url')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a presigned S3 URL to upload a property photo directly' })
+  @ApiOkResponse({ description: 'Presigned upload URL and S3 key' })
+  @ApiStandardErrors({ notFound: true })
+  createPhotoUploadUrl(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+    @Body() dto: CreatePresignedPhotoUrlDto,
+  ): Promise<PresignedPhotoUrlResponse> {
+    return this.propertiesService.createPhotoUploadUrl(id, user.userId, dto.mimeType);
+  }
+
+  @Post(':id/photos/confirm')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Confirm a photo upload after PUT to S3' })
+  @ApiOkResponse({ description: 'Photo record created with presigned read URL' })
+  @ApiStandardErrors({ notFound: true })
+  confirmPhotoUpload(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+    @Body() dto: ConfirmPhotoUploadDto,
+  ): Promise<PropertyPhotoView> {
+    return this.propertiesService.confirmPhotoUpload(id, user.userId, dto);
   }
 
   @Post(':id/photos')

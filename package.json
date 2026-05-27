@@ -30,24 +30,5 @@
       "prisma",
       "unrs-resolver"
     ]
-  },
-  "lint-staged": {
-    "apps/web/**/*.{ts,tsx}": [
-      "pnpm --filter web lint --fix",
-      "prettier --write"
-    ],
-    "apps/api/**/*.ts": [
-      "pnpm --filter api lint --fix",
-      "prettier --write"
-    ],
-    "packages/database/**/*.{prisma,ts}": [
-      "prettier --write"
-    ],
-    "packages/**/*.{ts,tsx,js}": [
-      "prettier --write"
-    ],
-    "**/*.{json,md,yml,yaml}": [
-      "prettier --write"
-    ]
   }
 }

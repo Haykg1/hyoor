@@ -9,6 +9,7 @@ import { BrandWordmark } from '@/components/ui/brand-wordmark';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Link } from '@/i18n/navigation';
+import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store';
 
 import { NAV_LINKS } from './nav-desktop-links';
@@ -18,7 +19,10 @@ export function NavMobileMenu(): React.JSX.Element {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { user } = useAuthStore();
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const hideLinks = mounted && !!user;
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -33,8 +37,8 @@ export function NavMobileMenu(): React.JSX.Element {
           </SheetTitle>
         </SheetHeader>
         <div className="mt-6 flex flex-col gap-2">
-          {(!mounted || !user) &&
-            NAV_LINKS.map((link) => (
+          <div className={cn('flex flex-col gap-2', hideLinks && 'hidden')}>
+            {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -44,7 +48,8 @@ export function NavMobileMenu(): React.JSX.Element {
                 {t(link.labelKey)}
               </Link>
             ))}
-          {(!mounted || !user) && <div className="my-2 h-px bg-border" />}
+            <div className="my-2 h-px bg-border" />
+          </div>
           <UserMenu variant="compact" />
         </div>
       </SheetContent>

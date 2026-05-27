@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import type { AmenityInput } from '@repo/shared';
 import { IsOptional, IsString, MaxLength } from 'class-validator';
 
-export class AmenityDto {
+export class AmenityDto implements AmenityInput {
   @ApiProperty({ example: 'WiFi', maxLength: 100 })
   @IsString()
   @MaxLength(100)

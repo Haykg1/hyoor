@@ -1,15 +1,24 @@
 import type {
+  AmenityInput,
+  ConfirmPhotoUploadInput,
+  CreatePresignedPhotoUrlInput,
+  CreatePropertyInput,
   HostListingTab,
   HostListingsResponse,
   PaginatedResponse,
+  PresignedPhotoUrlResponse,
   PropertyDetail,
   PropertySummary,
   PropertyType,
+  UpdatePropertyInput,
 } from '@repo/shared';
+import type { PhotoMimeType } from '@repo/shared';
 
 import { api } from '@/lib/api';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1';
+
+const ALLOWED_PHOTO_MIME_TYPES: PhotoMimeType[] = ['image/jpeg', 'image/png', 'image/webp'];
 
 const FILTERABLE_CATEGORIES = ['apartment', 'house', 'villa', 'guesthouse'] as const;
 export type PropertyCategory = (typeof FILTERABLE_CATEGORIES)[number];
@@ -133,10 +142,85 @@ export async function updateProperty(
   return api.patch<PropertyDetail>(`/properties/${id}`, data);
 }
 
+export async function getMyPropertyDetail(id: string): Promise<PropertyDetail> {
+  return api.get<PropertyDetail>(`/properties/${id}`);
+}
+
+export async function createProperty(payload: CreatePropertyInput): Promise<{ id: string }> {
+  return api.post<{ id: string }>('/properties', payload);
+}
+
+export async function patchProperty(
+  id: string,
+  payload: UpdatePropertyInput,
+): Promise<PropertyDetail> {
+  return api.patch<PropertyDetail>(`/properties/${id}`, payload);
+}
+
+export async function getPresignedPhotoUploadUrl(
+  propertyId: string,
+  body: CreatePresignedPhotoUrlInput,
+): Promise<PresignedPhotoUrlResponse> {
+  return api.post<PresignedPhotoUrlResponse>(
+    `/properties/${propertyId}/photos/presigned-url`,
+    body,
+  );
+}
+
+export async function confirmPhotoUpload(
+  propertyId: string,
+  body: ConfirmPhotoUploadInput,
+): Promise<{ id: string; key: string; url: string; isCover: boolean; sortOrder: number }> {
+  return api.post(`/properties/${propertyId}/photos/confirm`, body);
+}
+
+export async function deletePropertyPhoto(
+  propertyId: string,
+  photoId: string,
+): Promise<{ success: true }> {
+  return api.delete(`/properties/${propertyId}/photos/${photoId}`);
+}
+
+export async function replacePropertyAmenities(
+  propertyId: string,
+  amenities: AmenityInput[],
+): Promise<unknown> {
+  return api.put(`/properties/${propertyId}/amenities`, { amenities });
+}
+
+export async function uploadPropertyPhotoFile(
+  propertyId: string,
+  file: File,
+  options: { isCover?: boolean; sortOrder?: number } = {},
+): Promise<{ id: string; key: string; url: string; isCover: boolean; sortOrder: number }> {
+  const mimeType = (
+    ALLOWED_PHOTO_MIME_TYPES.includes(file.type as PhotoMimeType) ? file.type : 'image/jpeg'
+  ) as PhotoMimeType;
+  const { uploadUrl, key } = await getPresignedPhotoUploadUrl(propertyId, { mimeType });
+  const putRes = await fetch(uploadUrl, {
+    method: 'PUT',
+    body: file,
+    headers: { 'Content-Type': mimeType },
+  });
+  if (!putRes.ok) {
+    throw new Error(`S3 upload failed: ${putRes.status}`);
+  }
+  return confirmPhotoUpload(propertyId, {
+    key,
+    isCover: options.isCover,
+    sortOrder: options.sortOrder,
+  });
+}
+
+export type HostListingStatusFilter = 'DRAFT' | 'PENDING_REVIEW' | 'ACTIVE';
+
 export interface ListMyPropertiesParams {
   page?: number;
   limit?: 10 | 20 | 30;
   tab?: HostListingTab;
+  status?: HostListingStatusFilter;
+  propertyType?: PropertyType;
+  search?: string;
 }
 
 export async function listMyProperties(
@@ -146,6 +230,10 @@ export async function listMyProperties(
   if (params.page) query.set('page', String(params.page));
   if (params.limit) query.set('limit', String(params.limit));
   if (params.tab) query.set('tab', params.tab);
+  if (params.status) query.set('status', params.status);
+  if (params.propertyType) query.set('propertyType', params.propertyType);
+  const trimmed = params.search?.trim();
+  if (trimmed) query.set('search', trimmed);
   const qs = query.toString();
   return api.get<HostListingsResponse>(`/properties/my${qs ? `?${qs}` : ''}`);
 }

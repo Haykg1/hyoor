@@ -241,6 +241,28 @@
       "page_size": "Էջում",
       "page_of": "Էջ {page} / {totalPages} · {total} ընդամենը"
     },
+    "filters": {
+      "search_placeholder": "Որոնում ըստ վերնագրի, հասցեի կամ slug-ի",
+      "property_type": "Տիպը",
+      "all_types": "Բոլոր տիպերը",
+      "status": "Կարգավիճակ",
+      "all_statuses": "Բոլոր կարգավիճակները",
+      "reset": "Մաքրել",
+      "types": {
+        "APARTMENT": "Բնակարան",
+        "HOUSE": "Տուն",
+        "VILLA": "Վիլլա",
+        "STUDIO": "Ստուդիա",
+        "GUESTHOUSE": "Հյուրատուն",
+        "HOTEL_ROOM": "Հյուրանոցային սենյակ",
+        "OTHER": "Այլ"
+      },
+      "statuses": {
+        "DRAFT": "Սևագիր",
+        "PENDING_REVIEW": "Ստուգման ընթացքում",
+        "ACTIVE": "Ակտիվ"
+      }
+    },
     "overview": "Dashboard",
     "properties": "Properties",
     "bookings": "Bookings",
@@ -276,6 +298,78 @@
       "save_success": "Տվյալները հաջողությամբ պահպանված են։",
       "save_error": "Չհաջողվեց պահպանել։ Փորձեք նորից։",
       "cancel": "Չեղարկել"
+    }
+  },
+  "listing_wizard": {
+    "title": "Հրապարակել գույք",
+    "back_dashboard": "Վերադառնալ վահանակ",
+    "back": "Հետ",
+    "next": "Հաջորդ",
+    "submit": "Ուղարկել ստուգման",
+    "submitting": "Ուղարկվում է…",
+    "loading": "Բեռնվում է…",
+    "created_success": "Հայտարարությունը ստեղծված է։",
+    "updated_success": "Հայտարարությունը թարմացված է։",
+    "submit_error": "Չհաջողվեց պահպանել։ Փորձեք նորից։",
+    "steps": {
+      "basics": "Հիմնական",
+      "details": "Մանրամասներ",
+      "media": "Լուսանկարներ և հարմարություններ",
+      "pricing": "Գին"
+    },
+    "basics": {
+      "property_type": "Գույքի տեսակ",
+      "more_types": "Այլ տեսակներ…",
+      "title": "Վերնագիր",
+      "title_placeholder": "օր. Հարմար բնակարան կենտրոնում",
+      "description": "Նկարագրություն",
+      "description_placeholder": "Նկարագրեք տարածքը, թաղամասը և առանձնահատկությունները…",
+      "city": "Քաղաք",
+      "city_placeholder": "օր. Երևան",
+      "region": "Մարզ",
+      "region_placeholder": "օր. Տավուշ",
+      "address": "Հասցե",
+      "address_placeholder": "Լրիվ հասցե",
+      "types": {
+        "APARTMENT": "Բնակարան",
+        "HOUSE": "Տուն",
+        "VILLA": "Վիլլա",
+        "GUESTHOUSE": "Հյուրատուն",
+        "STUDIO": "Ստուդիո",
+        "HOTEL_ROOM": "Հյուրանոցի սենյակ",
+        "OTHER": "Այլ"
+      }
+    },
+    "details": {
+      "bedrooms": "Ննջարաններ",
+      "beds": "Մահճներ",
+      "bathrooms": "Լոգասենյակներ",
+      "max_guests": "Հյուրեր",
+      "max_adults": "Մեծահասակներ",
+      "max_children": "Երեխաներ",
+      "max_infants": "Նորածիններ"
+    },
+    "media": {
+      "dropzone_title": "Քաշեք լուսանկարները այստեղ",
+      "dropzone_hint": "JPEG, PNG կամ WebP · առավելագույնը 5MB",
+      "uploading": "Վերբեռնվում է…",
+      "amenities_label": "Հարմարություններ",
+      "amenities_search": "Փնտրել…",
+      "pinned": "Հայտնի"
+    },
+    "pricing": {
+      "price_per_night": "Գինը գիշերը (AMD)",
+      "price_placeholder": "օր. 25000",
+      "price_required": "Մուտքագրեք զրոյից մեծ գին",
+      "cleaning_fee": "Մաքրության վճար (AMD)",
+      "cleaning_placeholder": "օր. 5000",
+      "cancellation_policy": "Չեղարկման քաղաքականություն",
+      "policies": {
+        "FLEXIBLE": "Ճկուն",
+        "MODERATE": "Միջին",
+        "STRICT": "Խիստ",
+        "NON_REFUNDABLE": "Չվերադարձվող"
+      }
     }
   },
   "property_form": {

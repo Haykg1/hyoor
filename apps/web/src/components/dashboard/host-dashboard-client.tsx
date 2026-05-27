@@ -5,9 +5,11 @@ import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
 import { useHostListings } from '@/hooks/use-host-listings';
+import { Link } from '@/i18n/navigation';
 
 import { HostDashboardStatsPanel } from './host-dashboard-stats';
 import { HostListingsPanel } from './host-listings-panel';
+import { HostListingsToolbar } from './host-listings-toolbar';
 
 interface HostDashboardClientProps {
   welcomeName: string;
@@ -27,10 +29,17 @@ export function HostDashboardClient({ welcomeName }: HostDashboardClientProps): 
     totalPages,
     total,
     tab,
+    statusFilter,
+    propertyTypeFilter,
+    searchQuery,
     isLoading,
     setTab,
     setPage,
     setLimit,
+    setStatusFilter,
+    setPropertyTypeFilter,
+    setSearchQuery,
+    resetFilters,
     softDeleteListing,
   } = useHostListings();
 
@@ -51,9 +60,11 @@ export function HostDashboardClient({ welcomeName }: HostDashboardClientProps): 
             {t('welcome', { name: welcomeName })}
           </p>
         </div>
-        <Button className="gap-2 self-start sm:self-auto" onClick={() => {}}>
-          <CirclePlus className="h-4 w-4" />
-          {t('add_listing')}
+        <Button className="gap-2 self-start sm:self-auto" asChild>
+          <Link href="/dashboard/listings/new">
+            <CirclePlus className="h-4 w-4" />
+            {t('add_listing')}
+          </Link>
         </Button>
       </div>
 
@@ -85,6 +96,18 @@ export function HostDashboardClient({ welcomeName }: HostDashboardClientProps): 
           );
         })}
       </div>
+
+      {/* Filters toolbar */}
+      <HostListingsToolbar
+        searchQuery={searchQuery}
+        statusFilter={statusFilter}
+        propertyTypeFilter={propertyTypeFilter}
+        showStatusFilter={activeTabKey === 'active'}
+        onSearchChange={setSearchQuery}
+        onStatusChange={setStatusFilter}
+        onPropertyTypeChange={setPropertyTypeFilter}
+        onReset={resetFilters}
+      />
 
       {/* Tab panels */}
       {activeTabKey === 'active' && (

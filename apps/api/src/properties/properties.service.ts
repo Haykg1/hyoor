@@ -20,6 +20,7 @@ import type {
   HostListingsResponse,
   HostListingSummary,
   PaginatedResponse,
+  PresignedPhotoUrlResponse,
   PropertySummary,
 } from '@repo/shared';
 import {
@@ -37,6 +38,7 @@ import {
 import { StorageService } from '../storage/storage.service';
 
 import { AmenityDto } from './dto/amenity.dto';
+import { ConfirmPhotoUploadDto } from './dto/confirm-photo-upload.dto';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { QueryMyPropertiesDto } from './dto/query-my-properties.dto';
 import { SearchPropertiesDto } from './dto/search-properties.dto';
@@ -220,16 +222,41 @@ export class PropertiesService {
     };
   }
 
-  async findMyListings(hostUserId: string, dto: QueryMyPropertiesDto): Promise<HostListingsResponse> {
+  async findMyListings(
+    hostUserId: string,
+    dto: QueryMyPropertiesDto,
+  ): Promise<HostListingsResponse> {
     const hostProfile = await this.hostProfilesService.findByUserId(hostUserId);
     const page = dto.page ?? 1;
     const limit = dto.limit ?? 10;
     const skip = (page - 1) * limit;
-    const tabWhere: Prisma.PropertyWhereInput =
-      dto.tab === 'disabled'
-        ? { status: 'INACTIVE' }
+    const isDisabledTab = dto.tab === 'disabled';
+    const statusWhere: Prisma.PropertyWhereInput = isDisabledTab
+      ? { status: 'INACTIVE' }
+      : dto.status
+        ? { status: dto.status }
         : { status: { not: 'INACTIVE' } };
-    const where: Prisma.PropertyWhereInput = { hostId: hostProfile.id, ...tabWhere };
+    const typeWhere: Prisma.PropertyWhereInput = dto.propertyType
+      ? { propertyType: dto.propertyType }
+      : {};
+    const searchWhere: Prisma.PropertyWhereInput = dto.search
+      ? {
+          OR: [
+            { title: { contains: dto.search, mode: 'insensitive' } },
+            { slug: { contains: dto.search, mode: 'insensitive' } },
+            { description: { contains: dto.search, mode: 'insensitive' } },
+            { city: { contains: dto.search, mode: 'insensitive' } },
+            { region: { contains: dto.search, mode: 'insensitive' } },
+            { country: { contains: dto.search, mode: 'insensitive' } },
+          ],
+        }
+      : {};
+    const where: Prisma.PropertyWhereInput = {
+      hostId: hostProfile.id,
+      ...statusWhere,
+      ...typeWhere,
+      ...searchWhere,
+    };
     const [properties, total, totalListings, activeListings] = await Promise.all([
       this.prisma.property.findMany({
         where,
@@ -239,7 +266,9 @@ export class PropertiesService {
         include: { photos: { where: { isCover: true }, take: 1 } },
       }),
       this.prisma.property.count({ where }),
-      this.prisma.property.count({ where: { hostId: hostProfile.id, status: { not: 'INACTIVE' } } }),
+      this.prisma.property.count({
+        where: { hostId: hostProfile.id, status: { not: 'INACTIVE' } },
+      }),
       this.prisma.property.count({ where: { hostId: hostProfile.id, status: 'ACTIVE' } }),
     ]);
     const data = await Promise.all(properties.map((p) => this.toHostListingSummary(p)));
@@ -287,6 +316,55 @@ export class PropertiesService {
       where: { id },
       data: { status },
     });
+  }
+
+  async createPhotoUploadUrl(
+    propertyId: string,
+    hostUserId: string,
+    mimeType: string,
+  ): Promise<PresignedPhotoUrlResponse> {
+    if (!ALLOWED_PHOTO_MIME_TYPES.has(mimeType)) {
+      throw new BadRequestException('Photo must be a JPEG, PNG, or WebP image');
+    }
+    await this.getOwnedProperty(propertyId, hostUserId);
+    const ext = mimeType === 'image/jpeg' ? 'jpg' : mimeType === 'image/png' ? 'png' : 'webp';
+    const key = `properties/${propertyId}/${randomUUID()}.${ext}`;
+    const uploadUrl = await this.storage.getPresignedUploadUrl(
+      key,
+      mimeType,
+      S3_PRESIGNED_URL_EXPIRES,
+    );
+    return { uploadUrl, key };
+  }
+
+  async confirmPhotoUpload(
+    propertyId: string,
+    hostUserId: string,
+    dto: ConfirmPhotoUploadDto,
+  ): Promise<PropertyPhotoView> {
+    await this.getOwnedProperty(propertyId, hostUserId);
+    const expectedPrefix = `properties/${propertyId}/`;
+    if (!dto.key.startsWith(expectedPrefix)) {
+      throw new BadRequestException('Invalid photo key for this property');
+    }
+    const existingPhotos = await this.prisma.propertyPhoto.count({ where: { propertyId } });
+    if (dto.isCover) {
+      await this.prisma.propertyPhoto.updateMany({
+        where: { propertyId, isCover: true },
+        data: { isCover: false },
+      });
+    }
+    const photo = await this.prisma.propertyPhoto.create({
+      data: {
+        propertyId,
+        key: dto.key,
+        caption: dto.caption,
+        sortOrder: dto.sortOrder ?? existingPhotos,
+        isCover: dto.isCover ?? existingPhotos === 0,
+      },
+    });
+    const url = await this.storage.getPresignedUrl(photo.key, S3_PRESIGNED_URL_EXPIRES);
+    return { ...photo, url };
   }
 
   async uploadPhoto(

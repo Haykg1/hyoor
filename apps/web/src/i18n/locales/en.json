@@ -241,6 +241,28 @@
       "page_size": "Per page",
       "page_of": "Page {page} of {totalPages} · {total} total"
     },
+    "filters": {
+      "search_placeholder": "Search by title, address, or slug",
+      "property_type": "Property type",
+      "all_types": "All types",
+      "status": "Status",
+      "all_statuses": "All statuses",
+      "reset": "Reset",
+      "types": {
+        "APARTMENT": "Apartment",
+        "HOUSE": "House",
+        "VILLA": "Villa",
+        "STUDIO": "Studio",
+        "GUESTHOUSE": "Guesthouse",
+        "HOTEL_ROOM": "Hotel room",
+        "OTHER": "Other"
+      },
+      "statuses": {
+        "DRAFT": "Draft",
+        "PENDING_REVIEW": "Pending review",
+        "ACTIVE": "Active"
+      }
+    },
     "overview": "Dashboard",
     "properties": "My Properties",
     "bookings": "Bookings",
@@ -276,6 +298,78 @@
       "save_success": "Capacity updated successfully.",
       "save_error": "Failed to save. Please try again.",
       "cancel": "Cancel"
+    }
+  },
+  "listing_wizard": {
+    "title": "List Your Property",
+    "back_dashboard": "Back to dashboard",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit for Review",
+    "submitting": "Submitting…",
+    "loading": "Loading…",
+    "created_success": "Listing created successfully.",
+    "updated_success": "Listing updated successfully.",
+    "submit_error": "Could not save listing. Please try again.",
+    "steps": {
+      "basics": "Basics",
+      "details": "Details",
+      "media": "Photos & Amenities",
+      "pricing": "Pricing"
+    },
+    "basics": {
+      "property_type": "Property Type",
+      "more_types": "More property types…",
+      "title": "Listing Title",
+      "title_placeholder": "e.g. Cozy apartment in central Yerevan",
+      "description": "Description",
+      "description_placeholder": "Describe your space, neighborhood, and what makes it special…",
+      "city": "City",
+      "city_placeholder": "e.g. Yerevan",
+      "region": "Region / Province",
+      "region_placeholder": "e.g. Tavush",
+      "address": "Full Address",
+      "address_placeholder": "Full street address",
+      "types": {
+        "APARTMENT": "Apartment",
+        "HOUSE": "House",
+        "VILLA": "Villa",
+        "GUESTHOUSE": "Guesthouse",
+        "STUDIO": "Studio",
+        "HOTEL_ROOM": "Hotel room",
+        "OTHER": "Other"
+      }
+    },
+    "details": {
+      "bedrooms": "Bedrooms",
+      "beds": "Beds",
+      "bathrooms": "Bathrooms",
+      "max_guests": "Max Guests",
+      "max_adults": "Adults",
+      "max_children": "Children",
+      "max_infants": "Infants"
+    },
+    "media": {
+      "dropzone_title": "Drag and drop photos here",
+      "dropzone_hint": "JPEG, PNG, or WebP · max 5MB each",
+      "uploading": "Uploading…",
+      "amenities_label": "Amenities",
+      "amenities_search": "Search amenities…",
+      "pinned": "Popular"
+    },
+    "pricing": {
+      "price_per_night": "Price per Night (AMD)",
+      "price_placeholder": "e.g. 25000",
+      "price_required": "Enter a price greater than zero",
+      "cleaning_fee": "Cleaning Fee (AMD)",
+      "cleaning_placeholder": "e.g. 5000",
+      "cancellation_policy": "Cancellation Policy",
+      "policies": {
+        "FLEXIBLE": "Flexible",
+        "MODERATE": "Moderate",
+        "STRICT": "Strict",
+        "NON_REFUNDABLE": "Non-refundable"
+      }
     }
   },
   "property_form": {
