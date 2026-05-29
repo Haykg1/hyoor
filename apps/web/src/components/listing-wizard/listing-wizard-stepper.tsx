@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 
 import { cn } from '@/lib/utils';
 
-const STEPS = ['basics', 'details', 'media', 'pricing'] as const;
+const STEPS = ['basics', 'details', 'media', 'pricing_rules'] as const;
 
 interface ListingWizardStepperProps {
   currentStep: number;

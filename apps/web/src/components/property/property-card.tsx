@@ -1,6 +1,7 @@
 'use client';
 
-import type { PropertySummary, PropertyType } from '@repo/shared';
+import type { PropertySummary } from '@repo/shared';
+import { propertyTypeLabelKey } from '@repo/shared';
 import { Heart, Star } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -10,16 +11,6 @@ import { Link } from '@/i18n/navigation';
 interface PropertyCardProps {
   property: PropertySummary;
 }
-
-const PROPERTY_TYPE_KEY: Record<PropertyType, string> = {
-  APARTMENT: 'apartment',
-  STUDIO: 'apartment',
-  HOUSE: 'house',
-  VILLA: 'villa',
-  GUESTHOUSE: 'guesthouse',
-  HOTEL_ROOM: 'apartment',
-  OTHER: 'apartment',
-};
 
 const PLACEHOLDER_IMAGE =
   'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=60';
@@ -36,7 +27,7 @@ export function PropertyCard({ property }: PropertyCardProps): React.JSX.Element
         <PropertyCardMedia
           imageUrl={property.coverPhotoUrl ?? PLACEHOLDER_IMAGE}
           title={property.title}
-          categoryLabel={tc(PROPERTY_TYPE_KEY[property.propertyType])}
+          categoryLabel={tc(propertyTypeLabelKey(property.propertyType))}
         />
         <div className="p-4">
           <div className="mb-1 flex items-start justify-between gap-2">

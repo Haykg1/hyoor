@@ -22,8 +22,17 @@ export interface AppConfig {
     google: { clientId: string; clientSecret: string; callbackUrl: string };
     apple: { clientId: string; teamId: string; keyId: string; privateKey: string };
   };
+  yandex: { mapsApiKey: string };
   security: {
-    throttle: { ttlMs: number; limit: number; authLimit: number };
+    throttle: {
+      ttlMs: number;
+      limit: number;
+      authLimit: number;
+      writeLimit: number;
+      paymentsLimit: number;
+      messagingLimit: number;
+      geocodingLimit: number;
+    };
     trustProxy: boolean;
     jsonBodyLimit: string;
     maxUploadBytes: number;
@@ -68,11 +77,18 @@ export default (): AppConfig => ({
       privateKey: process.env.APPLE_PRIVATE_KEY ?? '',
     },
   },
+  yandex: {
+    mapsApiKey: process.env.YANDEX_MAPS_API_KEY ?? '',
+  },
   security: {
     throttle: {
       ttlMs: parseInt(process.env.THROTTLE_TTL_MS ?? '60000', 10),
       limit: parseInt(process.env.THROTTLE_LIMIT ?? '100', 10),
       authLimit: parseInt(process.env.THROTTLE_AUTH_LIMIT ?? '10', 10),
+      writeLimit: parseInt(process.env.THROTTLE_WRITE_LIMIT ?? '30', 10),
+      paymentsLimit: parseInt(process.env.THROTTLE_PAYMENTS_LIMIT ?? '10', 10),
+      messagingLimit: parseInt(process.env.THROTTLE_MESSAGING_LIMIT ?? '60', 10),
+      geocodingLimit: parseInt(process.env.THROTTLE_GEOCODING_LIMIT ?? '30', 10),
     },
     trustProxy: process.env.TRUST_PROXY === 'true',
     jsonBodyLimit: process.env.JSON_BODY_LIMIT ?? '10mb',

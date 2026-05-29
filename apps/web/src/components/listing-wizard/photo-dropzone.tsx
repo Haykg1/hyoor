@@ -1,11 +1,12 @@
 'use client';
 
-import { ImagePlus, Star, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, ImagePlus, Star, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useCallback, useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { ListingPhotoEntry } from '@/store/listing-form.store';
 
@@ -14,6 +15,8 @@ interface PhotoDropzoneProps {
   onAdd: (files: File[]) => void;
   onRemove: (localId: string) => void;
   onSetCover: (localId: string) => void;
+  onUpdateCaption: (localId: string, caption: string) => void;
+  onMovePhoto: (localId: string, direction: 'up' | 'down') => void;
 }
 
 export function PhotoDropzone({
@@ -21,6 +24,8 @@ export function PhotoDropzone({
   onAdd,
   onRemove,
   onSetCover,
+  onUpdateCaption,
+  onMovePhoto,
 }: PhotoDropzoneProps): React.JSX.Element {
   const t = useTranslations('listing_wizard.media');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -68,46 +73,71 @@ export function PhotoDropzone({
         />
       </div>
       {photos.length > 0 && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {photos.map((photo) => (
-            <div
-              key={photo.localId}
-              className="relative aspect-square overflow-hidden rounded-lg border border-border"
-            >
-              <Image src={photo.url} alt="" fill className="object-cover" unoptimized />
-              <div className="absolute inset-x-0 bottom-0 flex gap-1 bg-black/50 p-1">
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 text-white hover:bg-white/20"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSetCover(photo.localId);
-                  }}
-                >
-                  <Star
-                    className={cn('h-3 w-3', photo.isCover && 'fill-amber-400 text-amber-400')}
-                  />
-                </Button>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 text-white hover:bg-white/20"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove(photo.localId);
-                  }}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
+        <div className="space-y-3">
+          {photos.map((photo, index) => (
+            <div key={photo.localId} className="flex gap-3 rounded-lg border border-border p-2">
+              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md">
+                <Image src={photo.url} alt="" fill className="object-cover" unoptimized />
+                {photo.status === 'uploading' && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-xs text-white">
+                    {t('uploading')}
+                  </div>
+                )}
               </div>
-              {photo.status === 'uploading' && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-xs text-white">
-                  {t('uploading')}
+              <div className="min-w-0 flex-1 space-y-2">
+                <Input
+                  placeholder={t('caption_placeholder')}
+                  value={photo.caption}
+                  onChange={(e) => onUpdateCaption(photo.localId, e.target.value)}
+                  className="h-8 text-xs"
+                />
+                <div className="flex flex-wrap items-center gap-1">
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className="h-7 w-7"
+                    disabled={index === 0}
+                    onClick={() => onMovePhoto(photo.localId, 'up')}
+                    aria-label={t('move_up')}
+                  >
+                    <ChevronUp className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className="h-7 w-7"
+                    disabled={index === photos.length - 1}
+                    onClick={() => onMovePhoto(photo.localId, 'down')}
+                    aria-label={t('move_down')}
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className="h-7 w-7"
+                    onClick={() => onSetCover(photo.localId)}
+                    aria-label={t('set_cover')}
+                  >
+                    <Star
+                      className={cn('h-3 w-3', photo.isCover && 'fill-amber-400 text-amber-400')}
+                    />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className="h-7 w-7 text-destructive"
+                    onClick={() => onRemove(photo.localId)}
+                    aria-label={t('remove_photo')}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
                 </div>
-              )}
+              </div>
             </div>
           ))}
         </div>

@@ -37,6 +37,11 @@ model Property {
   country            String             @default("AM")
   region             String?
   city               String
+  street             String?
+  buildingNumber     String?
+  formattedAddress   String?
+  placeKind          String?
+  apartmentNumber    String?
   addressLine        String?
   latitude           Decimal?           @db.Decimal(10, 7)
   longitude          Decimal?           @db.Decimal(10, 7)
@@ -75,6 +80,8 @@ model Property {
 
   @@index([hostId])
   @@index([city])
+  @@index([region])
+  @@index([street])
   @@index([status])
   @@index([pricePerNight])
   @@index([featured])

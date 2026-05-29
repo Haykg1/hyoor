@@ -17,6 +17,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { PaginatedResponse } from '@repo/shared';
 
 import type { RequestUser } from '../auth/decorators/current-user.decorator';
@@ -25,6 +26,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
+import { WRITE_THROTTLE } from '../common/throttle/throttle.constants';
 import { CheckoutDto } from '../payments/dto/checkout.dto';
 import type { CheckoutInitResult } from '../payments/payment-provider.interface';
 import { PaymentsService } from '../payments/payments.service';
@@ -37,6 +39,7 @@ import { QueryBookingsDto } from './dto/query-bookings.dto';
 
 @ApiTags('bookings')
 @Controller('bookings')
+@Throttle(WRITE_THROTTLE)
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class BookingsController {

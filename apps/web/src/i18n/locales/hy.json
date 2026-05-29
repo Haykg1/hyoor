@@ -78,13 +78,64 @@
     "menu": "Մենյու"
   },
   "search": {
-    "where": "Որտեղ",
-    "where_placeholder": "Ցանկացած վայր",
+    "page_title": "Որոնել կացարան",
+    "page_subtitle": "Գտեք ընտրված կացարաններ Հայաստանում",
+    "destination_placeholder": "Որոնել ուղղություն",
     "check_in": "Մուտք",
     "check_out": "Ելք",
-    "add_dates": "Ավելացնել ամսաթվեր",
     "guests": "Հյուրեր",
-    "search": "Որոնել"
+    "search_button": "Որոնել",
+    "filters_button": "Զտիչներ",
+    "sort": {
+      "label": "Դասավորել ըստ",
+      "newest": "Վերջին ավելացվածները",
+      "price_asc": "Գին․ էժանից թանկ"
+    },
+    "count": "{count, plural, =0 {Կացարաններ չեն գտնվել} =1 {գտնվել է 1 կացարան} other {գտնվել է # կացարան}}",
+    "map_button": "Քարտեզ",
+    "empty": {
+      "title": "Ձեր որոնմանը համապատասխանող ընտրված կացարան չկա",
+      "description": "Փորձեք այլ ուղղություն կամ վերականգնեք զտիչները։",
+      "clear": "Մաքրել զտիչները"
+    },
+    "filters": {
+      "title": "Զտիչներ",
+      "apply": "Կիրառել",
+      "reset": "Մաքրել",
+      "cancel": "Չեղարկել",
+      "min": "Նվազագույն",
+      "max": "Առավելագույն",
+      "region": "Մարզ",
+      "region_placeholder": "օր. Տավուշ",
+      "min_bedrooms": "Ննջասենյակներ (նվազագույն)",
+      "min_beds": "Մահճակալներ (նվազագույն)",
+      "min_bathrooms": "Լոգասենյակներ (նվազագույն)",
+      "min_adults": "Մեծահասակներ (նվազագույն)",
+      "min_children": "Երեխաներ (նվազագույն)",
+      "min_infants": "Նորածիններ (նվազագույն)",
+      "cleaning_fee_range": "Մաքրության վճար (AMD)",
+      "security_deposit_range": "Գրավ (AMD)",
+      "min_nights": "Գիշերեր (նվազագույն)",
+      "max_nights": "Գիշերեր (առավելագույն)",
+      "house_rules": "Տան կանոններ",
+      "smoking_allowed": "Ծխելը թույլատրված է",
+      "pets_allowed": "Կենդանիները թույլատրված են",
+      "parties_allowed": "Խնջույքները թույլատրված են",
+      "amenities": "Հարմարություններ",
+      "amenities_search": "Փնտրել հարմարություններ…",
+      "min_avg_rating": "Միջին գնահատական (նվազագույն)",
+      "min_review_count": "Կարծիքների քանակ (նվազագույն)",
+      "place_searching": "Որոնում…",
+      "place_no_results": "Վայրեր չեն գտնվել",
+      "location": "Վայր",
+      "location_placeholder": "Որոնել քաղաք, փողոց կամ հասցե…",
+      "search_city": "Քաղաք",
+      "search_city_placeholder": "օր. Երևան",
+      "search_street": "Փողոց",
+      "search_street_placeholder": "օր. Ազատության պողոտա",
+      "search_building_number": "Շենքի համար",
+      "search_building_number_placeholder": "օր. 11"
+    }
   },
   "footer": {
     "tagline": "Բացահայտիր Հայաստանը՝ մեկ կացարան՝ մեկ քայլ",
@@ -225,9 +276,13 @@
     "actions": {
       "view": "Դիտել",
       "edit": "Խմբագրել",
-      "soft_delete": "Անջատել"
+      "soft_delete": "Անջատել",
+      "reactivate": "Միացնել"
     },
     "deleting": "Անջատվում է…",
+    "reactivating": "Միացվում է…",
+    "reactivate_title": "Միացնել հայտը",
+    "reactivate_confirm": "Հայտը կդառնա ակտիվ և կտեսանելի լինի հյուրերին։",
     "soft_delete_title": "Անջատել հայտը",
     "soft_delete_confirm": "Հայտը կթաքցվի հյուրերից։ Այն կարող եք տեսնել «Անջատված» բաժնում։",
     "empty_listings": "Ակտիվ հայտեր չկան։",
@@ -308,14 +363,14 @@
     "submit": "Ուղարկել ստուգման",
     "submitting": "Ուղարկվում է…",
     "loading": "Բեռնվում է…",
-    "created_success": "Հայտարարությունը ստեղծված է։",
+    "created_success": "Հայտը ուղարկված է ստուգման։ Ադմինը կհաստատի մինչև հրապարակումը։",
     "updated_success": "Հայտարարությունը թարմացված է։",
     "submit_error": "Չհաջողվեց պահպանել։ Փորձեք նորից։",
     "steps": {
       "basics": "Հիմնական",
       "details": "Մանրամասներ",
       "media": "Լուսանկարներ և հարմարություններ",
-      "pricing": "Գին"
+      "pricing_rules": "Գին և կանոններ"
     },
     "basics": {
       "property_type": "Գույքի տեսակ",
@@ -330,6 +385,17 @@
       "region_placeholder": "օր. Տավուշ",
       "address": "Հասցե",
       "address_placeholder": "Լրիվ հասցե",
+      "address_search": "Շենքի հասցե",
+      "address_search_placeholder": "Որոնեք ձեր շենքի հասցեն…",
+      "street": "Փողոց",
+      "building_number": "Շենքի համար",
+      "apartment_number": "Բնակարան / Պահեստ",
+      "apartment_number_placeholder": "օր. 12Ա (ընտրովի)",
+      "address_verification_required": "Ընտրեք հաստատված շենքի հասցե ցանկից",
+      "place_searching": "Որոնում…",
+      "place_no_results": "Վայրեր չեն գտնվել",
+      "country": "Երկիր",
+      "country_placeholder": "AM",
       "types": {
         "APARTMENT": "Բնակարան",
         "HOUSE": "Տուն",
@@ -353,17 +419,38 @@
       "dropzone_title": "Քաշեք լուսանկարները այստեղ",
       "dropzone_hint": "JPEG, PNG կամ WebP · առավելագույնը 5MB",
       "uploading": "Վերբեռնվում է…",
+      "caption_placeholder": "Վերնագիր (ընտրովի)",
+      "move_up": "Վեր",
+      "move_down": "Ներքև",
+      "set_cover": "Շապիկ",
+      "remove_photo": "Հեռացնել",
       "amenities_label": "Հարմարություններ",
       "amenities_search": "Փնտրել…",
       "pinned": "Հայտնի"
     },
-    "pricing": {
+    "pricing_rules": {
+      "pricing_section": "Գին",
+      "rules_section": "Տան կանոններ",
       "price_per_night": "Գինը գիշերը (AMD)",
       "price_placeholder": "օր. 25000",
       "price_required": "Մուտքագրեք զրոյից մեծ գին",
       "cleaning_fee": "Մաքրության վճար (AMD)",
       "cleaning_placeholder": "օր. 5000",
+      "security_deposit": "Գրավ (AMD)",
+      "deposit_placeholder": "օր. 50000",
+      "min_nights": "Նվազագույն գիշերեր",
+      "max_nights": "Առավելագույն գիշերեր",
+      "max_nights_placeholder": "Ընտրովի",
       "cancellation_policy": "Չեղարկման քաղաքականություն",
+      "check_in_time": "Մուտքի ժամ",
+      "check_out_time": "Ելքի ժամ",
+      "quiet_hours_start": "Լռության սկիզբ",
+      "quiet_hours_end": "Լռության ավարտ",
+      "smoking_allowed": "Ծխելը թույլատրված է",
+      "pets_allowed": "Կենդանիները թույլատրված են",
+      "parties_allowed": "Խնջույքները թույլատրված են",
+      "additional_rules": "Լրացուցիչ կանոններ",
+      "additional_rules_placeholder": "Այլ կանոններ հյուրերի համար…",
       "policies": {
         "FLEXIBLE": "Ճկուն",
         "MODERATE": "Միջին",
@@ -429,31 +516,12 @@
     "reviews": "{count} ակնարկ",
     "categories": {
       "apartment": "Բնակարան",
+      "studio": "Ստուդիո",
       "house": "Տուն",
       "villa": "Վիլլա",
-      "guesthouse": "Հյուրատուն"
-    }
-  },
-  "search": {
-    "page_title": "Որոնել կացարան",
-    "page_subtitle": "Գտեք ընտրված կացարաններ Հայաստանում",
-    "destination_placeholder": "Որոնել ուղղություն",
-    "check_in": "Մուտք",
-    "check_out": "Ելք",
-    "guests": "Հյուրեր",
-    "search_button": "Որոնել",
-    "filters": "Զտիչներ",
-    "sort": {
-      "label": "Դասավորել ըստ",
-      "newest": "Նորագույնները",
-      "price_asc": "Գին․ էժանից թանկ"
-    },
-    "count": "{count, plural, =0 {Կացարաններ չեն գտնվել} =1 {գտնվել է 1 կացարան} other {գտնվել է # կացարան}}",
-    "map_button": "Քարտեզ",
-    "empty": {
-      "title": "Ձեր որոնմանը համապատասխանող ընտրված կացարան չկա",
-      "description": "Փորձեք այլ ուղղություն կամ վերականգնեք զտիչները։",
-      "clear": "Մաքրել զտիչները"
+      "guesthouse": "Հյուրատուն",
+      "hotel_room": "Հյուրանոցի սենյակ",
+      "other": "Այլ"
     }
   },
   "home": {

@@ -14,7 +14,9 @@ const buildWebLintCommand = (filenames) => {
 };
 
 const buildApiLintCommand = (filenames) => {
-  const files = toRelative(API_DIR, filenames);
+  const files = toRelative(API_DIR, filenames).filter(
+    (f) => f.startsWith('src/') || f.startsWith('test/'),
+  );
   if (files.length === 0) return [];
   return [`pnpm --filter api exec eslint --fix ${files.join(' ')}`];
 };

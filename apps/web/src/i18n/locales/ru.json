@@ -78,13 +78,64 @@
     "menu": "Меню"
   },
   "search": {
-    "where": "Куда",
-    "where_placeholder": "Куда угодно",
+    "page_title": "Поиск жилья",
+    "page_subtitle": "Найдите избранные объекты по Армении",
+    "destination_placeholder": "Поиск направления",
     "check_in": "Заезд",
     "check_out": "Выезд",
-    "add_dates": "Добавить даты",
     "guests": "Гости",
-    "search": "Искать"
+    "search_button": "Найти",
+    "filters_button": "Фильтры",
+    "sort": {
+      "label": "Сортировка",
+      "newest": "Сначала добавленные",
+      "price_asc": "Цена: по возрастанию"
+    },
+    "count": "{count, plural, =0 {Ничего не найдено} one {Найден # объект} few {Найдено # объекта} many {Найдено # объектов} other {Найдено # объектов}}",
+    "map_button": "Карта",
+    "empty": {
+      "title": "Подходящих избранных объектов нет",
+      "description": "Попробуйте другое направление или сбросьте фильтры.",
+      "clear": "Сбросить фильтры"
+    },
+    "filters": {
+      "title": "Фильтры",
+      "apply": "Применить",
+      "reset": "Сбросить",
+      "cancel": "Отмена",
+      "min": "Мин",
+      "max": "Макс",
+      "region": "Регион",
+      "region_placeholder": "напр. Тавуш",
+      "min_bedrooms": "Спальни (минимум)",
+      "min_beds": "Кровати (минимум)",
+      "min_bathrooms": "Ванные (минимум)",
+      "min_adults": "Взрослые (минимум)",
+      "min_children": "Дети (минимум)",
+      "min_infants": "Младенцы (минимум)",
+      "cleaning_fee_range": "Уборка (AMD)",
+      "security_deposit_range": "Залог (AMD)",
+      "min_nights": "Ночей (минимум)",
+      "max_nights": "Ночей (максимум)",
+      "house_rules": "Правила дома",
+      "smoking_allowed": "Курение разрешено",
+      "pets_allowed": "Животные разрешены",
+      "parties_allowed": "Вечеринки разрешены",
+      "amenities": "Удобства",
+      "amenities_search": "Поиск удобств…",
+      "min_avg_rating": "Средняя оценка (минимум)",
+      "min_review_count": "Количество отзывов (минимум)",
+      "place_searching": "Поиск…",
+      "place_no_results": "Места не найдены",
+      "location": "Местоположение",
+      "location_placeholder": "Город, улица или адрес…",
+      "search_city": "Город",
+      "search_city_placeholder": "напр. Ереван",
+      "search_street": "Улица",
+      "search_street_placeholder": "напр. проспект Азатутян",
+      "search_building_number": "Номер дома",
+      "search_building_number_placeholder": "напр. 11"
+    }
   },
   "footer": {
     "tagline": "Откройте Армению — одно жильё за раз",
@@ -225,9 +276,13 @@
     "actions": {
       "view": "Просмотр",
       "edit": "Редактировать",
-      "soft_delete": "Отключить"
+      "soft_delete": "Отключить",
+      "reactivate": "Включить"
     },
     "deleting": "Отключение…",
+    "reactivating": "Включение…",
+    "reactivate_title": "Включить объявление",
+    "reactivate_confirm": "Объявление снова станет активным и будет видно гостям.",
     "soft_delete_title": "Отключить объявление",
     "soft_delete_confirm": "Объявление будет скрыто от гостей. Вы можете найти его в разделе «Отключённые».",
     "empty_listings": "Активных объявлений пока нет.",
@@ -308,14 +363,14 @@
     "submit": "Отправить на проверку",
     "submitting": "Отправка…",
     "loading": "Загрузка…",
-    "created_success": "Объявление создано.",
+    "created_success": "Объявление отправлено на проверку. Администратор одобрит его перед публикацией.",
     "updated_success": "Объявление обновлено.",
     "submit_error": "Не удалось сохранить. Попробуйте снова.",
     "steps": {
       "basics": "Основное",
       "details": "Детали",
       "media": "Фото и удобства",
-      "pricing": "Цена"
+      "pricing_rules": "Цена и правила"
     },
     "basics": {
       "property_type": "Тип жилья",
@@ -330,6 +385,8 @@
       "region_placeholder": "напр. Тавуш",
       "address": "Адрес",
       "address_placeholder": "Полный адрес",
+      "country": "Страна",
+      "country_placeholder": "AM",
       "types": {
         "APARTMENT": "Квартира",
         "HOUSE": "Дом",
@@ -338,7 +395,16 @@
         "STUDIO": "Студия",
         "HOTEL_ROOM": "Номер в отеле",
         "OTHER": "Другое"
-      }
+      },
+      "address_search": "Адрес здания",
+      "address_search_placeholder": "Найдите адрес вашего здания…",
+      "street": "Улица",
+      "building_number": "Номер дома",
+      "apartment_number": "Квартира / офис",
+      "apartment_number_placeholder": "напр. 12А (необязательно)",
+      "address_verification_required": "Выберите подтверждённый адрес здания из списка",
+      "place_searching": "Поиск…",
+      "place_no_results": "Места не найдены"
     },
     "details": {
       "bedrooms": "Спальни",
@@ -353,17 +419,38 @@
       "dropzone_title": "Перетащите фото сюда",
       "dropzone_hint": "JPEG, PNG или WebP · до 5 МБ",
       "uploading": "Загрузка…",
+      "caption_placeholder": "Подпись (необязательно)",
+      "move_up": "Вверх",
+      "move_down": "Вниз",
+      "set_cover": "Обложка",
+      "remove_photo": "Удалить",
       "amenities_label": "Удобства",
       "amenities_search": "Поиск…",
       "pinned": "Популярные"
     },
-    "pricing": {
+    "pricing_rules": {
+      "pricing_section": "Цена",
+      "rules_section": "Правила дома",
       "price_per_night": "Цена за ночь (AMD)",
       "price_placeholder": "напр. 25000",
       "price_required": "Укажите цену больше нуля",
       "cleaning_fee": "Уборка (AMD)",
       "cleaning_placeholder": "напр. 5000",
+      "security_deposit": "Залог (AMD)",
+      "deposit_placeholder": "напр. 50000",
+      "min_nights": "Минимум ночей",
+      "max_nights": "Максимум ночей",
+      "max_nights_placeholder": "Необязательно",
       "cancellation_policy": "Политика отмены",
+      "check_in_time": "Время заезда",
+      "check_out_time": "Время выезда",
+      "quiet_hours_start": "Начало тихих часов",
+      "quiet_hours_end": "Конец тихих часов",
+      "smoking_allowed": "Курение разрешено",
+      "pets_allowed": "Животные разрешены",
+      "parties_allowed": "Вечеринки разрешены",
+      "additional_rules": "Дополнительные правила",
+      "additional_rules_placeholder": "Другие правила для гостей…",
       "policies": {
         "FLEXIBLE": "Гибкая",
         "MODERATE": "Умеренная",
@@ -429,31 +516,12 @@
     "reviews": "{count} отзывов",
     "categories": {
       "apartment": "Квартира",
+      "studio": "Студия",
       "house": "Дом",
       "villa": "Вилла",
-      "guesthouse": "Гостевой дом"
-    }
-  },
-  "search": {
-    "page_title": "Поиск жилья",
-    "page_subtitle": "Найдите избранные объекты по Армении",
-    "destination_placeholder": "Поиск направления",
-    "check_in": "Заезд",
-    "check_out": "Выезд",
-    "guests": "Гости",
-    "search_button": "Найти",
-    "filters": "Фильтры",
-    "sort": {
-      "label": "Сортировка",
-      "newest": "Сначала новые",
-      "price_asc": "Цена: по возрастанию"
-    },
-    "count": "{count, plural, =0 {Ничего не найдено} one {Найден # объект} few {Найдено # объекта} many {Найдено # объектов} other {Найдено # объектов}}",
-    "map_button": "Карта",
-    "empty": {
-      "title": "Подходящих избранных объектов нет",
-      "description": "Попробуйте другое направление или сбросьте фильтры.",
-      "clear": "Сбросить фильтры"
+      "guesthouse": "Гостевой дом",
+      "hotel_room": "Номер в отеле",
+      "other": "Другое"
     }
   },
   "home": {

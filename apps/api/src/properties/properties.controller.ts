@@ -25,6 +25,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { Property, PropertyAmenity, PropertyStatus } from '@repo/database/client';
 import type {
   HostListingsResponse,
@@ -40,6 +41,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
+import { WRITE_THROTTLE } from '../common/throttle/throttle.constants';
 
 import { ConfirmPhotoUploadDto } from './dto/confirm-photo-upload.dto';
 import { CreatePresignedPhotoUrlDto } from './dto/create-presigned-photo-url.dto';
@@ -63,11 +65,12 @@ export class PropertiesController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new property listing (host only)' })
-  @ApiCreatedResponse({ description: 'Property created in DRAFT status' })
+  @ApiCreatedResponse({ description: 'Property created in PENDING_REVIEW status' })
   @ApiStandardErrors()
   create(@CurrentUser() user: RequestUser, @Body() dto: CreatePropertyDto): Promise<Property> {
     return this.propertiesService.create(user.userId, dto);
@@ -108,6 +111,7 @@ export class PropertiesController {
   }
 
   @Patch(':id')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
@@ -123,6 +127,7 @@ export class PropertiesController {
   }
 
   @Delete(':id')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
@@ -136,7 +141,20 @@ export class PropertiesController {
     return this.propertiesService.softDelete(id, user.userId);
   }
 
+  @Patch(':id/reactivate')
+  @Throttle(WRITE_THROTTLE)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Reactivate an inactive property listing (owner host only)' })
+  @ApiOkResponse({ description: 'Property reactivated to ACTIVE status' })
+  @ApiStandardErrors({ notFound: true })
+  reactivate(@Param('id') id: string, @CurrentUser() user: RequestUser): Promise<Property> {
+    return this.propertiesService.reactivate(id, user.userId);
+  }
+
   @Patch(':id/status')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'STAFF')
   @ApiBearerAuth()
@@ -148,6 +166,7 @@ export class PropertiesController {
   }
 
   @Post(':id/photos/presigned-url')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
@@ -163,6 +182,7 @@ export class PropertiesController {
   }
 
   @Post(':id/photos/confirm')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
@@ -178,6 +198,7 @@ export class PropertiesController {
   }
 
   @Post(':id/photos')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
@@ -211,6 +232,7 @@ export class PropertiesController {
   }
 
   @Patch(':id/photos/:photoId')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
@@ -227,6 +249,7 @@ export class PropertiesController {
   }
 
   @Delete(':id/photos/:photoId')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
@@ -242,6 +265,7 @@ export class PropertiesController {
   }
 
   @Put(':id/amenities')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()

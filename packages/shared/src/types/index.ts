@@ -119,6 +119,11 @@ export interface PropertyDetail {
   country: string;
   region: string | null;
   city: string;
+  street: string | null;
+  buildingNumber: string | null;
+  formattedAddress: string | null;
+  placeKind: string | null;
+  apartmentNumber: string | null;
   addressLine: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -141,6 +146,8 @@ export interface PropertyDetail {
   smokingAllowed: boolean;
   petsAllowed: boolean;
   partiesAllowed: boolean;
+  quietHoursStart: string | null;
+  quietHoursEnd: string | null;
   additionalRules: string | null;
   featured: boolean;
   createdAt: string;

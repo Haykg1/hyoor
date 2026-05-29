@@ -20,6 +20,7 @@ interface HostListingsPanelProps {
   onPageChange: (page: number) => void;
   onLimitChange: (limit: 10 | 20 | 30) => void;
   onDelete: (id: string) => Promise<void>;
+  onReactivate?: (id: string) => Promise<void>;
 }
 
 const PAGE_SIZES = [10, 20, 30] as const;
@@ -36,6 +37,7 @@ export function HostListingsPanel({
   onPageChange,
   onLimitChange,
   onDelete,
+  onReactivate,
 }: HostListingsPanelProps): React.JSX.Element {
   const t = useTranslations('dashboard');
 
@@ -62,6 +64,7 @@ export function HostListingsPanel({
             listing={listing}
             showDelete={showDelete}
             onDelete={onDelete}
+            onReactivate={onReactivate}
           />
         ))}
       </div>

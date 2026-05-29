@@ -3,7 +3,11 @@ import request from 'supertest';
 
 import { PrismaService } from '../../src/database/prisma.service';
 import { createTestApp, type TestAppContext } from '../helpers/create-test-app';
-import { registerHostUser, sampleProperty } from '../helpers/property-test.helper';
+import {
+  createCompletedGuestBooking,
+  registerHostUser,
+  sampleProperty,
+} from '../helpers/property-test.helper';
 import { resetE2eDatabase } from '../helpers/reset-database';
 import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
 
@@ -26,14 +30,14 @@ describe('Properties (e2e)', () => {
     await app.close();
   });
 
-  it('creates a property as HOST in DRAFT status', async () => {
+  it('creates a property as HOST in PENDING_REVIEW status', async () => {
     const host = await registerHostUser(app);
     const response = await request(app.getHttpServer())
       .post('/api/v1/properties')
       .set(authHeader(host.accessToken))
       .send(sampleProperty)
       .expect(201);
-    expect(response.body.data.status).toBe('DRAFT');
+    expect(response.body.data.status).toBe('PENDING_REVIEW');
     expect(response.body.data.slug).toBe('cozy-yerevan-apartment');
     expect(response.body.data.hostId).toBe(host.hostProfileId);
   });
@@ -67,6 +71,167 @@ describe('Properties (e2e)', () => {
     expect(response.body.data.data).toHaveLength(1);
     expect(response.body.data.total).toBe(1);
     expect(response.body.data.data[0].title).toBe(sampleProperty.title);
+  });
+
+  it('supports extended search filters (region/rooms/guest breakdown/fees/stay rules/house rules)', async () => {
+    const host = await registerHostUser(app);
+    const prisma = app.get(PrismaService);
+    const a = await prisma.property.create({
+      data: {
+        hostId: host.hostProfileId,
+        status: 'ACTIVE',
+        title: 'Apt A',
+        slug: 'apt-a',
+        description: 'desc',
+        propertyType: 'APARTMENT',
+        city: 'Yerevan',
+        region: 'Tavush',
+        country: 'AM',
+        maxGuests: 4,
+        maxAdults: 2,
+        maxChildren: 1,
+        maxInfants: 1,
+        bedrooms: 2,
+        beds: 2,
+        bathrooms: 2,
+        pricePerNight: 30000,
+        currency: 'AMD',
+        cancellationPolicy: 'MODERATE',
+        cleaningFee: 5000,
+        securityDeposit: 20000,
+        minNights: 2,
+        maxNights: 10,
+        petsAllowed: true,
+        smokingAllowed: false,
+        partiesAllowed: false,
+      },
+    });
+    await prisma.property.create({
+      data: {
+        hostId: host.hostProfileId,
+        status: 'ACTIVE',
+        title: 'Apt B',
+        slug: 'apt-b',
+        description: 'desc',
+        propertyType: 'APARTMENT',
+        city: 'Yerevan',
+        region: 'Lori',
+        country: 'AM',
+        maxGuests: 2,
+        maxAdults: 2,
+        maxChildren: 0,
+        maxInfants: 0,
+        bedrooms: 1,
+        beds: 1,
+        bathrooms: 1,
+        pricePerNight: 15000,
+        currency: 'AMD',
+        cancellationPolicy: 'MODERATE',
+        cleaningFee: 0,
+        securityDeposit: 0,
+        minNights: 5,
+        maxNights: null,
+        petsAllowed: false,
+        smokingAllowed: false,
+        partiesAllowed: false,
+      },
+    });
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/properties')
+      .query({
+        city: 'Yerevan',
+        region: 'Tavush',
+        minBedrooms: 2,
+        minBeds: 2,
+        minBathrooms: 2,
+        minAdults: 2,
+        minChildren: 1,
+        minInfants: 1,
+        minCleaningFee: 1,
+        minSecurityDeposit: 1,
+        minNights: 3,
+        maxNights: 7,
+        petsAllowed: true,
+      })
+      .expect(200);
+    expect(res.body.data.data).toHaveLength(1);
+    expect(res.body.data.data[0].id).toBe(a.id);
+  });
+
+  it('filters search results by amenities (must include ALL selected amenities)', async () => {
+    const host = await registerHostUser(app);
+    const createA = await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send({ ...sampleProperty, title: 'Amenity A' })
+      .expect(201);
+    const createB = await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send({ ...sampleProperty, title: 'Amenity B' })
+      .expect(201);
+    const prisma = app.get(PrismaService);
+    await prisma.property.update({
+      where: { id: createA.body.data.id },
+      data: { status: 'ACTIVE' },
+    });
+    await prisma.property.update({
+      where: { id: createB.body.data.id },
+      data: { status: 'ACTIVE' },
+    });
+    await request(app.getHttpServer())
+      .put(`/api/v1/properties/${createA.body.data.id}/amenities`)
+      .set(authHeader(host.accessToken))
+      .send({ amenities: [{ name: 'WiFi' }, { name: 'Kitchen' }] })
+      .expect(200);
+    await request(app.getHttpServer())
+      .put(`/api/v1/properties/${createB.body.data.id}/amenities`)
+      .set(authHeader(host.accessToken))
+      .send({ amenities: [{ name: 'WiFi' }] })
+      .expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/properties')
+      .query({ amenities: ['WiFi', 'Kitchen'] })
+      .expect(200);
+    expect(res.body.data.data).toHaveLength(1);
+    expect(res.body.data.data[0].id).toBe(createA.body.data.id);
+  });
+
+  it('filters search results by minAvgRating and minReviewCount', async () => {
+    const host = await registerHostUser(app);
+    const guestA = await registerUser(app, { email: uniqueEmail('guest-a') });
+    const guestB = await registerUser(app, { email: uniqueEmail('guest-b') });
+    const bookingA = await createCompletedGuestBooking(app, host, guestA);
+    const bookingB = await createCompletedGuestBooking(app, host, guestB);
+    const prisma = app.get(PrismaService);
+    await prisma.review.create({
+      data: {
+        bookingId: bookingA.bookingId,
+        authorId: guestA.userId,
+        subjectId: host.userId,
+        target: 'PROPERTY',
+        rating: 5,
+        isPublished: true,
+        propertyId: bookingA.propertyId,
+      },
+    });
+    await prisma.review.create({
+      data: {
+        bookingId: bookingB.bookingId,
+        authorId: guestB.userId,
+        subjectId: host.userId,
+        target: 'PROPERTY',
+        rating: 4,
+        isPublished: true,
+        propertyId: bookingB.propertyId,
+      },
+    });
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/properties')
+      .query({ minAvgRating: 4.5, minReviewCount: 1 })
+      .expect(200);
+    expect(res.body.data.data).toHaveLength(1);
+    expect(res.body.data.data[0].id).toBe(bookingA.propertyId);
   });
 
   it('returns property detail with photos and amenities for ACTIVE listing', async () => {
@@ -224,14 +389,14 @@ describe('Properties (e2e)', () => {
         status: 'ACTIVE',
       },
     });
-    const draftResp = await request(app.getHttpServer())
-      .get('/api/v1/properties/my?status=DRAFT')
+    const pendingResp = await request(app.getHttpServer())
+      .get('/api/v1/properties/my?status=PENDING_REVIEW')
       .set(authHeader(host.accessToken))
       .expect(200);
-    const draftBody = draftResp.body.data as { data: Array<{ id: string; status: string }> };
-    expect(draftBody.data).toHaveLength(1);
-    expect(draftBody.data[0]?.id).toBe(draft.body.data.id);
-    expect(draftBody.data[0]?.status).toBe('DRAFT');
+    const pendingBody = pendingResp.body.data as { data: Array<{ id: string; status: string }> };
+    expect(pendingBody.data).toHaveLength(1);
+    expect(pendingBody.data[0]?.id).toBe(draft.body.data.id);
+    expect(pendingBody.data[0]?.status).toBe('PENDING_REVIEW');
     const activeResp = await request(app.getHttpServer())
       .get('/api/v1/properties/my?status=ACTIVE')
       .set(authHeader(host.accessToken))
@@ -313,6 +478,44 @@ describe('Properties (e2e)', () => {
     const prisma = app.get(PrismaService);
     const property = await prisma.property.findUnique({ where: { id: propertyId } });
     expect(property?.status).toBe('INACTIVE');
+  });
+
+  it('allows host to reactivate own INACTIVE property', async () => {
+    const hostA = await registerHostUser(app);
+    const hostB = await registerHostUser(app);
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(hostA.accessToken))
+      .send(sampleProperty)
+      .expect(201);
+    const propertyId = create.body.data.id as string;
+    await request(app.getHttpServer())
+      .delete(`/api/v1/properties/${propertyId}`)
+      .set(authHeader(hostA.accessToken))
+      .expect(200);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/properties/${propertyId}/reactivate`)
+      .set(authHeader(hostB.accessToken))
+      .expect(403);
+    const reactivate = await request(app.getHttpServer())
+      .patch(`/api/v1/properties/${propertyId}/reactivate`)
+      .set(authHeader(hostA.accessToken))
+      .expect(200);
+    expect(reactivate.body.data.status).toBe('ACTIVE');
+  });
+
+  it('rejects reactivate when property is not INACTIVE', async () => {
+    const host = await registerHostUser(app);
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send(sampleProperty)
+      .expect(201);
+    const propertyId = create.body.data.id as string;
+    await request(app.getHttpServer())
+      .patch(`/api/v1/properties/${propertyId}/reactivate`)
+      .set(authHeader(host.accessToken))
+      .expect(400);
   });
 
   it('allows admin to change property status', async () => {

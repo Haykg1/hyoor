@@ -19,18 +19,48 @@ import { Link } from '@/i18n/navigation';
 import {
   DEFAULT_LISTING_VALUES,
   listingSchema,
+  normalizeStepDetailsValues,
   type ListingFormValues,
   stepBasicsSchema,
   stepDetailsSchema,
-  stepPricingSchema,
+  stepPricingRulesSchema,
 } from '@/lib/listing/schema';
 import { useListingFormStore, type ListingWizardMode } from '@/store/listing-form.store';
 
 const STEP_FIELDS: Record<number, (keyof ListingFormValues)[]> = {
-  1: ['propertyType', 'title', 'description', 'city', 'region', 'addressLine', 'country'],
+  1: [
+    'propertyType',
+    'title',
+    'description',
+    'formattedAddress',
+    'city',
+    'region',
+    'street',
+    'buildingNumber',
+    'placeKind',
+    'latitude',
+    'longitude',
+    'country',
+    'apartmentNumber',
+  ],
   2: ['bedrooms', 'beds', 'bathrooms', 'maxGuests', 'maxAdults', 'maxChildren', 'maxInfants'],
   3: ['amenities'],
-  4: ['pricePerNight', 'cleaningFee', 'cancellationPolicy', 'minNights', 'maxNights'],
+  4: [
+    'pricePerNight',
+    'cleaningFee',
+    'securityDeposit',
+    'cancellationPolicy',
+    'minNights',
+    'maxNights',
+    'checkInTime',
+    'checkOutTime',
+    'smokingAllowed',
+    'petsAllowed',
+    'partiesAllowed',
+    'quietHoursStart',
+    'quietHoursEnd',
+    'additionalRules',
+  ],
 };
 
 interface ListingWizardProps {
@@ -56,6 +86,8 @@ export function ListingWizard({ mode, initialProperty }: ListingWizardProps): Re
     addPendingPhotos,
     removePhoto,
     setCoverPhoto,
+    updatePhotoCaption,
+    movePhoto,
     submit,
     reset,
   } = useListingFormStore();
@@ -85,24 +117,26 @@ export function ListingWizard({ mode, initialProperty }: ListingWizardProps): Re
       return true;
     }
     if (step === 2) {
-      const result = stepDetailsSchema.safeParse(values);
+      const normalized = normalizeStepDetailsValues(values);
+      const result = stepDetailsSchema.safeParse(normalized);
       if (!result.success) {
         await form.trigger(STEP_FIELDS[2]);
         return false;
       }
+      form.reset(normalized);
       return true;
     }
     if (step === 3) {
       return true;
     }
     if (step === 4) {
-      const result = stepPricingSchema.safeParse(values);
+      const result = stepPricingRulesSchema.safeParse(values);
       if (!result.success) {
         await form.trigger(STEP_FIELDS[4]);
         return false;
       }
       if (values.pricePerNight < 1) {
-        form.setError('pricePerNight', { message: t('pricing.price_required') });
+        form.setError('pricePerNight', { message: t('pricing_rules.price_required') });
         return false;
       }
       return true;
@@ -155,6 +189,8 @@ export function ListingWizard({ mode, initialProperty }: ListingWizardProps): Re
             onAddPhotos={addPendingPhotos}
             onRemovePhoto={removePhoto}
             onSetCoverPhoto={setCoverPhoto}
+            onUpdatePhotoCaption={updatePhotoCaption}
+            onMovePhoto={movePhoto}
           />
         )}
         {step === 4 && <StepPricing form={form} />}

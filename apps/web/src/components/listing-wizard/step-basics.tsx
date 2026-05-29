@@ -1,9 +1,10 @@
 'use client';
 
-import { PropertyTypes } from '@repo/shared';
+import { PropertyTypes, type PlaceResult } from '@repo/shared';
 import { useTranslations } from 'next-intl';
 import type { UseFormReturn } from 'react-hook-form';
 
+import { PropertyAddressAutocomplete } from '@/components/listing-wizard/property-address-autocomplete';
 import {
   Form,
   FormControl,
@@ -23,6 +24,24 @@ interface StepBasicsProps {
 
 export function StepBasics({ form }: StepBasicsProps): React.JSX.Element {
   const t = useTranslations('listing_wizard.basics');
+
+  function handlePlaceSelect(place: PlaceResult): void {
+    const addressLine =
+      place.street && place.buildingNumber
+        ? `${place.street}, ${place.buildingNumber}`
+        : place.formattedAddress;
+    form.setValue('country', place.country || 'AM', { shouldValidate: true });
+    form.setValue('region', place.region ?? '', { shouldValidate: true });
+    form.setValue('city', place.city ?? '', { shouldValidate: true });
+    form.setValue('street', place.street ?? '', { shouldValidate: true });
+    form.setValue('buildingNumber', place.buildingNumber ?? '', { shouldValidate: true });
+    form.setValue('formattedAddress', place.formattedAddress, { shouldValidate: true });
+    form.setValue('placeKind', place.placeKind, { shouldValidate: true });
+    form.setValue('addressLine', addressLine, { shouldValidate: true });
+    form.setValue('latitude', place.lat, { shouldValidate: true });
+    form.setValue('longitude', place.lng, { shouldValidate: true });
+  }
+
   return (
     <Form {...form}>
       <div className="space-y-6">
@@ -79,6 +98,26 @@ export function StepBasics({ form }: StepBasicsProps): React.JSX.Element {
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="formattedAddress"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('address_search')} *</FormLabel>
+              <FormControl>
+                <PropertyAddressAutocomplete
+                  value={field.value ?? ''}
+                  onSelectPlace={handlePlaceSelect}
+                />
+              </FormControl>
+              <FormMessage>
+                {form.formState.errors.formattedAddress?.message === 'address_verification_required'
+                  ? t('address_verification_required')
+                  : form.formState.errors.formattedAddress?.message}
+              </FormMessage>
+            </FormItem>
+          )}
+        />
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}
@@ -87,7 +126,7 @@ export function StepBasics({ form }: StepBasicsProps): React.JSX.Element {
               <FormItem>
                 <FormLabel>{t('city')} *</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('city_placeholder')} {...field} />
+                  <Input readOnly className="bg-muted" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -100,7 +139,33 @@ export function StepBasics({ form }: StepBasicsProps): React.JSX.Element {
               <FormItem>
                 <FormLabel>{t('region')}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('region_placeholder')} {...field} />
+                  <Input readOnly className="bg-muted" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="street"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('street')} *</FormLabel>
+                <FormControl>
+                  <Input readOnly className="bg-muted" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="buildingNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('building_number')} *</FormLabel>
+                <FormControl>
+                  <Input readOnly className="bg-muted" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -109,12 +174,12 @@ export function StepBasics({ form }: StepBasicsProps): React.JSX.Element {
         </div>
         <FormField
           control={form.control}
-          name="addressLine"
+          name="apartmentNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('address')}</FormLabel>
+              <FormLabel>{t('apartment_number')}</FormLabel>
               <FormControl>
-                <Input placeholder={t('address_placeholder')} {...field} />
+                <Input placeholder={t('apartment_number_placeholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

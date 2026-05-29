@@ -107,6 +107,39 @@ export class CreatePropertyDto implements CreatePropertyInput {
   @MaxLength(100)
   region?: string;
 
+  @ApiPropertyOptional({ example: 'Tamanyan Street', maxLength: 200 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  street?: string;
+
+  @ApiPropertyOptional({ example: '10', maxLength: 50 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  buildingNumber?: string;
+
+  @ApiPropertyOptional({
+    example: 'Armenia, Yerevan, Tamanyan Street, 10',
+    maxLength: 500,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  formattedAddress?: string;
+
+  @ApiPropertyOptional({ example: 'house', maxLength: 50 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  placeKind?: string;
+
+  @ApiPropertyOptional({ example: '4', maxLength: 50 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  apartmentNumber?: string;
+
   @ApiPropertyOptional({ example: '12 Cascade Ave', maxLength: 300 })
   @IsOptional()
   @IsString()

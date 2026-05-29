@@ -7,11 +7,13 @@ import {
   deletePropertyPhoto,
   patchProperty,
   replacePropertyAmenities,
+  updatePropertyPhoto,
   uploadPropertyPhotoFile,
 } from '@/lib/api/properties';
 import {
   DEFAULT_LISTING_VALUES,
   type ListingFormValues,
+  normalizeStepDetailsValues,
   toCreatePropertyInput,
 } from '@/lib/listing/schema';
 
@@ -23,6 +25,7 @@ export interface ListingPhotoEntry {
   id?: string;
   key?: string;
   url: string;
+  caption: string;
   isCover: boolean;
   sortOrder: number;
   file?: File;
@@ -53,6 +56,8 @@ export interface ListingFormActions {
   addPendingPhotos: (files: File[]) => void;
   removePhoto: (localId: string) => void;
   setCoverPhoto: (localId: string) => void;
+  updatePhotoCaption: (localId: string, caption: string) => void;
+  movePhoto: (localId: string, direction: 'up' | 'down') => void;
   submit: () => Promise<string>;
   reset: () => void;
 }
@@ -73,6 +78,27 @@ function newLocalId(): string {
   return `local-${crypto.randomUUID()}`;
 }
 
+function normalizeTimeForInput(value: string | null | undefined, fallback: string): string {
+  if (!value) return fallback;
+  return value.length >= 5 ? value.slice(0, 5) : value;
+}
+
+function reindexPhotos(photos: ListingPhotoEntry[]): ListingPhotoEntry[] {
+  return photos.map((photo, index) => ({ ...photo, sortOrder: index }));
+}
+
+function parseCancellationPolicy(value: string): ListingFormValues['cancellationPolicy'] {
+  if (
+    value === 'FLEXIBLE' ||
+    value === 'MODERATE' ||
+    value === 'STRICT' ||
+    value === 'NON_REFUNDABLE'
+  ) {
+    return value;
+  }
+  return 'MODERATE';
+}
+
 export const useListingFormStore = create<ListingFormState & ListingFormActions>()(
   devtools(
     persist(
@@ -86,19 +112,35 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
             name: a.name,
             category: a.category ?? undefined,
           }));
+          const sortedPhotos = [...property.photos].sort(
+            (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+          );
           set({
             mode: 'edit',
             propertyId: property.id,
             step: 1,
             hydrated: true,
-            data: {
+            data: normalizeStepDetailsValues({
               propertyType: property.propertyType,
               title: property.title,
               description: property.description ?? '',
               city: property.city,
               region: property.region ?? '',
+              street: property.street ?? '',
+              buildingNumber: property.buildingNumber ?? '',
+              formattedAddress: property.formattedAddress ?? property.addressLine ?? '',
+              placeKind: property.placeKind ?? '',
+              apartmentNumber: property.apartmentNumber ?? '',
               addressLine: property.addressLine ?? '',
               country: property.country,
+              latitude:
+                property.latitude !== null && property.latitude !== undefined
+                  ? Number(property.latitude)
+                  : undefined,
+              longitude:
+                property.longitude !== null && property.longitude !== undefined
+                  ? Number(property.longitude)
+                  : undefined,
               bedrooms: property.bedrooms,
               beds: property.beds,
               bathrooms: property.bathrooms,
@@ -109,21 +151,25 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
               amenities,
               pricePerNight: property.pricePerNight,
               cleaningFee: property.cleaningFee ?? 0,
-              cancellationPolicy:
-                property.cancellationPolicy === 'FLEXIBLE' ||
-                property.cancellationPolicy === 'MODERATE' ||
-                property.cancellationPolicy === 'STRICT' ||
-                property.cancellationPolicy === 'NON_REFUNDABLE'
-                  ? (property.cancellationPolicy as ListingFormValues['cancellationPolicy'])
-                  : 'MODERATE',
+              securityDeposit: property.securityDeposit ?? 0,
+              cancellationPolicy: parseCancellationPolicy(property.cancellationPolicy),
               minNights: property.minNights,
               maxNights: property.maxNights ?? undefined,
-            },
-            photos: property.photos.map((p, index) => ({
+              checkInTime: normalizeTimeForInput(property.checkInTime, '15:00'),
+              checkOutTime: normalizeTimeForInput(property.checkOutTime, '11:00'),
+              smokingAllowed: property.smokingAllowed,
+              petsAllowed: property.petsAllowed,
+              partiesAllowed: property.partiesAllowed,
+              quietHoursStart: normalizeTimeForInput(property.quietHoursStart, ''),
+              quietHoursEnd: normalizeTimeForInput(property.quietHoursEnd, ''),
+              additionalRules: property.additionalRules ?? '',
+            }),
+            photos: sortedPhotos.map((p, index) => ({
               localId: p.id,
               id: p.id,
               key: p.key,
               url: p.url,
+              caption: p.caption ?? '',
               isCover: p.isCover ?? index === 0,
               sortOrder: p.sortOrder ?? index,
               status: 'uploaded' as const,
@@ -142,6 +188,7 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
           const newEntries: ListingPhotoEntry[] = files.map((file, i) => ({
             localId: newLocalId(),
             url: URL.createObjectURL(file),
+            caption: '',
             isCover: photos.length === 0 && i === 0,
             sortOrder: startOrder + i,
             file,
@@ -153,7 +200,7 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
           const { photos, removedPhotoIds } = get();
           const target = photos.find((p) => p.localId === localId);
           if (!target) return;
-          const nextPhotos = photos.filter((p) => p.localId !== localId);
+          const nextPhotos = reindexPhotos(photos.filter((p) => p.localId !== localId));
           if (target.isCover && nextPhotos.length > 0) {
             const first = nextPhotos[0];
             if (first) {
@@ -168,6 +215,25 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
           set((s) => ({
             photos: s.photos.map((p) => ({ ...p, isCover: p.localId === localId })),
           }));
+        },
+        updatePhotoCaption: (localId, caption) => {
+          set((s) => ({
+            photos: s.photos.map((p) => (p.localId === localId ? { ...p, caption } : p)),
+          }));
+        },
+        movePhoto: (localId, direction) => {
+          const { photos } = get();
+          const index = photos.findIndex((p) => p.localId === localId);
+          if (index < 0) return;
+          const swapIndex = direction === 'up' ? index - 1 : index + 1;
+          if (swapIndex < 0 || swapIndex >= photos.length) return;
+          const next = [...photos];
+          const current = next[index];
+          const swap = next[swapIndex];
+          if (!current || !swap) return;
+          next[index] = swap;
+          next[swapIndex] = current;
+          set({ photos: reindexPhotos(next) });
         },
         submit: async () => {
           const { mode, propertyId, data, photos, removedPhotoIds } = get();
@@ -188,7 +254,6 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
               await deletePropertyPhoto(id, photoId);
             }
             const pending = photos.filter((p) => p.file && p.status !== 'uploaded');
-            let sortOrder = photos.filter((p) => !p.file).length;
             for (const photo of pending) {
               if (!photo.file) continue;
               set((s) => ({
@@ -199,9 +264,9 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
               try {
                 const confirmed = await uploadPropertyPhotoFile(id, photo.file, {
                   isCover: photo.isCover,
-                  sortOrder,
+                  sortOrder: photo.sortOrder,
+                  caption: photo.caption.trim() || undefined,
                 });
-                sortOrder += 1;
                 set((s) => ({
                   photos: s.photos.map((p) =>
                     p.localId === photo.localId
@@ -225,6 +290,15 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
                 }));
                 throw err;
               }
+            }
+            const existingPhotos = get().photos.filter((p) => p.id && !p.file);
+            for (const photo of existingPhotos) {
+              if (!photo.id) continue;
+              await updatePropertyPhoto(id, photo.id, {
+                caption: photo.caption.trim() || undefined,
+                sortOrder: photo.sortOrder,
+                isCover: photo.isCover,
+              });
             }
             await replacePropertyAmenities(id, data.amenities);
             set({ propertyId: id, isSubmitting: false });

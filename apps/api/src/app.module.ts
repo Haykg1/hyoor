@@ -15,6 +15,7 @@ import type { AppConfig } from './config/configuration';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation.schema';
 import { DatabaseModule } from './database/database.module';
+import { GeocodingModule } from './geocoding/geocoding.module';
 import { HealthController } from './health/health.controller';
 import { HostProfilesModule } from './host-profiles/host-profiles.module';
 import { MailModule } from './mail/mail.module';
@@ -56,6 +57,7 @@ const isTestEnv = process.env.NODE_ENV === 'test';
     UsersModule,
     HostProfilesModule,
     PropertiesModule,
+    GeocodingModule,
     AvailabilityModule,
     PaymentsModule,
     BookingsModule,

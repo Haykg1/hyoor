@@ -10,6 +10,7 @@ import { devtools } from 'zustand/middleware';
 import {
   deleteProperty,
   listMyProperties,
+  reactivateProperty,
   type HostListingStatusFilter,
 } from '@/lib/api/properties';
 
@@ -40,6 +41,7 @@ interface HostListingsActions {
   setSearchQuery: (query: string) => void;
   resetFilters: () => void;
   softDeleteListing: (id: string) => Promise<void>;
+  reactivateListing: (id: string) => Promise<void>;
 }
 
 const DEFAULT_STATS: HostDashboardStats = {
@@ -106,6 +108,11 @@ export const useHostListingsStore = create<HostListingsState & HostListingsActio
 
       softDeleteListing: async (id) => {
         await deleteProperty(id);
+        await get().fetchListings();
+      },
+
+      reactivateListing: async (id) => {
+        await reactivateProperty(id);
         await get().fetchListings();
       },
     }),

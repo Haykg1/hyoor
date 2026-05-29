@@ -83,12 +83,13 @@ export class PropertiesService {
   }
 
   async create(hostUserId: string, dto: CreatePropertyDto): Promise<Property> {
+    this.validateHouseAddress(dto);
     const hostProfile = await this.hostProfilesService.findByUserId(hostUserId);
     const slug = await this.generateUniqueSlug(dto.title);
     return this.prisma.property.create({
       data: {
         hostId: hostProfile.id,
-        status: 'DRAFT',
+        status: 'PENDING_REVIEW',
         title: dto.title,
         slug,
         description: dto.description,
@@ -105,6 +106,11 @@ export class PropertiesService {
         cancellationPolicy: dto.cancellationPolicy,
         country: dto.country,
         region: dto.region,
+        street: dto.street,
+        buildingNumber: dto.buildingNumber,
+        formattedAddress: dto.formattedAddress,
+        placeKind: dto.placeKind,
+        apartmentNumber: dto.apartmentNumber,
         addressLine: dto.addressLine,
         latitude: dto.latitude !== undefined ? new Decimal(dto.latitude) : undefined,
         longitude: dto.longitude !== undefined ? new Decimal(dto.longitude) : undefined,
@@ -126,6 +132,157 @@ export class PropertiesService {
     });
   }
 
+  private buildBaseWhere(): Prisma.PropertyWhereInput {
+    return { status: 'ACTIVE' };
+  }
+
+  private validateHouseAddress(dto: {
+    placeKind?: string;
+    buildingNumber?: string;
+    street?: string;
+    latitude?: number;
+    longitude?: number;
+  }): void {
+    if (dto.placeKind !== 'house') {
+      throw new BadRequestException(
+        'Property address must be a verified building selected from geocoding',
+      );
+    }
+    if (!dto.buildingNumber?.trim() || !dto.street?.trim()) {
+      throw new BadRequestException('Building number and street are required');
+    }
+    if (dto.latitude === undefined || dto.longitude === undefined) {
+      throw new BadRequestException('Property coordinates are required');
+    }
+  }
+
+  private buildLocationWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
+    if (dto.searchPlaceKind === 'house' && dto.searchStreet && dto.searchBuildingNumber) {
+      return {
+        ...(dto.region ? { region: { equals: dto.region, mode: 'insensitive' } } : {}),
+        ...(dto.searchCity ? { city: { equals: dto.searchCity, mode: 'insensitive' } } : {}),
+        street: { equals: dto.searchStreet, mode: 'insensitive' },
+        buildingNumber: { equals: dto.searchBuildingNumber, mode: 'insensitive' },
+      };
+    }
+    if (dto.searchCity) {
+      return {
+        ...(dto.region ? { region: { equals: dto.region, mode: 'insensitive' } } : {}),
+        city: { equals: dto.searchCity, mode: 'insensitive' },
+      };
+    }
+    return {
+      ...(dto.city ? { city: { equals: dto.city, mode: 'insensitive' } } : {}),
+      ...(dto.country ? { country: { equals: dto.country, mode: 'insensitive' } } : {}),
+      ...(dto.region ? { region: { equals: dto.region, mode: 'insensitive' } } : {}),
+    };
+  }
+
+  private buildTypeWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
+    return dto.propertyType ? { propertyType: dto.propertyType } : {};
+  }
+
+  private buildFeaturedWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
+    return dto.featured !== undefined ? { featured: dto.featured } : {};
+  }
+
+  private buildPriceWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
+    if (dto.minPrice === undefined && dto.maxPrice === undefined) return {};
+    return {
+      pricePerNight: {
+        ...(dto.minPrice !== undefined ? { gte: dto.minPrice } : {}),
+        ...(dto.maxPrice !== undefined ? { lte: dto.maxPrice } : {}),
+      },
+    };
+  }
+
+  private buildFeesWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
+    const where: Prisma.PropertyWhereInput = {};
+    if (dto.minCleaningFee !== undefined || dto.maxCleaningFee !== undefined) {
+      where.cleaningFee = {
+        ...(dto.minCleaningFee !== undefined ? { gte: dto.minCleaningFee } : {}),
+        ...(dto.maxCleaningFee !== undefined ? { lte: dto.maxCleaningFee } : {}),
+      };
+    }
+    if (dto.minSecurityDeposit !== undefined || dto.maxSecurityDeposit !== undefined) {
+      where.securityDeposit = {
+        ...(dto.minSecurityDeposit !== undefined ? { gte: dto.minSecurityDeposit } : {}),
+        ...(dto.maxSecurityDeposit !== undefined ? { lte: dto.maxSecurityDeposit } : {}),
+      };
+    }
+    return where;
+  }
+
+  private buildCapacityWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
+    return {
+      ...(dto.maxGuests !== undefined ? { maxGuests: { gte: dto.maxGuests } } : {}),
+      ...(dto.minAdults !== undefined ? { maxAdults: { gte: dto.minAdults } } : {}),
+      ...(dto.minChildren !== undefined ? { maxChildren: { gte: dto.minChildren } } : {}),
+      ...(dto.minInfants !== undefined ? { maxInfants: { gte: dto.minInfants } } : {}),
+    };
+  }
+
+  private buildRoomsWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
+    return {
+      ...(dto.minBedrooms !== undefined ? { bedrooms: { gte: dto.minBedrooms } } : {}),
+      ...(dto.minBeds !== undefined ? { beds: { gte: dto.minBeds } } : {}),
+      ...(dto.minBathrooms !== undefined
+        ? { bathrooms: { gte: new Decimal(dto.minBathrooms) } }
+        : {}),
+    };
+  }
+
+  private buildStayRulesWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
+    const where: Prisma.PropertyWhereInput = {};
+    if (dto.minNights !== undefined) {
+      where.minNights = { lte: dto.minNights };
+    }
+    if (dto.maxNights !== undefined) {
+      where.OR = [{ maxNights: null }, { maxNights: { gte: dto.maxNights } }];
+    }
+    return where;
+  }
+
+  private buildHouseRulesWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
+    return {
+      ...(dto.smokingAllowed !== undefined ? { smokingAllowed: dto.smokingAllowed } : {}),
+      ...(dto.petsAllowed !== undefined ? { petsAllowed: dto.petsAllowed } : {}),
+      ...(dto.partiesAllowed !== undefined ? { partiesAllowed: dto.partiesAllowed } : {}),
+    };
+  }
+
+  private buildAmenitiesAndWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput[] {
+    const names = (dto.amenities ?? []).map((a) => a.trim()).filter((a) => a.length > 0);
+    if (names.length === 0) return [];
+    return names.map((name) => ({ amenities: { some: { name } } }));
+  }
+
+  private buildOrderBy(dto: SearchPropertiesDto): Prisma.PropertyOrderByWithRelationInput {
+    return dto.sortBy === 'pricePerNight'
+      ? { pricePerNight: 'asc' as const }
+      : { createdAt: 'desc' as const };
+  }
+
+  private async getRatedPropertyIds(dto: SearchPropertiesDto): Promise<string[] | null> {
+    const needsRatingFilter = dto.minAvgRating !== undefined || dto.minReviewCount !== undefined;
+    if (!needsRatingFilter) return null;
+    const groups = await this.prisma.review.groupBy({
+      by: ['propertyId'],
+      where: {
+        target: 'PROPERTY',
+        isPublished: true,
+        propertyId: { not: null },
+      },
+      having: {
+        ...(dto.minAvgRating !== undefined ? { rating: { _avg: { gte: dto.minAvgRating } } } : {}),
+        ...(dto.minReviewCount !== undefined
+          ? { id: { _count: { gte: dto.minReviewCount } } }
+          : {}),
+      },
+    });
+    return groups.map((g) => g.propertyId).filter((id): id is string => typeof id === 'string');
+  }
+
   async search(dto: SearchPropertiesDto): Promise<PaginatedResponse<PropertySummary>> {
     const page = dto.page ?? 1;
     const limit = dto.limit ?? DEFAULT_PAGE_SIZE;
@@ -133,28 +290,30 @@ export class PropertiesService {
     if ((dto.checkIn && !dto.checkOut) || (!dto.checkIn && dto.checkOut)) {
       throw new BadRequestException('Both checkIn and checkOut are required for date filtering');
     }
-    const unavailablePropertyIds = await this.getUnavailablePropertyIds(dto.checkIn, dto.checkOut);
-    const where: Prisma.PropertyWhereInput = {
-      status: 'ACTIVE',
-      ...(dto.city ? { city: { equals: dto.city, mode: 'insensitive' } } : {}),
-      ...(dto.country ? { country: { equals: dto.country, mode: 'insensitive' } } : {}),
-      ...(dto.propertyType ? { propertyType: dto.propertyType } : {}),
-      ...(dto.featured !== undefined ? { featured: dto.featured } : {}),
-      ...(dto.minPrice !== undefined || dto.maxPrice !== undefined
-        ? {
-            pricePerNight: {
-              ...(dto.minPrice !== undefined ? { gte: dto.minPrice } : {}),
-              ...(dto.maxPrice !== undefined ? { lte: dto.maxPrice } : {}),
-            },
-          }
-        : {}),
-      ...(dto.maxGuests !== undefined ? { maxGuests: { gte: dto.maxGuests } } : {}),
-      ...(unavailablePropertyIds.length > 0 ? { id: { notIn: unavailablePropertyIds } } : {}),
-    };
-    const orderBy =
-      dto.sortBy === 'pricePerNight'
-        ? { pricePerNight: 'asc' as const }
-        : { createdAt: 'desc' as const };
+    const [unavailablePropertyIds, ratedPropertyIds] = await Promise.all([
+      this.getUnavailablePropertyIds(dto.checkIn, dto.checkOut),
+      this.getRatedPropertyIds(dto),
+    ]);
+    if (ratedPropertyIds && ratedPropertyIds.length === 0) {
+      return { data: [], total: 0, page, limit, totalPages: 1 };
+    }
+    const andClauses: Prisma.PropertyWhereInput[] = [
+      this.buildBaseWhere(),
+      this.buildLocationWhere(dto),
+      this.buildTypeWhere(dto),
+      this.buildFeaturedWhere(dto),
+      this.buildPriceWhere(dto),
+      this.buildFeesWhere(dto),
+      this.buildCapacityWhere(dto),
+      this.buildRoomsWhere(dto),
+      this.buildStayRulesWhere(dto),
+      this.buildHouseRulesWhere(dto),
+      ...this.buildAmenitiesAndWhere(dto),
+      ...(unavailablePropertyIds.length > 0 ? [{ id: { notIn: unavailablePropertyIds } }] : []),
+      ...(ratedPropertyIds ? [{ id: { in: ratedPropertyIds } }] : []),
+    ].filter((w) => Object.keys(w).length > 0);
+    const where: Prisma.PropertyWhereInput = { AND: andClauses };
+    const orderBy = this.buildOrderBy(dto);
     const [properties, total] = await Promise.all([
       this.prisma.property.findMany({
         where,
@@ -175,13 +334,7 @@ export class PropertiesService {
     const summaries = await Promise.all(
       properties.map((property) => this.toPropertySummary(property)),
     );
-    return {
-      data: summaries,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit) || 1,
-    };
+    return { data: summaries, total, page, limit, totalPages: Math.ceil(total / limit) || 1 };
   }
 
   async findById(id: string, requestingUserId?: string): Promise<PropertyDetail> {
@@ -283,6 +436,23 @@ export class PropertiesService {
 
   async update(id: string, hostUserId: string, dto: UpdatePropertyDto): Promise<Property> {
     const property = await this.getOwnedProperty(id, hostUserId);
+    const hasAddressUpdate =
+      dto.placeKind !== undefined ||
+      dto.buildingNumber !== undefined ||
+      dto.street !== undefined ||
+      dto.latitude !== undefined ||
+      dto.longitude !== undefined;
+    if (hasAddressUpdate) {
+      this.validateHouseAddress({
+        placeKind: dto.placeKind ?? property.placeKind ?? undefined,
+        buildingNumber: dto.buildingNumber ?? property.buildingNumber ?? undefined,
+        street: dto.street ?? property.street ?? undefined,
+        latitude:
+          dto.latitude ?? (property.latitude !== null ? Number(property.latitude) : undefined),
+        longitude:
+          dto.longitude ?? (property.longitude !== null ? Number(property.longitude) : undefined),
+      });
+    }
     const data: Prisma.PropertyUpdateInput = {
       ...dto,
       bathrooms: dto.bathrooms !== undefined ? new Decimal(dto.bathrooms) : undefined,
@@ -305,6 +475,17 @@ export class PropertiesService {
       data: { status: 'INACTIVE' },
     });
     return { success: true };
+  }
+
+  async reactivate(id: string, hostUserId: string): Promise<Property> {
+    const property = await this.getOwnedProperty(id, hostUserId);
+    if (property.status !== 'INACTIVE') {
+      throw new BadRequestException('Only inactive listings can be reactivated');
+    }
+    return this.prisma.property.update({
+      where: { id: property.id },
+      data: { status: 'ACTIVE' },
+    });
   }
 
   async updateStatus(id: string, status: PropertyStatus): Promise<Property> {

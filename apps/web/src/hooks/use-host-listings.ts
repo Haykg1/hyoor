@@ -29,6 +29,7 @@ export function useHostListings() {
     setSearchQuery,
     resetFilters,
     softDeleteListing,
+    reactivateListing,
   } = useHostListingsStore();
 
   useEffect(() => {
@@ -63,5 +64,6 @@ export function useHostListings() {
     setSearchQuery,
     resetFilters,
     softDeleteListing,
+    reactivateListing,
   };
 }

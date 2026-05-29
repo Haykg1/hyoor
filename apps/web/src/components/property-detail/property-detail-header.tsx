@@ -1,11 +1,12 @@
 'use client';
 
-import type { PropertyDetail, PropertyType } from '@repo/shared';
+import type { PropertyDetail } from '@repo/shared';
+import { propertyTypeLabelKey } from '@repo/shared';
 import { ArrowLeft, MapPin, Star } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@/i18n/navigation';
-import { categoryFromPropertyType } from '@/lib/api/properties';
 
 interface PropertyDetailHeaderProps {
   property: Pick<
@@ -21,21 +22,8 @@ interface PropertyDetailHeaderProps {
   >;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  apartment: 'Apartment',
-  house: 'House',
-  villa: 'Villa',
-  guesthouse: 'Guesthouse',
-  studio: 'Studio',
-  hotel_room: 'Hotel Room',
-};
-
-function propertyTypeLabel(type: PropertyType): string {
-  const cat = categoryFromPropertyType(type);
-  return cat ? (CATEGORY_LABELS[cat] ?? type) : type;
-}
-
 export function PropertyDetailHeader({ property }: PropertyDetailHeaderProps): React.JSX.Element {
+  const t = useTranslations('property_card.categories');
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -43,7 +31,7 @@ export function PropertyDetailHeader({ property }: PropertyDetailHeaderProps): R
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <Badge variant="secondary" className="text-xs">
-          {propertyTypeLabel(property.propertyType)}
+          {t(propertyTypeLabelKey(property.propertyType))}
         </Badge>
       </div>
       <h1 className="text-2xl font-bold leading-tight md:text-3xl">{property.title}</h1>

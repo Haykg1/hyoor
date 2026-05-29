@@ -19,6 +19,10 @@
     "./dto": {
       "types": "./src/dto/index.ts",
       "default": "./dist/dto/index.js"
+    },
+    "./property-types": {
+      "types": "./src/property-types.ts",
+      "default": "./dist/property-types.js"
     }
   },
   "scripts": {

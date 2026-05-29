@@ -19,6 +19,11 @@ export interface CreatePropertyInput {
   cancellationPolicy: CancellationPolicy;
   country?: string;
   region?: string;
+  street?: string;
+  buildingNumber?: string;
+  formattedAddress?: string;
+  placeKind?: string;
+  apartmentNumber?: string;
   addressLine?: string;
   latitude?: number;
   longitude?: number;

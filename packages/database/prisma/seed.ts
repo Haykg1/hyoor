@@ -12,6 +12,23 @@ function utcDate(daysFromNow = 0): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + daysFromNow));
 }
 
+function parseSeedAddress(addressLine: string): {
+  street: string;
+  buildingNumber: string;
+  formattedAddress: string;
+} {
+  const trimmed = addressLine.trim();
+  const spaceIndex = trimmed.indexOf(' ');
+  if (spaceIndex <= 0) {
+    return { buildingNumber: '', street: trimmed, formattedAddress: trimmed };
+  }
+  return {
+    buildingNumber: trimmed.slice(0, spaceIndex),
+    street: trimmed.slice(spaceIndex + 1),
+    formattedAddress: trimmed,
+  };
+}
+
 async function main(): Promise<void> {
   console.log('🌱 Seeding RentStar demo data...');
 
@@ -246,9 +263,19 @@ async function main(): Promise<void> {
   });
 
   // ── Properties ───────────────────────────────────────────────────────────
+  const p1Address = parseSeedAddress('10 Tamanyan Street');
   const p1 = await prisma.property.upsert({
     where: { slug: 'cascade-view-apartment' },
-    update: { featured: true, maxAdults: 2, maxChildren: 2, maxInfants: 1 },
+    update: {
+      featured: true,
+      maxAdults: 2,
+      maxChildren: 2,
+      maxInfants: 1,
+      street: p1Address.street,
+      buildingNumber: p1Address.buildingNumber,
+      formattedAddress: p1Address.formattedAddress,
+      placeKind: 'house',
+    },
     create: {
       hostId: hp1.id,
       status: 'ACTIVE',
@@ -263,6 +290,10 @@ async function main(): Promise<void> {
       region: 'Yerevan',
       city: 'Yerevan',
       addressLine: '10 Tamanyan Street',
+      street: p1Address.street,
+      buildingNumber: p1Address.buildingNumber,
+      formattedAddress: p1Address.formattedAddress,
+      placeKind: 'house',
       latitude: new Decimal('40.1904'),
       longitude: new Decimal('44.5152'),
       maxGuests: 4,
@@ -287,9 +318,18 @@ async function main(): Promise<void> {
     },
   });
 
+  const p2Address = parseSeedAddress('23 Northern Avenue');
   const p2 = await prisma.property.upsert({
     where: { slug: 'northern-avenue-studio' },
-    update: { maxAdults: 2, maxChildren: 0, maxInfants: 1 },
+    update: {
+      maxAdults: 2,
+      maxChildren: 0,
+      maxInfants: 1,
+      street: p2Address.street,
+      buildingNumber: p2Address.buildingNumber,
+      formattedAddress: p2Address.formattedAddress,
+      placeKind: 'house',
+    },
     create: {
       hostId: hp1.id,
       status: 'ACTIVE',
@@ -303,6 +343,10 @@ async function main(): Promise<void> {
       region: 'Yerevan',
       city: 'Yerevan',
       addressLine: '23 Northern Avenue',
+      street: p2Address.street,
+      buildingNumber: p2Address.buildingNumber,
+      formattedAddress: p2Address.formattedAddress,
+      placeKind: 'house',
       latitude: new Decimal('40.1836'),
       longitude: new Decimal('44.5128'),
       maxGuests: 2,
@@ -325,9 +369,19 @@ async function main(): Promise<void> {
     },
   });
 
+  const p3Address = parseSeedAddress('5 Moskovyan Street');
   const p3 = await prisma.property.upsert({
     where: { slug: 'kentron-heritage-house' },
-    update: { featured: true, maxAdults: 4, maxChildren: 2, maxInfants: 1 },
+    update: {
+      featured: true,
+      maxAdults: 4,
+      maxChildren: 2,
+      maxInfants: 1,
+      street: p3Address.street,
+      buildingNumber: p3Address.buildingNumber,
+      formattedAddress: p3Address.formattedAddress,
+      placeKind: 'house',
+    },
     create: {
       hostId: hp2.id,
       status: 'ACTIVE',
@@ -342,6 +396,10 @@ async function main(): Promise<void> {
       region: 'Yerevan',
       city: 'Yerevan',
       addressLine: '5 Moskovyan Street',
+      street: p3Address.street,
+      buildingNumber: p3Address.buildingNumber,
+      formattedAddress: p3Address.formattedAddress,
+      placeKind: 'house',
       latitude: new Decimal('40.1776'),
       longitude: new Decimal('44.5169'),
       maxGuests: 6,
@@ -366,9 +424,19 @@ async function main(): Promise<void> {
     },
   });
 
+  const p4Address = parseSeedAddress('88 Abovyan Street');
   const p4 = await prisma.property.upsert({
     where: { slug: 'ararat-mountain-guesthouse' },
-    update: { featured: true, maxAdults: 3, maxChildren: 2, maxInfants: 1 },
+    update: {
+      featured: true,
+      maxAdults: 3,
+      maxChildren: 2,
+      maxInfants: 1,
+      street: p4Address.street,
+      buildingNumber: p4Address.buildingNumber,
+      formattedAddress: p4Address.formattedAddress,
+      placeKind: 'house',
+    },
     create: {
       hostId: hp2.id,
       status: 'ACTIVE',
@@ -383,6 +451,10 @@ async function main(): Promise<void> {
       region: 'Yerevan',
       city: 'Yerevan',
       addressLine: '88 Abovyan Street',
+      street: p4Address.street,
+      buildingNumber: p4Address.buildingNumber,
+      formattedAddress: p4Address.formattedAddress,
+      placeKind: 'house',
       latitude: new Decimal('40.1870'),
       longitude: new Decimal('44.5310'),
       maxGuests: 5,
@@ -405,9 +477,19 @@ async function main(): Promise<void> {
     },
   });
 
+  const p5Address = parseSeedAddress('1 Grigor Lusavorich Street');
   const p5 = await prisma.property.upsert({
     where: { slug: 'silk-road-penthouse' },
-    update: { featured: true, maxAdults: 2, maxChildren: 2, maxInfants: 1 },
+    update: {
+      featured: true,
+      maxAdults: 2,
+      maxChildren: 2,
+      maxInfants: 1,
+      street: p5Address.street,
+      buildingNumber: p5Address.buildingNumber,
+      formattedAddress: p5Address.formattedAddress,
+      placeKind: 'house',
+    },
     create: {
       hostId: hp3.id,
       status: 'ACTIVE',
@@ -422,6 +504,10 @@ async function main(): Promise<void> {
       region: 'Yerevan',
       city: 'Yerevan',
       addressLine: '1 Grigor Lusavorich Street',
+      street: p5Address.street,
+      buildingNumber: p5Address.buildingNumber,
+      formattedAddress: p5Address.formattedAddress,
+      placeKind: 'house',
       latitude: new Decimal('40.1781'),
       longitude: new Decimal('44.5121'),
       maxGuests: 4,
@@ -444,9 +530,19 @@ async function main(): Promise<void> {
     },
   });
 
+  const p6Address = parseSeedAddress('28 Forest Lane');
   const p6 = await prisma.property.upsert({
     where: { slug: 'dilijan-forest-villa' },
-    update: { featured: true, maxAdults: 4, maxChildren: 3, maxInfants: 2 },
+    update: {
+      featured: true,
+      maxAdults: 4,
+      maxChildren: 3,
+      maxInfants: 2,
+      street: p6Address.street,
+      buildingNumber: p6Address.buildingNumber,
+      formattedAddress: p6Address.formattedAddress,
+      placeKind: 'house',
+    },
     create: {
       hostId: hp3.id,
       status: 'ACTIVE',
@@ -461,6 +557,10 @@ async function main(): Promise<void> {
       region: 'Tavush',
       city: 'Dilijan',
       addressLine: '28 Forest Lane',
+      street: p6Address.street,
+      buildingNumber: p6Address.buildingNumber,
+      formattedAddress: p6Address.formattedAddress,
+      placeKind: 'house',
       latitude: new Decimal('40.7414'),
       longitude: new Decimal('44.8631'),
       maxGuests: 8,
@@ -483,9 +583,18 @@ async function main(): Promise<void> {
     },
   });
 
+  const p7Address = parseSeedAddress('17 Varshavyan Street');
   const p7 = await prisma.property.upsert({
     where: { slug: 'yerevan-city-loft-draft' },
-    update: { maxAdults: 2, maxChildren: 1, maxInfants: 0 },
+    update: {
+      maxAdults: 2,
+      maxChildren: 1,
+      maxInfants: 0,
+      street: p7Address.street,
+      buildingNumber: p7Address.buildingNumber,
+      formattedAddress: p7Address.formattedAddress,
+      placeKind: 'house',
+    },
     create: {
       hostId: hp1.id,
       status: 'DRAFT',
@@ -499,6 +608,10 @@ async function main(): Promise<void> {
       region: 'Yerevan',
       city: 'Yerevan',
       addressLine: '17 Varshavyan Street',
+      street: p7Address.street,
+      buildingNumber: p7Address.buildingNumber,
+      formattedAddress: p7Address.formattedAddress,
+      placeKind: 'house',
       latitude: new Decimal('40.1550'),
       longitude: new Decimal('44.4900'),
       maxGuests: 3,

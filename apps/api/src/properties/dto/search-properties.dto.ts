@@ -6,6 +6,7 @@ import {
   IsDateString,
   IsIn,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   Max,
@@ -15,6 +16,19 @@ import {
 import { PROPERTY_TYPES } from './create-property.dto';
 
 export const SORT_BY = ['pricePerNight', 'createdAt'] as const;
+
+function toOptionalBoolean(value: unknown): boolean | undefined {
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  if (typeof value === 'boolean') return value;
+  return undefined;
+}
+
+function toStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String);
+  if (value === undefined || value === null) return [];
+  return [String(value)];
+}
 
 export class SearchPropertiesDto {
   @ApiPropertyOptional({ example: 'Yerevan' })
@@ -26,6 +40,31 @@ export class SearchPropertiesDto {
   @IsOptional()
   @IsString()
   country?: string;
+
+  @ApiPropertyOptional({ example: 'Tavush' })
+  @IsOptional()
+  @IsString()
+  region?: string;
+
+  @ApiPropertyOptional({ example: 'Noramarg village' })
+  @IsOptional()
+  @IsString()
+  searchCity?: string;
+
+  @ApiPropertyOptional({ example: 'Azatutyan Street' })
+  @IsOptional()
+  @IsString()
+  searchStreet?: string;
+
+  @ApiPropertyOptional({ example: '11' })
+  @IsOptional()
+  @IsString()
+  searchBuildingNumber?: string;
+
+  @ApiPropertyOptional({ example: 'house' })
+  @IsOptional()
+  @IsString()
+  searchPlaceKind?: string;
 
   @ApiPropertyOptional({ enum: PROPERTY_TYPES })
   @IsOptional()
@@ -53,6 +92,147 @@ export class SearchPropertiesDto {
   @Type(() => Number)
   maxGuests?: number;
 
+  @ApiPropertyOptional({ example: 2, minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  minAdults?: number;
+
+  @ApiPropertyOptional({ example: 1, minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  minChildren?: number;
+
+  @ApiPropertyOptional({ example: 0, minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  minInfants?: number;
+
+  @ApiPropertyOptional({ example: 1, minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  minBedrooms?: number;
+
+  @ApiPropertyOptional({ example: 1, minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  minBeds?: number;
+
+  @ApiPropertyOptional({
+    example: 1.5,
+    minimum: 0,
+    description: 'Bathrooms (supports decimals like 1.5)',
+  })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 1 })
+  @Min(0)
+  @Type(() => Number)
+  minBathrooms?: number;
+
+  @ApiPropertyOptional({ example: 0, minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  minCleaningFee?: number;
+
+  @ApiPropertyOptional({ example: 5000, minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  maxCleaningFee?: number;
+
+  @ApiPropertyOptional({ example: 0, minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  minSecurityDeposit?: number;
+
+  @ApiPropertyOptional({ example: 50000, minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Type(() => Number)
+  maxSecurityDeposit?: number;
+
+  @ApiPropertyOptional({
+    example: 3,
+    minimum: 1,
+    description:
+      'Desired minimum nights for the stay. Property must allow this (property.minNights <= value).',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  minNights?: number;
+
+  @ApiPropertyOptional({
+    example: 10,
+    minimum: 1,
+    description:
+      'Desired maximum nights for the stay. Property must allow this (property.maxNights is null OR >= value).',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  maxNights?: number;
+
+  @ApiPropertyOptional({ example: true, description: 'Only show listings that allow smoking' })
+  @IsOptional()
+  @Transform(({ value }) => toOptionalBoolean(value))
+  @IsBoolean()
+  smokingAllowed?: boolean;
+
+  @ApiPropertyOptional({ example: true, description: 'Only show listings that allow pets' })
+  @IsOptional()
+  @Transform(({ value }) => toOptionalBoolean(value))
+  @IsBoolean()
+  petsAllowed?: boolean;
+
+  @ApiPropertyOptional({ example: true, description: 'Only show listings that allow parties' })
+  @IsOptional()
+  @Transform(({ value }) => toOptionalBoolean(value))
+  @IsBoolean()
+  partiesAllowed?: boolean;
+
+  @ApiPropertyOptional({
+    example: ['WiFi', 'Kitchen'],
+    isArray: true,
+    description: 'Amenity names. Property must include ALL selected amenities.',
+  })
+  @IsOptional()
+  @Transform(({ value }) => toStringArray(value))
+  @IsString({ each: true })
+  amenities?: string[];
+
+  @ApiPropertyOptional({ example: 4.5, minimum: 1, maximum: 5 })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(1)
+  @Max(5)
+  @Type(() => Number)
+  minAvgRating?: number;
+
+  @ApiPropertyOptional({ example: 3, minimum: 1 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  minReviewCount?: number;
+
   @ApiPropertyOptional({ example: '2026-06-01', format: 'date' })
   @IsOptional()
   @IsDateString()
@@ -65,7 +245,7 @@ export class SearchPropertiesDto {
 
   @ApiPropertyOptional({ example: true, description: 'Return only featured listings' })
   @IsOptional()
-  @Transform(({ value }) => (value === 'true' ? true : value === 'false' ? false : value))
+  @Transform(({ value }) => toOptionalBoolean(value))
   @IsBoolean()
   featured?: boolean;
 

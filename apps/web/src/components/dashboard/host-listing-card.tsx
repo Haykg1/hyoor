@@ -1,7 +1,8 @@
 'use client';
 
 import type { HostListingSummary } from '@repo/shared';
-import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { propertyTypeLabelKey } from '@repo/shared';
+import { Eye, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -26,16 +27,22 @@ interface HostListingCardProps {
   listing: HostListingSummary;
   showDelete: boolean;
   onDelete: (id: string) => Promise<void>;
+  onReactivate?: (id: string) => Promise<void>;
 }
 
 export function HostListingCard({
   listing,
   showDelete,
   onDelete,
+  onReactivate,
 }: HostListingCardProps): React.JSX.Element {
   const t = useTranslations('dashboard');
+  const tType = useTranslations('property_card.categories');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [reactivateOpen, setReactivateOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isReactivating, setIsReactivating] = useState(false);
+  const canReactivate = listing.status === 'INACTIVE' && !!onReactivate;
 
   async function handleConfirmDelete() {
     setIsDeleting(true);
@@ -44,6 +51,17 @@ export function HostListingCard({
     } finally {
       setIsDeleting(false);
       setConfirmOpen(false);
+    }
+  }
+
+  async function handleConfirmReactivate() {
+    if (!onReactivate) return;
+    setIsReactivating(true);
+    try {
+      await onReactivate(listing.id);
+    } finally {
+      setIsReactivating(false);
+      setReactivateOpen(false);
     }
   }
 
@@ -69,10 +87,21 @@ export function HostListingCard({
           </div>
           <p className="text-xs text-muted-foreground">
             {location} · {formatAmd(listing.pricePerNight)}/{t('per_night')} ·{' '}
-            {listing.propertyType.charAt(0) + listing.propertyType.slice(1).toLowerCase()}
+            {tType(propertyTypeLabelKey(listing.propertyType))}
           </p>
         </div>
         <div className="flex items-center gap-2 self-end sm:self-auto">
+          {canReactivate && (
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-8 w-8 shrink-0"
+              onClick={() => setReactivateOpen(true)}
+              aria-label={t('actions.reactivate')}
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+            </Button>
+          )}
           <Button size="sm" variant="outline" className="gap-1 text-xs" asChild>
             <Link href={`/dashboard/listings/${listing.id}/edit`}>
               <Pencil className="h-3 w-3" />
@@ -112,6 +141,27 @@ export function HostListingCard({
             </Button>
             <Button variant="destructive" onClick={handleConfirmDelete} disabled={isDeleting}>
               {isDeleting ? t('deleting') : t('actions.soft_delete')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={reactivateOpen} onOpenChange={setReactivateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('reactivate_title')}</DialogTitle>
+            <DialogDescription>{t('reactivate_confirm')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setReactivateOpen(false)}
+              disabled={isReactivating}
+            >
+              {t('capacity.cancel')}
+            </Button>
+            <Button onClick={handleConfirmReactivate} disabled={isReactivating}>
+              {isReactivating ? t('reactivating') : t('actions.reactivate')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -14,6 +14,8 @@ interface StepMediaAmenitiesProps {
   onAddPhotos: (files: File[]) => void;
   onRemovePhoto: (localId: string) => void;
   onSetCoverPhoto: (localId: string) => void;
+  onUpdatePhotoCaption: (localId: string, caption: string) => void;
+  onMovePhoto: (localId: string, direction: 'up' | 'down') => void;
 }
 
 export function StepMediaAmenities({
@@ -22,6 +24,8 @@ export function StepMediaAmenities({
   onAddPhotos,
   onRemovePhoto,
   onSetCoverPhoto,
+  onUpdatePhotoCaption,
+  onMovePhoto,
 }: StepMediaAmenitiesProps): React.JSX.Element {
   const amenities = form.watch('amenities');
   return (
@@ -32,6 +36,8 @@ export function StepMediaAmenities({
           onAdd={onAddPhotos}
           onRemove={onRemovePhoto}
           onSetCover={onSetCoverPhoto}
+          onUpdateCaption={onUpdatePhotoCaption}
+          onMovePhoto={onMovePhoto}
         />
         <AmenityMultiSelect
           selected={amenities}

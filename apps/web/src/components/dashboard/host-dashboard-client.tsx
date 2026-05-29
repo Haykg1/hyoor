@@ -41,6 +41,7 @@ export function HostDashboardClient({ welcomeName }: HostDashboardClientProps): 
     setSearchQuery,
     resetFilters,
     softDeleteListing,
+    reactivateListing,
   } = useHostListings();
 
   const activeTabKey: TabKey = tab === 'disabled' ? 'disabled' : 'active';
@@ -138,6 +139,7 @@ export function HostDashboardClient({ welcomeName }: HostDashboardClientProps): 
           onPageChange={setPage}
           onLimitChange={setLimit}
           onDelete={async () => {}}
+          onReactivate={reactivateListing}
         />
       )}
     </div>
