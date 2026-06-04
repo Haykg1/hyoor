@@ -225,8 +225,11 @@
     "actions": {
       "view": "View",
       "edit": "Edit",
+      "calendar": "Calendar",
       "soft_delete": "Disable",
-      "reactivate": "Re-enable"
+      "reactivate": "Re-enable",
+      "enable": "Enable",
+      "disable": "Disable"
     },
     "deleting": "Disabling…",
     "reactivating": "Re-enabling…",
@@ -264,7 +267,82 @@
       "statuses": {
         "DRAFT": "Draft",
         "PENDING_REVIEW": "Pending review",
-        "ACTIVE": "Active"
+        "ACTIVE": "Active",
+        "SUSPENDED": "Suspended"
+      }
+    },
+    "admin": {
+      "title": "Admin Dashboard",
+      "empty_listings": "No properties match your filters.",
+      "enable_title": "Enable property",
+      "enable_confirm": "This property will become active and visible to guests.",
+      "disable_title": "Disable property",
+      "disable_confirm": "This property will be hidden from guests.",
+      "enabling": "Enabling…",
+      "disabling": "Disabling…",
+      "tabs": {
+        "all_properties": "All Properties"
+      }
+    },
+    "calendar": {
+      "title": "Calendar & Rates",
+      "back_to_dashboard": "Back to dashboard",
+      "base_rate": "Base rate",
+      "prev_month": "Previous month",
+      "next_month": "Next month",
+      "today": "Today",
+      "refreshing": "Refreshing…",
+      "open_year": "Open next 365 days",
+      "set_range_rate": "Set rate for range",
+      "legend": {
+        "available": "Available",
+        "custom_rate": "Custom rate",
+        "closed": "Closed",
+        "booked": "Booked",
+        "selected": "Selected"
+      },
+      "editor": {
+        "empty_hint": "Click a day to select. Click another to extend the selection into a range. Then set the rate and status below.",
+        "editing_count": "Editing {count, plural, one {# day} other {# days}}",
+        "clear": "Clear selection",
+        "skipped_booked": "{count, plural, one {# day is booked and will be skipped} other {# days are booked and will be skipped}}",
+        "only_booked_selected": "All selected days are booked. Nothing to update.",
+        "rate_label": "Nightly rate",
+        "night": "night",
+        "use_base_rate": "Use base rate ({base} AMD)",
+        "status_label": "Status",
+        "available": "Available",
+        "closed": "Closed",
+        "apply": "Apply",
+        "saved": "{count, plural, one {# day updated} other {# days updated}}",
+        "save_failed": "Failed to save changes",
+        "invalid_price": "Enter a valid price"
+      },
+      "open_year_dialog": {
+        "title": "Open the next 365 days?",
+        "description": "Every day in the next year will be marked as available. Days already booked stay unavailable until the booking ends or is cancelled.",
+        "cancel": "Cancel",
+        "confirm": "Open year",
+        "toast_success": "Opened {opened} days · skipped {skipped} booked",
+        "toast_error": "Failed to open the year"
+      },
+      "range_dialog": {
+        "title": "Set rate for a date range",
+        "description": "Pick a check-in and check-out day, choose a rate, and apply it to the whole range. Booked days are skipped automatically.",
+        "pick_dates": "Pick a date range first",
+        "selected_summary": "{count, plural, one {# day selected} other {# days selected}}",
+        "skipped_booked": "{count, plural, one {# booked day skipped} other {# booked days skipped}}",
+        "rate_label": "Nightly rate",
+        "night": "night",
+        "use_base_rate": "Use base rate ({base} AMD)",
+        "status_label": "Status",
+        "available": "Available",
+        "closed": "Closed",
+        "cancel": "Cancel",
+        "apply": "Apply",
+        "saved": "{count, plural, one {# day updated} other {# days updated}}",
+        "save_failed": "Failed to save changes",
+        "invalid_price": "Enter a valid price"
       }
     },
     "overview": "Dashboard",
@@ -326,6 +404,15 @@
       "more_types": "More property types…",
       "title": "Listing Title",
       "title_placeholder": "e.g. Cozy apartment in central Yerevan",
+      "title_translations_heading": "Title translations",
+      "title_translations_hint": "Optional but highly recommended. Filling translations in the other languages lets guests searching in those languages find your listing.",
+      "title_translations_hint_aria": "Why add translations?",
+      "title_en": "English title",
+      "title_en_placeholder": "e.g. Cozy apartment near Cascade",
+      "title_ru": "Russian title",
+      "title_ru_placeholder": "напр. Уютная квартира у Каскада",
+      "title_hy": "Armenian title",
+      "title_hy_placeholder": "օր. Հարմարավետ բնակարան Կասկադի մոտ",
       "description": "Description",
       "description_placeholder": "Describe your space, neighborhood, and what makes it special…",
       "city": "City",

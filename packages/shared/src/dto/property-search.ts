@@ -7,6 +7,8 @@ export interface SearchPropertiesQuery {
   featured?: boolean;
   limit?: number;
   page?: number;
+  /** Free-text title search across canonical title + titleLabels.* translations. */
+  q?: string;
   city?: string;
   country?: string;
   region?: string;
@@ -14,6 +16,9 @@ export interface SearchPropertiesQuery {
   searchStreet?: string;
   searchBuildingNumber?: string;
   searchPlaceKind?: string;
+  searchLatitude?: number;
+  searchLongitude?: number;
+  searchRadiusKm?: number;
   propertyType?: PropertyType;
   checkIn?: string;
   checkOut?: string;

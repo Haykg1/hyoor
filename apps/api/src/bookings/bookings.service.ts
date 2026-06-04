@@ -31,6 +31,7 @@ export interface BookingGuestProfile {
 export interface BookingPropertySummary {
   id: string;
   title: string;
+  titleLabels: import('@repo/shared').PropertyTitleLabels | null;
   slug: string;
   city: string;
   country: string;
@@ -419,6 +420,10 @@ export class BookingsService {
       property: {
         id: property.id,
         title: property.title,
+        titleLabels:
+          property.titleLabels && typeof property.titleLabels === 'object'
+            ? (property.titleLabels as import('@repo/shared').PropertyTitleLabels)
+            : null,
         slug: property.slug,
         city: property.city,
         country: property.country,

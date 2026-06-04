@@ -1,9 +1,10 @@
 'use client';
 
 import type { BookingDetail } from '@repo/shared';
+import { getLocalizedTitle } from '@repo/shared';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ export default function BookingConfirmationPage(): React.JSX.Element {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const t = useTranslations('booking.confirmation');
+  const locale = useLocale();
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,7 +74,9 @@ export default function BookingConfirmationPage(): React.JSX.Element {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{booking.property.title}</CardTitle>
+          <CardTitle className="text-base">
+            {getLocalizedTitle(booking.property.titleLabels, locale, booking.property.title)}
+          </CardTitle>
           <p className="text-sm text-muted-foreground">
             {booking.property.city}, {booking.property.country}
           </p>

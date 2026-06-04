@@ -131,4 +131,90 @@ describe('GeocodingService', () => {
       ServiceUnavailableException,
     );
   });
+
+  it('forwards lang to the Yandex geocoder URL', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ response: { GeoObjectCollection: {} } }),
+    } as Response);
+    await service.searchPlaces('Yerevan', 'any', 'hy_AM');
+    const calledUrl = fetchMock.mock.calls[0]?.[0] as string;
+    expect(calledUrl).toContain('lang=hy_AM');
+  });
+
+  it('reverseGeocodes coordinates with the requested language', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => yandexFixture,
+    } as Response);
+    const place = await service.reverseGeocode(40.026135, 44.416256, 'ru_RU');
+    const calledUrl = fetchMock.mock.calls[0]?.[0] as string;
+    expect(calledUrl).toContain('geocode=44.416256%2C40.026135');
+    expect(calledUrl).toContain('lang=ru_RU');
+    expect(calledUrl).toContain('results=1');
+    expect(place?.buildingNumber).toBe('11');
+    expect(place?.street).toBe('Azatutyan Street');
+  });
+
+  it('resolveAddressLabels returns hy, ru, and en labels from parallel reverse geocode calls', async () => {
+    fetchMock.mockImplementation(async (url: string) => {
+      const lang = new URL(url).searchParams.get('lang');
+      const streetByLang: Record<string, string> = {
+        hy_AM: 'Azatutyan Street (hy)',
+        ru_RU: 'Azatutyan Street (ru)',
+        en_US: 'Azatutyan Street',
+      };
+      const street = streetByLang[lang ?? 'en_US'] ?? 'Azatutyan Street';
+      return {
+        ok: true,
+        json: async () => ({
+          response: {
+            GeoObjectCollection: {
+              featureMember: [
+                {
+                  GeoObject: {
+                    ...yandexFixture.response.GeoObjectCollection.featureMember[0]?.GeoObject,
+                    metaDataProperty: {
+                      GeocoderMetaData: {
+                        ...yandexFixture.response.GeoObjectCollection.featureMember[0]?.GeoObject
+                          .metaDataProperty.GeocoderMetaData,
+                        text: `Armenia, Ararat Region, Noramarg village, ${street}, 11`,
+                        Address: {
+                          country_code: 'AM',
+                          formatted: `Armenia, Ararat Region, Noramarg village, ${street}, 11`,
+                          Components: [
+                            { kind: 'country', name: 'Armenia' },
+                            { kind: 'province', name: 'Ararat Region' },
+                            { kind: 'locality', name: 'Noramarg village' },
+                            { kind: 'street', name: street },
+                            { kind: 'house', name: '11' },
+                          ],
+                        },
+                      },
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        }),
+      } as Response;
+    });
+    const labels = await service.resolveAddressLabels(40.026135, 44.416256);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(labels.hy.street).toBe('Azatutyan Street (hy)');
+    expect(labels.ru.street).toBe('Azatutyan Street (ru)');
+    expect(labels.en.street).toBe('Azatutyan Street');
+    expect(labels.en.formattedAddress).toContain('Azatutyan Street, 11');
+  });
+
+  it('resolveAddressLabels throws when reverse geocode returns no result', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ response: { GeoObjectCollection: {} } }),
+    } as Response);
+    await expect(service.resolveAddressLabels(40.026135, 44.416256)).rejects.toBeInstanceOf(
+      ServiceUnavailableException,
+    );
+  });
 });

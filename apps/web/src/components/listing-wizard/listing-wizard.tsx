@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { PropertyDetail } from '@repo/shared';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -69,6 +69,7 @@ interface ListingWizardProps {
 }
 
 export function ListingWizard({ mode, initialProperty }: ListingWizardProps): React.JSX.Element {
+  const locale = useLocale();
   const t = useTranslations('listing_wizard');
   const router = useRouter();
   const {
@@ -100,12 +101,12 @@ export function ListingWizard({ mode, initialProperty }: ListingWizardProps): Re
     if (mode === 'create') {
       initCreate();
     } else if (initialProperty) {
-      hydrateFromProperty(initialProperty);
+      hydrateFromProperty(initialProperty, locale);
     }
     return () => {
       reset();
     };
-  }, [mode, initialProperty, initCreate, hydrateFromProperty, reset]);
+  }, [mode, initialProperty, locale, initCreate, hydrateFromProperty, reset]);
   async function validateCurrentStep(): Promise<boolean> {
     const values = form.getValues();
     if (step === 1) {

@@ -1,10 +1,10 @@
 'use client';
 
 import type { HostListingSummary } from '@repo/shared';
-import { propertyTypeLabelKey } from '@repo/shared';
-import { Eye, Pencil, RotateCcw, Trash2 } from 'lucide-react';
+import { getLocalizedTitle, propertyTypeLabelKey } from '@repo/shared';
+import { CalendarDays, Eye, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -18,10 +18,8 @@ import {
 } from '@/components/ui/dialog';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Link } from '@/i18n/navigation';
+import { PROPERTY_PLACEHOLDER_IMAGE } from '@/lib/constants/property-placeholder';
 import { formatAmd } from '@/lib/format/price';
-
-const PLACEHOLDER_IMAGE =
-  'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=400&q=60';
 
 interface HostListingCardProps {
   listing: HostListingSummary;
@@ -38,6 +36,8 @@ export function HostListingCard({
 }: HostListingCardProps): React.JSX.Element {
   const t = useTranslations('dashboard');
   const tType = useTranslations('property_card.categories');
+  const locale = useLocale();
+  const localizedTitle = getLocalizedTitle(listing.titleLabels, locale, listing.title);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [reactivateOpen, setReactivateOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -73,8 +73,8 @@ export function HostListingCard({
       <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center">
         <div className="relative h-32 w-full shrink-0 overflow-hidden rounded-xl sm:h-16 sm:w-20">
           <Image
-            src={listing.coverPhotoUrl ?? PLACEHOLDER_IMAGE}
-            alt={listing.title}
+            src={listing.coverPhotoUrl ?? PROPERTY_PLACEHOLDER_IMAGE}
+            alt={localizedTitle}
             fill
             className="object-cover"
             unoptimized={!!listing.coverPhotoUrl}
@@ -82,7 +82,7 @@ export function HostListingCard({
         </div>
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <h3 className="truncate text-sm font-semibold">{listing.title}</h3>
+            <h3 className="truncate text-sm font-semibold">{localizedTitle}</h3>
             <StatusBadge status={listing.status} namespace="property" />
           </div>
           <p className="text-xs text-muted-foreground">
@@ -102,6 +102,12 @@ export function HostListingCard({
               <RotateCcw className="h-3.5 w-3.5" />
             </Button>
           )}
+          <Button size="sm" variant="outline" className="gap-1 text-xs" asChild>
+            <Link href={`/dashboard/listings/${listing.id}/calendar`}>
+              <CalendarDays className="h-3 w-3" />
+              {t('actions.calendar')}
+            </Link>
+          </Button>
           <Button size="sm" variant="outline" className="gap-1 text-xs" asChild>
             <Link href={`/dashboard/listings/${listing.id}/edit`}>
               <Pencil className="h-3 w-3" />

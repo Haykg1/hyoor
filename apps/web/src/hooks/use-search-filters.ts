@@ -11,6 +11,8 @@ export interface SearchFilters {
   searchStreet?: string;
   searchBuildingNumber?: string;
   searchPlaceKind?: string;
+  searchLatitude?: number;
+  searchLongitude?: number;
   checkIn: string;
   checkOut: string;
   guests: number;
@@ -119,6 +121,8 @@ export function parseSearchFilters(raw: RawSearchParams): SearchFilters {
     searchStreet: readString(raw, 'searchStreet') || undefined,
     searchBuildingNumber: readString(raw, 'searchBuildingNumber') || undefined,
     searchPlaceKind: readString(raw, 'searchPlaceKind') || undefined,
+    searchLatitude: readOptionalFloat(raw, 'searchLatitude'),
+    searchLongitude: readOptionalFloat(raw, 'searchLongitude'),
     checkIn: readString(raw, 'checkIn'),
     checkOut: readString(raw, 'checkOut'),
     guests: readGuests(raw),
@@ -148,22 +152,31 @@ function buildLocationApiParams(
   filters: SearchFilters,
 ): Pick<
   ListPropertiesParams,
-  'city' | 'region' | 'searchCity' | 'searchStreet' | 'searchBuildingNumber' | 'searchPlaceKind'
+  | 'city'
+  | 'region'
+  | 'searchCity'
+  | 'searchStreet'
+  | 'searchBuildingNumber'
+  | 'searchPlaceKind'
+  | 'searchLatitude'
+  | 'searchLongitude'
 > {
-  if (filters.searchPlaceKind === 'house' && filters.searchStreet && filters.searchBuildingNumber) {
+  const hasStructured =
+    Boolean(filters.searchCity) ||
+    Boolean(filters.searchStreet) ||
+    Boolean(filters.searchBuildingNumber) ||
+    Boolean(filters.searchPlaceKind) ||
+    filters.searchLatitude !== undefined ||
+    filters.searchLongitude !== undefined;
+  if (hasStructured) {
     return {
       region: filters.region || undefined,
       searchCity: filters.searchCity,
       searchStreet: filters.searchStreet,
       searchBuildingNumber: filters.searchBuildingNumber,
       searchPlaceKind: filters.searchPlaceKind,
-    };
-  }
-  if (filters.searchCity) {
-    return {
-      region: filters.region || undefined,
-      searchCity: filters.searchCity,
-      searchPlaceKind: filters.searchPlaceKind,
+      searchLatitude: filters.searchLatitude,
+      searchLongitude: filters.searchLongitude,
     };
   }
   return {
@@ -209,6 +222,8 @@ export function hasActiveFilters(filters: SearchFilters): boolean {
     Boolean(filters.searchStreet) ||
     Boolean(filters.searchBuildingNumber) ||
     Boolean(filters.searchPlaceKind) ||
+    filters.searchLatitude !== undefined ||
+    filters.searchLongitude !== undefined ||
     Boolean(filters.checkIn) ||
     Boolean(filters.checkOut) ||
     filters.guests > 1 ||

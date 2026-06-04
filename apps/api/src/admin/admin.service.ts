@@ -1,21 +1,32 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type {
   Booking,
   BookingStatus,
   Property,
+  PropertyPhoto,
   PropertyStatus,
   Prisma,
   User,
   UserRole,
 } from '@repo/database/client';
-import type { PaginatedResponse } from '@repo/shared';
+import type {
+  HostDashboardStats,
+  HostListingSummary,
+  HostListingsResponse,
+  PaginatedResponse,
+} from '@repo/shared';
+import { AddressLocales } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 
 import { PrismaService } from '../database/prisma.service';
+import { StorageService } from '../storage/storage.service';
 
 import { QueryAdminBookingsDto } from './dto/query-admin-bookings.dto';
+import { QueryAdminPropertiesDto } from './dto/query-admin-properties.dto';
 import { QueryTimeseriesDto, TimeseriesMetric, TimeseriesRange } from './dto/query-timeseries.dto';
 import { QueryUsersDto } from './dto/query-users.dto';
+
+const S3_PRESIGNED_URL_EXPIRES = 3600;
 
 const TIMESERIES_DEFAULT_DAYS = 30;
 const RANGE_TO_TRUNC: Record<TimeseriesRange, string> = {
@@ -80,7 +91,12 @@ export interface PlatformStats {
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(AdminService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storage: StorageService,
+  ) {}
 
   async getUsers(dto: QueryUsersDto): Promise<PaginatedResponse<User>> {
     const page = dto.page ?? 1;
@@ -172,25 +188,77 @@ export class AdminService {
     }) as Promise<User>;
   }
 
-  async getProperties(dto: QueryUsersDto): Promise<PaginatedResponse<Property>> {
+  async getDashboardStats(): Promise<HostDashboardStats> {
+    const [totalListings, activeListings, pendingReview, pendingBookings, revenueAgg] =
+      await Promise.all([
+        this.prisma.property.count({ where: { status: { not: 'INACTIVE' } } }),
+        this.prisma.property.count({ where: { status: 'ACTIVE' } }),
+        this.prisma.property.count({ where: { status: 'PENDING_REVIEW' } }),
+        this.prisma.booking.count({ where: { status: 'PENDING' } }),
+        this.prisma.booking.aggregate({
+          where: { paymentStatus: 'PAID' },
+          _sum: { totalAmount: true },
+        }),
+      ]);
+    return {
+      totalListings,
+      activeListings,
+      pendingRequests: pendingReview + pendingBookings,
+      totalEarnings: revenueAgg._sum.totalAmount ?? 0,
+    };
+  }
+
+  async findListings(dto: QueryAdminPropertiesDto): Promise<HostListingsResponse> {
     const page = dto.page ?? 1;
-    const limit = dto.limit ?? DEFAULT_PAGE_SIZE;
+    const limit = dto.limit ?? 10;
     const skip = (page - 1) * limit;
-    const [data, total] = await Promise.all([
+    const isDisabledTab = dto.tab === 'disabled';
+    const statusWhere: Prisma.PropertyWhereInput = isDisabledTab
+      ? { status: 'INACTIVE' }
+      : dto.status
+        ? { status: dto.status }
+        : { status: { not: 'INACTIVE' } };
+    const typeWhere: Prisma.PropertyWhereInput = dto.propertyType
+      ? { propertyType: dto.propertyType }
+      : {};
+    const searchWhere: Prisma.PropertyWhereInput = dto.search
+      ? {
+          OR: [
+            { title: { contains: dto.search, mode: 'insensitive' } },
+            ...AddressLocales.map((loc) => ({
+              titleLabels: {
+                path: [loc],
+                string_contains: dto.search,
+              } as Prisma.JsonNullableFilter<'Property'>,
+            })),
+            { slug: { contains: dto.search, mode: 'insensitive' } },
+            { description: { contains: dto.search, mode: 'insensitive' } },
+            { city: { contains: dto.search, mode: 'insensitive' } },
+            { region: { contains: dto.search, mode: 'insensitive' } },
+            { country: { contains: dto.search, mode: 'insensitive' } },
+            { street: { contains: dto.search, mode: 'insensitive' } },
+            { formattedAddress: { contains: dto.search, mode: 'insensitive' } },
+          ],
+        }
+      : {};
+    const where: Prisma.PropertyWhereInput = {
+      ...statusWhere,
+      ...typeWhere,
+      ...searchWhere,
+    };
+    const [properties, total, stats] = await Promise.all([
       this.prisma.property.findMany({
+        where,
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
+        include: { photos: { where: { isCover: true }, take: 1 } },
       }),
-      this.prisma.property.count(),
+      this.prisma.property.count({ where }),
+      this.getDashboardStats(),
     ]);
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit) || 1,
-    };
+    const data = await Promise.all(properties.map((p) => this.toListingSummary(p)));
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) || 1, stats };
   }
 
   async setPropertyStatus(id: string, status: PropertyStatus): Promise<Property> {
@@ -199,6 +267,40 @@ export class AdminService {
       throw new NotFoundException('Property not found');
     }
     return this.prisma.property.update({ where: { id }, data: { status } });
+  }
+
+  private async safePresignedUrl(key: string): Promise<string | undefined> {
+    if (!this.storage.isConfigured) return undefined;
+    try {
+      return await this.storage.getPresignedUrl(key, S3_PRESIGNED_URL_EXPIRES);
+    } catch (err) {
+      this.logger.warn(
+        `Failed to presign S3 object '${key}': ${err instanceof Error ? err.message : err}. Returning no URL.`,
+      );
+      return undefined;
+    }
+  }
+
+  private async toListingSummary(
+    property: Property & { photos: PropertyPhoto[] },
+  ): Promise<HostListingSummary> {
+    const coverPhoto = property.photos[0];
+    const coverPhotoUrl = coverPhoto ? await this.safePresignedUrl(coverPhoto.key) : undefined;
+    return {
+      id: property.id,
+      title: property.title,
+      titleLabels:
+        property.titleLabels && typeof property.titleLabels === 'object'
+          ? (property.titleLabels as HostListingSummary['titleLabels'])
+          : null,
+      status: property.status as HostListingSummary['status'],
+      propertyType: property.propertyType as HostListingSummary['propertyType'],
+      city: property.city,
+      region: property.region,
+      pricePerNight: property.pricePerNight,
+      currency: property.currency,
+      coverPhotoUrl,
+    };
   }
 
   async getBookings(dto: QueryAdminBookingsDto): Promise<PaginatedResponse<Booking>> {

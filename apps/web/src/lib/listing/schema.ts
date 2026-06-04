@@ -4,6 +4,9 @@ import { z } from 'zod';
 const stepBasicsFieldsSchema = z.object({
   propertyType: z.enum(PropertyTypes),
   title: z.string().min(1).max(200),
+  titleEn: z.string().max(200).optional().or(z.literal('')),
+  titleRu: z.string().max(200).optional().or(z.literal('')),
+  titleHy: z.string().max(200).optional().or(z.literal('')),
   description: z.string().min(1).max(5000),
   city: z.string().min(1).max(100),
   region: z.string().max(100).optional().or(z.literal('')),
@@ -115,6 +118,9 @@ export function normalizeStepDetailsValues(values: ListingFormValues): ListingFo
 export const DEFAULT_LISTING_VALUES: ListingFormValues = {
   propertyType: 'APARTMENT',
   title: '',
+  titleEn: '',
+  titleRu: '',
+  titleHy: '',
   description: '',
   city: '',
   region: '',
@@ -160,9 +166,21 @@ function optionalText(value: string | undefined): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
+function buildTitleLabels(values: ListingFormValues): CreatePropertyInput['titleLabels'] {
+  const labels: { en?: string; ru?: string; hy?: string } = {};
+  const en = values.titleEn?.trim();
+  const ru = values.titleRu?.trim();
+  const hy = values.titleHy?.trim();
+  if (en) labels.en = en;
+  if (ru) labels.ru = ru;
+  if (hy) labels.hy = hy;
+  return Object.keys(labels).length > 0 ? labels : null;
+}
+
 export function toCreatePropertyInput(values: ListingFormValues): CreatePropertyInput {
   return {
     title: values.title,
+    titleLabels: buildTitleLabels(values),
     description: values.description,
     propertyType: values.propertyType,
     city: values.city,

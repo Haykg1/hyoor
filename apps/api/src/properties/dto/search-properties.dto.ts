@@ -9,6 +9,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Length,
   Max,
   Min,
 } from 'class-validator';
@@ -65,6 +66,42 @@ export class SearchPropertiesDto {
   @IsOptional()
   @IsString()
   searchPlaceKind?: string;
+
+  @ApiPropertyOptional({ example: 40.1776 })
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  searchLatitude?: number;
+
+  @ApiPropertyOptional({ example: 44.5128 })
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  searchLongitude?: number;
+
+  @ApiPropertyOptional({
+    example: 5,
+    minimum: 0.05,
+    maximum: 200,
+    description:
+      'Optional radius (km) around searchLatitude/searchLongitude. If omitted, a sensible default is derived from searchPlaceKind.',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0.05)
+  @Max(200)
+  @Type(() => Number)
+  searchRadiusKm?: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Free-text title search. Case-insensitive on the canonical `title`; case-sensitive substring on `titleLabels.<locale>` (Postgres JSON limitation).',
+    maxLength: 200,
+  })
+  @IsOptional()
+  @IsString()
+  @Length(1, 200)
+  q?: string;
 
   @ApiPropertyOptional({ enum: PROPERTY_TYPES })
   @IsOptional()

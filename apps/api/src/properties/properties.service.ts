@@ -21,8 +21,11 @@ import type {
   HostListingSummary,
   PaginatedResponse,
   PresignedPhotoUrlResponse,
+  PropertyAddressLabels,
   PropertySummary,
+  PropertyTitleLabels,
 } from '@repo/shared';
+import { AddressLocales } from '@repo/shared';
 import {
   DEFAULT_PAGE_SIZE,
   MAX_UPLOAD_BYTES,
@@ -31,6 +34,7 @@ import {
 import { slugify } from '@repo/shared/utils';
 
 import { PrismaService } from '../database/prisma.service';
+import { GeocodingService } from '../geocoding/geocoding.service';
 import {
   HostProfilesService,
   type PublicHostProfile,
@@ -47,17 +51,31 @@ import { UpdatePropertyDto } from './dto/update-property.dto';
 
 const ALLOWED_PHOTO_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const BLOCKING_BOOKING_STATUSES = ['PENDING', 'CONFIRMED'] as const;
+const HOUSE_COORD_DELTA = 0.00045;
+const KM_PER_DEGREE_LAT = 111;
+const DEFAULT_RADIUS_KM = 8;
+const DEFAULT_RADIUS_KM_BY_KIND: Record<string, number> = {
+  house: 0.05,
+  street: 0.7,
+  metro: 1.5,
+  district: 4,
+  area: 5,
+  locality: 8,
+};
+const GEO_INELIGIBLE_KINDS = new Set(['province', 'country']);
 
 export interface PropertyPhotoView extends PropertyPhoto {
   url: string;
 }
 
-export interface PropertyDetail extends Property {
+export interface PropertyDetail extends Omit<Property, 'addressLabels' | 'titleLabels'> {
   photos: PropertyPhotoView[];
   amenities: PropertyAmenity[];
   host: PublicHostProfile;
   avgRating: number | null;
   reviewCount: number;
+  addressLabels: PropertyAddressLabels | null;
+  titleLabels: PropertyTitleLabels | null;
 }
 
 @Injectable()
@@ -68,6 +86,7 @@ export class PropertiesService {
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
     private readonly hostProfilesService: HostProfilesService,
+    private readonly geocoding: GeocodingService,
   ) {}
 
   private async safePresignedUrl(key: string): Promise<string | undefined> {
@@ -86,6 +105,7 @@ export class PropertiesService {
     this.validateHouseAddress(dto);
     const hostProfile = await this.hostProfilesService.findByUserId(hostUserId);
     const slug = await this.generateUniqueSlug(dto.title);
+    const addressLabels = await this.geocoding.resolveAddressLabels(dto.latitude!, dto.longitude!);
     return this.prisma.property.create({
       data: {
         hostId: hostProfile.id,
@@ -110,6 +130,8 @@ export class PropertiesService {
         buildingNumber: dto.buildingNumber,
         formattedAddress: dto.formattedAddress,
         placeKind: dto.placeKind,
+        addressLabels: addressLabels as unknown as Prisma.InputJsonValue,
+        titleLabels: this.sanitizeTitleLabels(dto.titleLabels) as unknown as Prisma.InputJsonValue,
         apartmentNumber: dto.apartmentNumber,
         addressLine: dto.addressLine,
         latitude: dto.latitude !== undefined ? new Decimal(dto.latitude) : undefined,
@@ -156,26 +178,134 @@ export class PropertiesService {
     }
   }
 
+  /**
+   * Build the location filter. Strategy:
+   *   1. House w/ coords + building number -> exact bounding box + building match.
+   *   2. Coords present (any non-region kind) -> geo bounding box. Robust against
+   *      locale/transliteration mismatches between query and stored address.
+   *   3. No coords -> translation-aware text match across `city`/`region`,
+   *      checking the top-level columns AND each locale in `addressLabels`.
+   *   4. Last-resort legacy fallback for raw `city`/`country`/`region` params
+   *      (used by non-geocoded callers).
+   */
   private buildLocationWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
-    if (dto.searchPlaceKind === 'house' && dto.searchStreet && dto.searchBuildingNumber) {
+    if (
+      dto.searchPlaceKind === 'house' &&
+      dto.searchLatitude !== undefined &&
+      dto.searchLongitude !== undefined &&
+      dto.searchBuildingNumber
+    ) {
       return {
-        ...(dto.region ? { region: { equals: dto.region, mode: 'insensitive' } } : {}),
-        ...(dto.searchCity ? { city: { equals: dto.searchCity, mode: 'insensitive' } } : {}),
-        street: { equals: dto.searchStreet, mode: 'insensitive' },
         buildingNumber: { equals: dto.searchBuildingNumber, mode: 'insensitive' },
+        latitude: {
+          gte: dto.searchLatitude - HOUSE_COORD_DELTA,
+          lte: dto.searchLatitude + HOUSE_COORD_DELTA,
+        },
+        longitude: {
+          gte: dto.searchLongitude - HOUSE_COORD_DELTA,
+          lte: dto.searchLongitude + HOUSE_COORD_DELTA,
+        },
       };
     }
-    if (dto.searchCity) {
+    const geoEligible = !dto.searchPlaceKind || !GEO_INELIGIBLE_KINDS.has(dto.searchPlaceKind);
+    if (geoEligible && dto.searchLatitude !== undefined && dto.searchLongitude !== undefined) {
+      const radiusKm = this.resolveRadiusKm(dto.searchPlaceKind, dto.searchRadiusKm);
+      const bbox = this.bboxFromRadius(dto.searchLatitude, dto.searchLongitude, radiusKm);
       return {
-        ...(dto.region ? { region: { equals: dto.region, mode: 'insensitive' } } : {}),
-        city: { equals: dto.searchCity, mode: 'insensitive' },
+        latitude: { gte: bbox.minLat, lte: bbox.maxLat },
+        longitude: { gte: bbox.minLng, lte: bbox.maxLng },
       };
     }
+    const textConditions: Prisma.PropertyWhereInput[] = [];
+    if (dto.searchCity) {
+      textConditions.push({ OR: this.localizedFieldMatches('city', dto.searchCity) });
+    }
+    if (dto.region) {
+      textConditions.push({ OR: this.localizedFieldMatches('region', dto.region) });
+    }
+    const [firstCondition, ...restConditions] = textConditions;
+    if (firstCondition && restConditions.length === 0) return firstCondition;
+    if (firstCondition) return { AND: textConditions };
     return {
       ...(dto.city ? { city: { equals: dto.city, mode: 'insensitive' } } : {}),
       ...(dto.country ? { country: { equals: dto.country, mode: 'insensitive' } } : {}),
       ...(dto.region ? { region: { equals: dto.region, mode: 'insensitive' } } : {}),
     };
+  }
+
+  private resolveRadiusKm(kind: string | undefined, override: number | undefined): number {
+    if (override !== undefined && override > 0) return override;
+    if (kind && DEFAULT_RADIUS_KM_BY_KIND[kind] !== undefined) {
+      return DEFAULT_RADIUS_KM_BY_KIND[kind];
+    }
+    return DEFAULT_RADIUS_KM;
+  }
+
+  private bboxFromRadius(
+    lat: number,
+    lng: number,
+    radiusKm: number,
+  ): { minLat: number; maxLat: number; minLng: number; maxLng: number } {
+    const latDelta = radiusKm / KM_PER_DEGREE_LAT;
+    const cosLat = Math.cos((lat * Math.PI) / 180);
+    const safeCos = Math.max(Math.abs(cosLat), 0.0001);
+    const lngDelta = radiusKm / (KM_PER_DEGREE_LAT * safeCos);
+    return {
+      minLat: lat - latDelta,
+      maxLat: lat + latDelta,
+      minLng: lng - lngDelta,
+      maxLng: lng + lngDelta,
+    };
+  }
+
+  private localizedFieldMatches(
+    field: 'city' | 'region',
+    value: string,
+  ): Prisma.PropertyWhereInput[] {
+    return [
+      { [field]: { equals: value, mode: 'insensitive' } },
+      ...AddressLocales.map((loc) => ({
+        addressLabels: {
+          path: [loc, field],
+          equals: value,
+        },
+      })),
+    ];
+  }
+
+  /**
+   * Builds an OR list matching `q` against the canonical title (case-insensitive)
+   * AND against every `titleLabels.<locale>` translation (substring, case-sensitive
+   * due to Postgres JSON path limitations). Returns an empty array when `q` is blank.
+   */
+  private buildTitleSearchOr(q: string | undefined): Prisma.PropertyWhereInput[] {
+    const trimmed = q?.trim();
+    if (!trimmed) return [];
+    return [
+      { title: { contains: trimmed, mode: 'insensitive' } },
+      ...AddressLocales.map((loc) => ({
+        titleLabels: {
+          path: [loc],
+          string_contains: trimmed,
+        },
+      })),
+    ];
+  }
+
+  /**
+   * Drops empty/whitespace-only values and returns `null` when nothing remains,
+   * so consumers can clear the column via Prisma's JSON null semantics.
+   */
+  private sanitizeTitleLabels(
+    labels: { hy?: string; ru?: string; en?: string } | null | undefined,
+  ): Record<string, string> | null {
+    if (!labels) return null;
+    const cleaned: Record<string, string> = {};
+    for (const locale of AddressLocales) {
+      const value = labels[locale]?.trim();
+      if (value) cleaned[locale] = value;
+    }
+    return Object.keys(cleaned).length > 0 ? cleaned : null;
   }
 
   private buildTypeWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
@@ -297,6 +427,7 @@ export class PropertiesService {
     if (ratedPropertyIds && ratedPropertyIds.length === 0) {
       return { data: [], total: 0, page, limit, totalPages: 1 };
     }
+    const titleSearchOr = this.buildTitleSearchOr(dto.q);
     const andClauses: Prisma.PropertyWhereInput[] = [
       this.buildBaseWhere(),
       this.buildLocationWhere(dto),
@@ -309,6 +440,7 @@ export class PropertiesService {
       this.buildStayRulesWhere(dto),
       this.buildHouseRulesWhere(dto),
       ...this.buildAmenitiesAndWhere(dto),
+      ...(titleSearchOr.length > 0 ? [{ OR: titleSearchOr }] : []),
       ...(unavailablePropertyIds.length > 0 ? [{ id: { notIn: unavailablePropertyIds } }] : []),
       ...(ratedPropertyIds ? [{ id: { in: ratedPropertyIds } }] : []),
     ].filter((w) => Object.keys(w).length > 0);
@@ -366,12 +498,19 @@ export class PropertiesService {
       reviewCount > 0
         ? property.reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount
         : null;
+    const {
+      addressLabels: rawAddressLabels,
+      titleLabels: rawTitleLabels,
+      ...propertyRest
+    } = property;
     return {
-      ...property,
+      ...propertyRest,
       photos,
       host,
       avgRating,
       reviewCount,
+      addressLabels: this.parseAddressLabels(rawAddressLabels),
+      titleLabels: this.parseTitleLabels(rawTitleLabels),
     };
   }
 
@@ -396,6 +535,12 @@ export class PropertiesService {
       ? {
           OR: [
             { title: { contains: dto.search, mode: 'insensitive' } },
+            ...AddressLocales.map((loc) => ({
+              titleLabels: {
+                path: [loc],
+                string_contains: dto.search,
+              } as Prisma.JsonNullableFilter<'Property'>,
+            })),
             { slug: { contains: dto.search, mode: 'insensitive' } },
             { description: { contains: dto.search, mode: 'insensitive' } },
             { city: { contains: dto.search, mode: 'insensitive' } },
@@ -453,12 +598,26 @@ export class PropertiesService {
           dto.longitude ?? (property.longitude !== null ? Number(property.longitude) : undefined),
       });
     }
+    const latitude =
+      dto.latitude ?? (property.latitude !== null ? Number(property.latitude) : undefined);
+    const longitude =
+      dto.longitude ?? (property.longitude !== null ? Number(property.longitude) : undefined);
+    const addressLabels =
+      hasAddressUpdate && latitude !== undefined && longitude !== undefined
+        ? await this.geocoding.resolveAddressLabels(latitude, longitude)
+        : undefined;
     const data: Prisma.PropertyUpdateInput = {
       ...dto,
       bathrooms: dto.bathrooms !== undefined ? new Decimal(dto.bathrooms) : undefined,
       latitude: dto.latitude !== undefined ? new Decimal(dto.latitude) : undefined,
       longitude: dto.longitude !== undefined ? new Decimal(dto.longitude) : undefined,
+      addressLabels: addressLabels as unknown as Prisma.InputJsonValue | undefined,
     };
+    if (dto.titleLabels !== undefined) {
+      data.titleLabels = this.sanitizeTitleLabels(
+        dto.titleLabels,
+      ) as unknown as Prisma.InputJsonValue;
+    }
     if (dto.title && dto.title !== property.title) {
       data.slug = await this.generateUniqueSlug(dto.title, property.id);
     }
@@ -749,6 +908,7 @@ export class PropertiesService {
     return {
       id: property.id,
       title: property.title,
+      titleLabels: this.parseTitleLabels(property.titleLabels),
       slug: property.slug,
       propertyType: property.propertyType,
       city: property.city,
@@ -762,7 +922,18 @@ export class PropertiesService {
       avgRating,
       reviewCount,
       featured: property.featured,
+      addressLabels: this.parseAddressLabels(property.addressLabels),
     };
+  }
+
+  private parseAddressLabels(value: unknown): PropertyAddressLabels | null {
+    if (!value || typeof value !== 'object') return null;
+    return value as PropertyAddressLabels;
+  }
+
+  private parseTitleLabels(value: unknown): PropertyTitleLabels | null {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+    return value as PropertyTitleLabels;
   }
 
   private async toHostListingSummary(
@@ -773,6 +944,7 @@ export class PropertiesService {
     return {
       id: property.id,
       title: property.title,
+      titleLabels: this.parseTitleLabels(property.titleLabels),
       status: property.status as import('@repo/shared').PropertyStatus,
       propertyType: property.propertyType as import('@repo/shared').PropertyType,
       city: property.city,

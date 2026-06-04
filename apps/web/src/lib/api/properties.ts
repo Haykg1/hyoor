@@ -69,6 +69,8 @@ export async function listProperties(
   if (params.searchStreet) query.set('searchStreet', params.searchStreet);
   if (params.searchBuildingNumber) query.set('searchBuildingNumber', params.searchBuildingNumber);
   if (params.searchPlaceKind) query.set('searchPlaceKind', params.searchPlaceKind);
+  setOptionalNumber(query, 'searchLatitude', params.searchLatitude);
+  setOptionalNumber(query, 'searchLongitude', params.searchLongitude);
   if (params.propertyType) query.set('propertyType', params.propertyType);
   if (params.checkIn) query.set('checkIn', params.checkIn);
   if (params.checkOut) query.set('checkOut', params.checkOut);

@@ -1,3 +1,5 @@
+import type { PropertyAddressLabels, PropertyTitleLabels } from '../dto/geocoding';
+
 export interface PaginationParams {
   page?: number;
   limit?: number;
@@ -60,6 +62,7 @@ export type PropertyType = (typeof PropertyTypes)[number];
 export interface PropertySummary {
   id: string;
   title: string;
+  titleLabels?: PropertyTitleLabels | null;
   slug: string;
   propertyType: PropertyType;
   city: string;
@@ -73,6 +76,7 @@ export interface PropertySummary {
   avgRating?: number;
   reviewCount: number;
   featured: boolean;
+  addressLabels?: PropertyAddressLabels | null;
 }
 
 export const HostTypes = ['INDIVIDUAL', 'COMPANY'] as const;
@@ -114,6 +118,7 @@ export interface PropertyDetail {
   status: string;
   propertyType: PropertyType;
   title: string;
+  titleLabels?: PropertyTitleLabels | null;
   slug: string;
   description: string | null;
   country: string;
@@ -157,6 +162,7 @@ export interface PropertyDetail {
   host: PublicHostProfile;
   avgRating: number | null;
   reviewCount: number;
+  addressLabels: PropertyAddressLabels | null;
 }
 
 export interface ReviewAuthorProfile {
@@ -191,6 +197,7 @@ export interface CreateBookingInput {
 export interface BookingPropertySummary {
   id: string;
   title: string;
+  titleLabels?: PropertyTitleLabels | null;
   slug: string;
   city: string;
   country: string;
@@ -242,6 +249,7 @@ export type HostListingTab = (typeof HostListingTabs)[number];
 export interface HostListingSummary {
   id: string;
   title: string;
+  titleLabels?: PropertyTitleLabels | null;
   status: PropertyStatus;
   propertyType: PropertyType;
   city: string;

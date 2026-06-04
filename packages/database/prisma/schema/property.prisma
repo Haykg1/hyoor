@@ -41,6 +41,8 @@ model Property {
   buildingNumber     String?
   formattedAddress   String?
   placeKind          String?
+  addressLabels      Json?
+  titleLabels        Json?
   apartmentNumber    String?
   addressLine        String?
   latitude           Decimal?           @db.Decimal(10, 7)

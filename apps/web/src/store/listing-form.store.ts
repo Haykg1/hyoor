@@ -1,4 +1,5 @@
 import type { AmenityInput, PropertyDetail } from '@repo/shared';
+import { getLocalizedAddress } from '@repo/shared';
 import { create } from 'zustand';
 import { createJSONStorage, devtools, persist } from 'zustand/middleware';
 
@@ -48,7 +49,7 @@ export interface ListingFormState {
 
 export interface ListingFormActions {
   initCreate: () => void;
-  hydrateFromProperty: (property: PropertyDetail) => void;
+  hydrateFromProperty: (property: PropertyDetail, locale: string) => void;
   setStep: (step: number) => void;
   goNext: () => void;
   goPrev: () => void;
@@ -107,7 +108,7 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
         initCreate: () => {
           set({ ...INITIAL_STATE, mode: 'create', hydrated: true });
         },
-        hydrateFromProperty: (property) => {
+        hydrateFromProperty: (property, locale) => {
           const amenities: AmenityInput[] = property.amenities.map((a) => ({
             name: a.name,
             category: a.category ?? undefined,
@@ -115,6 +116,13 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
           const sortedPhotos = [...property.photos].sort(
             (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
           );
+          const addressFallback = {
+            city: property.city,
+            region: property.region ?? null,
+            street: property.street ?? null,
+            formattedAddress: property.formattedAddress ?? property.addressLine ?? property.city,
+          };
+          const address = getLocalizedAddress(property.addressLabels, locale, addressFallback);
           set({
             mode: 'edit',
             propertyId: property.id,
@@ -123,12 +131,15 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
             data: normalizeStepDetailsValues({
               propertyType: property.propertyType,
               title: property.title,
+              titleEn: property.titleLabels?.en ?? '',
+              titleRu: property.titleLabels?.ru ?? '',
+              titleHy: property.titleLabels?.hy ?? '',
               description: property.description ?? '',
-              city: property.city,
-              region: property.region ?? '',
-              street: property.street ?? '',
+              city: address.city ?? property.city,
+              region: address.region ?? property.region ?? '',
+              street: address.street ?? property.street ?? '',
               buildingNumber: property.buildingNumber ?? '',
-              formattedAddress: property.formattedAddress ?? property.addressLine ?? '',
+              formattedAddress: address.formattedAddress,
               placeKind: property.placeKind ?? '',
               apartmentNumber: property.apartmentNumber ?? '',
               addressLine: property.addressLine ?? '',

@@ -14,6 +14,8 @@ export type SearchNavigationParams = Partial<
     | 'searchStreet'
     | 'searchBuildingNumber'
     | 'searchPlaceKind'
+    | 'searchLatitude'
+    | 'searchLongitude'
     | 'checkIn'
     | 'checkOut'
     | 'guests'
@@ -57,6 +59,8 @@ export function searchFiltersToNavigationParams(filters: SearchFilters): SearchN
     searchStreet: filters.searchStreet?.trim() || undefined,
     searchBuildingNumber: filters.searchBuildingNumber?.trim() || undefined,
     searchPlaceKind: filters.searchPlaceKind?.trim() || undefined,
+    searchLatitude: filters.searchLatitude,
+    searchLongitude: filters.searchLongitude,
     checkIn: filters.checkIn || undefined,
     checkOut: filters.checkOut || undefined,
     guests: filters.guests > 1 ? filters.guests : undefined,
@@ -100,6 +104,8 @@ export function buildSearchQueryString(params?: SearchNavigationParams): string 
   if (searchBuildingNumber) query.set('searchBuildingNumber', searchBuildingNumber);
   const searchPlaceKind = params?.searchPlaceKind?.trim();
   if (searchPlaceKind) query.set('searchPlaceKind', searchPlaceKind);
+  setOptionalNumber(query, 'searchLatitude', params?.searchLatitude);
+  setOptionalNumber(query, 'searchLongitude', params?.searchLongitude);
   if (params?.checkIn) query.set('checkIn', params.checkIn);
   if (params?.checkOut) query.set('checkOut', params.checkOut);
   if (params?.guests && params.guests > 1) query.set('guests', String(params.guests));

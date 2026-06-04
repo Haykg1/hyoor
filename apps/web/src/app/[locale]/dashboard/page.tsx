@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { AdminDashboardClient } from '@/components/dashboard/admin-dashboard-client';
 import { HostDashboardClient } from '@/components/dashboard/host-dashboard-client';
 import { useRouter } from '@/i18n/navigation';
 import { getMyProfile } from '@/lib/api/users';
@@ -35,6 +36,8 @@ export default function DashboardPage(): React.JSX.Element {
       });
   }, [user, authLoading, router]);
 
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'STAFF';
+
   if (authLoading || !welcomeName) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-10">
@@ -44,6 +47,10 @@ export default function DashboardPage(): React.JSX.Element {
         </div>
       </div>
     );
+  }
+
+  if (isAdmin) {
+    return <AdminDashboardClient welcomeName={welcomeName} />;
   }
 
   return <HostDashboardClient welcomeName={welcomeName} />;

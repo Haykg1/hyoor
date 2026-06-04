@@ -1,43 +1,54 @@
 'use client';
 
-import { MapPin, Search } from 'lucide-react';
+import type { PlaceResult } from '@repo/shared';
+import { Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useId, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 
+import { PlaceAutocomplete } from '@/components/search/place-autocomplete';
 import { useSearchNavigation } from '@/hooks/use-search-navigation';
-import { ARMENIAN_CITIES } from '@/lib/constants/armenian-cities';
+import { placeResultToLocationFilters, type LocationFilters } from '@/lib/search/place-to-filters';
 
 export function HeroSearchForm(): React.JSX.Element {
   const t = useTranslations('home.hero');
   const { goToSearch } = useSearchNavigation();
   const [query, setQuery] = useState('');
-  const datalistId = useId();
+  const [placeFilters, setPlaceFilters] = useState<LocationFilters | null>(null);
+
+  function handleChange(value: string): void {
+    setQuery(value);
+    if (placeFilters && value !== placeFilters.location) {
+      setPlaceFilters(null);
+    }
+  }
+
+  function handleSelectPlace(place: PlaceResult): void {
+    setPlaceFilters(placeResultToLocationFilters(place));
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
-    goToSearch({ location: query });
+    if (placeFilters) {
+      goToSearch(placeFilters);
+      return;
+    }
+    goToSearch({ location: query.trim() || undefined });
   }
+
   return (
     <form
       onSubmit={handleSubmit}
       className="mx-auto flex max-w-2xl flex-col gap-2 rounded-2xl bg-white p-3 shadow-2xl sm:flex-row"
     >
-      <div className="flex flex-1 items-center gap-2 px-3">
-        <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-        <input
-          type="text"
-          name="location"
+      <div className="flex-1">
+        <PlaceAutocomplete
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={handleChange}
+          onSelectPlace={handleSelectPlace}
           placeholder={t('search_placeholder')}
-          list={datalistId}
-          aria-label={t('search_placeholder')}
-          className="h-9 w-full bg-transparent text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
+          level="any"
+          inputClassName="h-11 border-0 bg-transparent text-base font-medium text-neutral-900 shadow-none placeholder:font-medium placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 md:text-base"
         />
-        <datalist id={datalistId}>
-          {ARMENIAN_CITIES.map((city) => (
-            <option key={city} value={city} />
-          ))}
-        </datalist>
       </div>
       <button
         type="submit"

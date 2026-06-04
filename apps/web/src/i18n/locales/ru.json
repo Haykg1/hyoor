@@ -276,8 +276,11 @@
     "actions": {
       "view": "Просмотр",
       "edit": "Редактировать",
+      "calendar": "Календарь",
       "soft_delete": "Отключить",
-      "reactivate": "Включить"
+      "reactivate": "Включить",
+      "enable": "Включить",
+      "disable": "Отключить"
     },
     "deleting": "Отключение…",
     "reactivating": "Включение…",
@@ -315,7 +318,82 @@
       "statuses": {
         "DRAFT": "Черновик",
         "PENDING_REVIEW": "На проверке",
-        "ACTIVE": "Активный"
+        "ACTIVE": "Активный",
+        "SUSPENDED": "Приостановлен"
+      }
+    },
+    "admin": {
+      "title": "Панель администратора",
+      "empty_listings": "Нет объектов, соответствующих фильтрам.",
+      "enable_title": "Включить объект",
+      "enable_confirm": "Объект станет активным и будет виден гостям.",
+      "disable_title": "Отключить объект",
+      "disable_confirm": "Объект будет скрыт от гостей.",
+      "enabling": "Включение…",
+      "disabling": "Отключение…",
+      "tabs": {
+        "all_properties": "Все объекты"
+      }
+    },
+    "calendar": {
+      "title": "Календарь и тарифы",
+      "back_to_dashboard": "Назад в панель",
+      "base_rate": "Базовая цена",
+      "prev_month": "Предыдущий месяц",
+      "next_month": "Следующий месяц",
+      "today": "Сегодня",
+      "refreshing": "Обновление…",
+      "open_year": "Открыть следующие 365 дней",
+      "set_range_rate": "Задать цену на период",
+      "legend": {
+        "available": "Доступно",
+        "custom_rate": "Своя цена",
+        "closed": "Закрыто",
+        "booked": "Забронировано",
+        "selected": "Выбрано"
+      },
+      "editor": {
+        "empty_hint": "Кликните по дню, чтобы выбрать. Кликните ещё один день, чтобы выбрать диапазон. Затем задайте цену и статус ниже.",
+        "editing_count": "Редактируется {count, plural, one {# день} few {# дня} other {# дней}}",
+        "clear": "Сбросить",
+        "skipped_booked": "{count, plural, one {# день забронирован и будет пропущен} few {# дня забронированы и будут пропущены} other {# дней забронированы и будут пропущены}}",
+        "only_booked_selected": "Все выбранные дни забронированы. Нечего обновлять.",
+        "rate_label": "Цена за ночь",
+        "night": "ночь",
+        "use_base_rate": "Использовать базовую цену ({base} AMD)",
+        "status_label": "Статус",
+        "available": "Доступно",
+        "closed": "Закрыто",
+        "apply": "Применить",
+        "saved": "Обновлено {count, plural, one {# день} few {# дня} other {# дней}}",
+        "save_failed": "Не удалось сохранить",
+        "invalid_price": "Введите корректную цену"
+      },
+      "open_year_dialog": {
+        "title": "Открыть следующие 365 дней?",
+        "description": "Все дни на год вперёд станут доступны для бронирования. Уже забронированные дни останутся недоступными до окончания или отмены брони.",
+        "cancel": "Отмена",
+        "confirm": "Открыть год",
+        "toast_success": "Открыто дней: {opened} · пропущено забронированных: {skipped}",
+        "toast_error": "Не удалось открыть год"
+      },
+      "range_dialog": {
+        "title": "Задать цену на диапазон дат",
+        "description": "Выберите дату заезда и выезда, укажите цену и примените её ко всему периоду. Забронированные дни пропускаются автоматически.",
+        "pick_dates": "Сначала выберите диапазон дат",
+        "selected_summary": "Выбрано {count, plural, one {# день} few {# дня} other {# дней}}",
+        "skipped_booked": "Пропущено забронированных: {count, plural, one {# день} few {# дня} other {# дней}}",
+        "rate_label": "Цена за ночь",
+        "night": "ночь",
+        "use_base_rate": "Использовать базовую цену ({base} AMD)",
+        "status_label": "Статус",
+        "available": "Доступно",
+        "closed": "Закрыто",
+        "cancel": "Отмена",
+        "apply": "Применить",
+        "saved": "Обновлено {count, plural, one {# день} few {# дня} other {# дней}}",
+        "save_failed": "Не удалось сохранить",
+        "invalid_price": "Введите корректную цену"
       }
     },
     "overview": "Dashboard",
@@ -377,6 +455,15 @@
       "more_types": "Другие типы…",
       "title": "Название",
       "title_placeholder": "напр. Уютная квартира в центре Еревана",
+      "title_translations_heading": "Переводы названия",
+      "title_translations_hint": "Необязательно, но настоятельно рекомендуется. Заполнение переводов на других языках поможет гостям, ищущим на этих языках, найти ваше объявление.",
+      "title_translations_hint_aria": "Зачем добавлять переводы?",
+      "title_en": "Название (English)",
+      "title_en_placeholder": "напр. Cozy apartment near Cascade",
+      "title_ru": "Название (русский)",
+      "title_ru_placeholder": "напр. Уютная квартира у Каскада",
+      "title_hy": "Название (Հայերեն)",
+      "title_hy_placeholder": "напр. Հարմարավետ բնակարան Կասկադի մոտ",
       "description": "Описание",
       "description_placeholder": "Опишите жильё, район и особенности…",
       "city": "Город",

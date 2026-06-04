@@ -21,7 +21,7 @@ export class GeocodingController {
   @ApiStandardErrors({ auth: false, throttle: true })
   search(@Query() dto: SearchPlacesDto): Promise<SearchPlacesResponse> {
     return this.geocodingService
-      .searchPlaces(dto.q, dto.level ?? 'any')
+      .searchPlaces(dto.q, dto.level ?? 'any', dto.lang)
       .then((places) => ({ places }));
   }
 }

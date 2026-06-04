@@ -1,3 +1,4 @@
+import type { PropertyTitleLabels } from './geocoding';
 import type { PropertyType } from '../types/index';
 
 export const CancellationPolicies = ['FLEXIBLE', 'MODERATE', 'STRICT', 'NON_REFUNDABLE'] as const;
@@ -8,6 +9,12 @@ export type PhotoMimeType = (typeof PhotoMimeTypes)[number];
 
 export interface CreatePropertyInput {
   title: string;
+  /**
+   * Optional translations of `title` per locale (hy/ru/en). Each key is optional.
+   * Filling these greatly improves search reach for guests browsing in other
+   * languages. Falls back to canonical `title` via `getLocalizedTitle`.
+   */
+  titleLabels?: PropertyTitleLabels | null;
   description: string;
   propertyType: PropertyType;
   city: string;

@@ -1,5 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { GeocodingSearchLevels } from '@repo/shared';
+import {
+  GeocodingSearchLevels,
+  YandexGeocodingLangs,
+  type YandexGeocodingLang,
+} from '@repo/shared';
 import { IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class SearchPlacesDto {
@@ -13,4 +17,9 @@ export class SearchPlacesDto {
   @IsOptional()
   @IsIn(GeocodingSearchLevels)
   level?: (typeof GeocodingSearchLevels)[number];
+
+  @ApiPropertyOptional({ enum: YandexGeocodingLangs, example: 'hy_AM' })
+  @IsOptional()
+  @IsIn(YandexGeocodingLangs)
+  lang?: YandexGeocodingLang;
 }

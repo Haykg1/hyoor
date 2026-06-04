@@ -276,8 +276,11 @@
     "actions": {
       "view": "Դիտել",
       "edit": "Խմբագրել",
+      "calendar": "Օրացույց",
       "soft_delete": "Անջատել",
-      "reactivate": "Միացնել"
+      "reactivate": "Միացնել",
+      "enable": "Միացնել",
+      "disable": "Անջատել"
     },
     "deleting": "Անջատվում է…",
     "reactivating": "Միացվում է…",
@@ -315,7 +318,82 @@
       "statuses": {
         "DRAFT": "Սևագիր",
         "PENDING_REVIEW": "Ստուգման ընթացքում",
-        "ACTIVE": "Ակտիվ"
+        "ACTIVE": "Ակտիվ",
+        "SUSPENDED": "Կասեցված"
+      }
+    },
+    "admin": {
+      "title": "Ադմինի վահանակ",
+      "empty_listings": "Ֆիլտրերին համապատասխան գույքեր չկան։",
+      "enable_title": "Միացնել գույքը",
+      "enable_confirm": "Գույքը կդառնա ակտիվ և կտեսանելի լինի հյուրերին։",
+      "disable_title": "Անջատել գույքը",
+      "disable_confirm": "Գույքը կթաքցվի հյուրերից։",
+      "enabling": "Միացվում է…",
+      "disabling": "Անջատվում է…",
+      "tabs": {
+        "all_properties": "Բոլոր գույքերը"
+      }
+    },
+    "calendar": {
+      "title": "Օրացույց և գներ",
+      "back_to_dashboard": "Վերադառնալ վահանակ",
+      "base_rate": "Հիմնական գին",
+      "prev_month": "Նախորդ ամիս",
+      "next_month": "Հաջորդ ամիս",
+      "today": "Այսօր",
+      "refreshing": "Թարմացվում է…",
+      "open_year": "Բացել հաջորդ 365 օրը",
+      "set_range_rate": "Սահմանել գին միջակայքի համար",
+      "legend": {
+        "available": "Հասանելի",
+        "custom_rate": "Հատուկ գին",
+        "closed": "Փակ",
+        "booked": "Ամրագրված",
+        "selected": "Ընտրված"
+      },
+      "editor": {
+        "empty_hint": "Սեղմեք օրը՝ ընտրելու համար։ Սեղմեք ևս մեկը՝ ընտրելու միջակայք։ Հետո ստորև սահմանեք գինը և կարգավիճակը։",
+        "editing_count": "Խմբագրվում է {count, plural, one {# օր} other {# օր}}",
+        "clear": "Մաքրել",
+        "skipped_booked": "{count, plural, one {# օրն ամրագրված է և կբաց թողնվի} other {# օրն ամրագրված են և կբաց թողնվեն}}",
+        "only_booked_selected": "Բոլոր ընտրված օրերն ամրագրված են։ Թարմացնելու բան չկա։",
+        "rate_label": "Գիշերակացի գին",
+        "night": "գիշեր",
+        "use_base_rate": "Օգտագործել հիմնական գինը ({base} AMD)",
+        "status_label": "Կարգավիճակ",
+        "available": "Հասանելի",
+        "closed": "Փակ",
+        "apply": "Կիրառել",
+        "saved": "Թարմացված է {count, plural, one {# օր} other {# օր}}",
+        "save_failed": "Չհաջողվեց պահպանել",
+        "invalid_price": "Մուտքագրեք վավեր գին"
+      },
+      "open_year_dialog": {
+        "title": "Բացե՞լ հաջորդ 365 օրը",
+        "description": "Հաջորդ տարվա բոլոր օրերը կնշվեն որպես հասանելի։ Արդեն ամրագրված օրերը կմնան անհասանելի մինչև ամրագրման ավարտը կամ չեղարկումը։",
+        "cancel": "Չեղարկել",
+        "confirm": "Բացել տարին",
+        "toast_success": "Բացված օրեր՝ {opened} · բաց թողնված ամրագրումներ՝ {skipped}",
+        "toast_error": "Չհաջողվեց բացել տարին"
+      },
+      "range_dialog": {
+        "title": "Սահմանել գին ամսաթվերի միջակայքի համար",
+        "description": "Ընտրեք մուտքի և ելքի օրերը, սահմանեք գինը և կիրառեք այն ամբողջ միջակայքին։ Ամրագրված օրերն ավտոմատ բաց են թողնվում։",
+        "pick_dates": "Նախ ընտրեք ամսաթվերի միջակայք",
+        "selected_summary": "Ընտրված է {count, plural, one {# օր} other {# օր}}",
+        "skipped_booked": "Բաց թողնված ամրագրումներ՝ {count, plural, one {# օր} other {# օր}}",
+        "rate_label": "Գիշերակացի գին",
+        "night": "գիշեր",
+        "use_base_rate": "Օգտագործել հիմնական գինը ({base} AMD)",
+        "status_label": "Կարգավիճակ",
+        "available": "Հասանելի",
+        "closed": "Փակ",
+        "cancel": "Չեղարկել",
+        "apply": "Կիրառել",
+        "saved": "Թարմացված է {count, plural, one {# օր} other {# օր}}",
+        "save_failed": "Չհաջողվեց պահպանել",
+        "invalid_price": "Մուտքագրեք վավեր գին"
       }
     },
     "overview": "Dashboard",
@@ -377,6 +455,15 @@
       "more_types": "Այլ տեսակներ…",
       "title": "Վերնագիր",
       "title_placeholder": "օր. Հարմար բնակարան կենտրոնում",
+      "title_translations_heading": "Վերնագրի թարգմանություններ",
+      "title_translations_hint": "Կամընտիր, բայց խստորեն խորհուրդ է տրվում։ Մյուս լեզուներով թարգմանությունները լրացնելը թույլ կտա այլ լեզուներով որոնող հյուրերին գտնել ձեր հայտարարությունը։",
+      "title_translations_hint_aria": "Ինչու՞ ավելացնել թարգմանություններ",
+      "title_en": "Անգլերեն վերնագիր",
+      "title_en_placeholder": "օր. Cozy apartment near Cascade",
+      "title_ru": "Ռուսերեն վերնագիր",
+      "title_ru_placeholder": "օր. Уютная квартира у Каскада",
+      "title_hy": "Հայերեն վերնագիր",
+      "title_hy_placeholder": "օր. Հարմարավետ բնակարան Կասկադի մոտ",
       "description": "Նկարագրություն",
       "description_placeholder": "Նկարագրեք տարածքը, թաղամասը և առանձնահատկությունները…",
       "city": "Քաղաք",

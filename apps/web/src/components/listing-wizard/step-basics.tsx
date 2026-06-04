@@ -1,6 +1,7 @@
 'use client';
 
 import { PropertyTypes, type PlaceResult } from '@repo/shared';
+import { Info } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { UseFormReturn } from 'react-hook-form';
 
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { ListingFormValues } from '@/lib/listing/schema';
 import { cn } from '@/lib/utils';
 
@@ -85,6 +87,7 @@ export function StepBasics({ form }: StepBasicsProps): React.JSX.Element {
             </FormItem>
           )}
         />
+        <TitleTranslationsBlock form={form} />
         <FormField
           control={form.control}
           name="description"
@@ -187,5 +190,73 @@ export function StepBasics({ form }: StepBasicsProps): React.JSX.Element {
         />
       </div>
     </Form>
+  );
+}
+
+function TitleTranslationsBlock({ form }: StepBasicsProps): React.JSX.Element {
+  const t = useTranslations('listing_wizard.basics');
+  return (
+    <div className="rounded-xl border border-dashed border-border/70 bg-muted/30 p-4">
+      <div className="mb-3 flex items-center gap-1.5">
+        <h3 className="text-sm font-semibold">{t('title_translations_heading')}</h3>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label={t('title_translations_hint_aria')}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Info className="h-4 w-4" aria-hidden />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="max-w-xs">
+              {t('title_translations_hint')}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <FormField
+          control={form.control}
+          name="titleEn"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('title_en')}</FormLabel>
+              <FormControl>
+                <Input placeholder={t('title_en_placeholder')} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="titleRu"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('title_ru')}</FormLabel>
+              <FormControl>
+                <Input placeholder={t('title_ru_placeholder')} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="titleHy"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('title_hy')}</FormLabel>
+              <FormControl>
+                <Input placeholder={t('title_hy_placeholder')} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+    </div>
   );
 }

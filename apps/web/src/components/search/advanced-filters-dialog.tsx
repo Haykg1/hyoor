@@ -21,6 +21,7 @@ import {
   useSearchNavigation,
 } from '@/hooks/use-search-navigation';
 import { AMENITIES_CATALOG } from '@/lib/listing/amenities-catalog';
+import { placeResultToLocationFilters } from '@/lib/search/place-to-filters';
 import { useSearchStore } from '@/store/search.store';
 
 interface AdvancedFiltersDialogProps {
@@ -70,26 +71,7 @@ export function AdvancedFiltersDialog({
   }
 
   function handlePlaceSelect(place: PlaceResult): void {
-    const display = place.description || place.fullName;
-    if (place.placeKind === 'house' && place.street && place.buildingNumber) {
-      setFilters({
-        location: display,
-        region: place.region ?? '',
-        searchCity: place.city ?? undefined,
-        searchStreet: place.street,
-        searchBuildingNumber: place.buildingNumber,
-        searchPlaceKind: 'house',
-      });
-      return;
-    }
-    setFilters({
-      location: display,
-      region: place.region ?? '',
-      searchCity: place.city ?? undefined,
-      searchPlaceKind: place.placeKind,
-      searchStreet: undefined,
-      searchBuildingNumber: undefined,
-    });
+    setFilters(placeResultToLocationFilters(place));
   }
 
   function handleLocationChange(value: string): void {
@@ -99,6 +81,8 @@ export function AdvancedFiltersDialog({
       searchStreet: undefined,
       searchBuildingNumber: undefined,
       searchPlaceKind: undefined,
+      searchLatitude: undefined,
+      searchLongitude: undefined,
     });
   }
 
@@ -119,6 +103,8 @@ export function AdvancedFiltersDialog({
       searchStreet,
       searchBuildingNumber,
       searchPlaceKind: hasHouseAddress ? 'house' : undefined,
+      searchLatitude: hasHouseAddress ? filters.searchLatitude : undefined,
+      searchLongitude: hasHouseAddress ? filters.searchLongitude : undefined,
     });
   }
 

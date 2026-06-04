@@ -1,7 +1,8 @@
 'use client';
 
 import type { GeocodingSearchLevel, PlaceResult } from '@repo/shared';
-import { useTranslations } from 'next-intl';
+import { localeToYandexLang } from '@repo/shared';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useId, useRef, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,7 @@ interface PlaceAutocompleteProps {
   placeholder?: string;
   level?: GeocodingSearchLevel;
   translationNamespace?: 'search.filters' | 'listing_wizard.basics';
+  inputClassName?: string;
 }
 
 export function PlaceAutocomplete({
@@ -25,7 +27,9 @@ export function PlaceAutocomplete({
   placeholder,
   level = 'any',
   translationNamespace = 'search.filters',
+  inputClassName,
 }: PlaceAutocompleteProps): React.JSX.Element {
+  const locale = useLocale();
   const t = useTranslations(translationNamespace);
   const listId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -48,7 +52,7 @@ export function PlaceAutocomplete({
     }
     let cancelled = false;
     setIsLoading(true);
-    searchPlaces(query, level)
+    searchPlaces(query, level, localeToYandexLang(locale))
       .then((places) => {
         if (!cancelled) {
           setSuggestions(places);
@@ -69,7 +73,7 @@ export function PlaceAutocomplete({
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery, level]);
+  }, [debouncedQuery, level, locale]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent): void {
@@ -82,7 +86,7 @@ export function PlaceAutocomplete({
   }, []);
 
   function handleSelect(place: PlaceResult): void {
-    const display = place.description || place.fullName;
+    const display = place.formattedAddress;
     setInputValue(display);
     onChange(display);
     onSelectPlace?.(place);
@@ -112,6 +116,7 @@ export function PlaceAutocomplete({
         aria-expanded={showDropdown}
         aria-controls={listId}
         autoComplete="off"
+        className={inputClassName}
       />
       {showDropdown ? (
         <div

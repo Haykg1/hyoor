@@ -81,6 +81,7 @@ export class PropertiesController {
   @ApiOkResponse({ description: 'Paginated property search results' })
   @ApiStandardErrors({ auth: false })
   search(@Query() dto: SearchPropertiesDto): Promise<PaginatedResponse<PropertySummary>> {
+    console.log(dto, '=======');
     return this.propertiesService.search(dto);
   }
 

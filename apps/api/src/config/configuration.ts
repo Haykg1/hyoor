@@ -12,6 +12,7 @@ export interface AppConfig {
     accessKeyId: string;
     secretAccessKey: string;
     bucket: string;
+    endpoint: string;
   };
   frontend: { url: string };
   mail: {
@@ -55,6 +56,7 @@ export default (): AppConfig => ({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? '',
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? '',
     bucket: process.env.AWS_S3_BUCKET ?? '',
+    endpoint: process.env.AWS_ENDPOINT_URL ?? '',
   },
   frontend: {
     url: process.env.FRONTEND_URL ?? 'http://localhost:3000',

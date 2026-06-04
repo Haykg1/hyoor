@@ -1,7 +1,8 @@
 'use client';
 
 import type { PropertyDetail } from '@repo/shared';
-import { useTranslations } from 'next-intl';
+import { getLocalizedTitle } from '@repo/shared';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -31,6 +32,7 @@ export function PropertyCapacityModal({
   onSaved,
 }: PropertyCapacityModalProps): React.JSX.Element {
   const t = useTranslations('dashboard.capacity');
+  const locale = useLocale();
   const [maxGuests, setMaxGuests] = useState(property.maxGuests);
   const [maxAdults, setMaxAdults] = useState(property.maxAdults);
   const [maxChildren, setMaxChildren] = useState(property.maxChildren);
@@ -91,7 +93,9 @@ export function PropertyCapacityModal({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
-          <DialogDescription>{property.title}</DialogDescription>
+          <DialogDescription>
+            {getLocalizedTitle(property.titleLabels, locale, property.title)}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-5 pt-2">
