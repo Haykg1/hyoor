@@ -7,9 +7,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Prisma } from '@repo/database/client';
 import type {
-  Prisma,
   Property,
   PropertyAmenity,
   PropertyPhoto,
@@ -121,7 +120,7 @@ export class PropertiesService {
         maxInfants: dto.maxInfants ?? 0,
         bedrooms: dto.bedrooms,
         beds: dto.beds,
-        bathrooms: new Decimal(dto.bathrooms),
+        bathrooms: new Prisma.Decimal(dto.bathrooms),
         pricePerNight: dto.pricePerNight,
         cancellationPolicy: dto.cancellationPolicy,
         country: dto.country,
@@ -134,8 +133,8 @@ export class PropertiesService {
         titleLabels: this.sanitizeTitleLabels(dto.titleLabels) as unknown as Prisma.InputJsonValue,
         apartmentNumber: dto.apartmentNumber,
         addressLine: dto.addressLine,
-        latitude: dto.latitude !== undefined ? new Decimal(dto.latitude) : undefined,
-        longitude: dto.longitude !== undefined ? new Decimal(dto.longitude) : undefined,
+        latitude: dto.latitude !== undefined ? new Prisma.Decimal(dto.latitude) : undefined,
+        longitude: dto.longitude !== undefined ? new Prisma.Decimal(dto.longitude) : undefined,
         currency: dto.currency,
         cleaningFee: dto.cleaningFee,
         securityDeposit: dto.securityDeposit,
@@ -357,7 +356,7 @@ export class PropertiesService {
       ...(dto.minBedrooms !== undefined ? { bedrooms: { gte: dto.minBedrooms } } : {}),
       ...(dto.minBeds !== undefined ? { beds: { gte: dto.minBeds } } : {}),
       ...(dto.minBathrooms !== undefined
-        ? { bathrooms: { gte: new Decimal(dto.minBathrooms) } }
+        ? { bathrooms: { gte: new Prisma.Decimal(dto.minBathrooms) } }
         : {}),
     };
   }
@@ -608,9 +607,9 @@ export class PropertiesService {
         : undefined;
     const data: Prisma.PropertyUpdateInput = {
       ...dto,
-      bathrooms: dto.bathrooms !== undefined ? new Decimal(dto.bathrooms) : undefined,
-      latitude: dto.latitude !== undefined ? new Decimal(dto.latitude) : undefined,
-      longitude: dto.longitude !== undefined ? new Decimal(dto.longitude) : undefined,
+      bathrooms: dto.bathrooms !== undefined ? new Prisma.Decimal(dto.bathrooms) : undefined,
+      latitude: dto.latitude !== undefined ? new Prisma.Decimal(dto.latitude) : undefined,
+      longitude: dto.longitude !== undefined ? new Prisma.Decimal(dto.longitude) : undefined,
       addressLabels: addressLabels as unknown as Prisma.InputJsonValue | undefined,
     };
     if (dto.titleLabels !== undefined) {
