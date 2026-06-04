@@ -25,9 +25,14 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { Property, PropertyAmenity, PropertyStatus } from '@repo/database/client';
-import type { PaginatedResponse, PropertySummary } from '@repo/shared';
-import type { HostListingsResponse } from '@repo/shared';
+import type {
+  HostListingsResponse,
+  PaginatedResponse,
+  PresignedPhotoUrlResponse,
+  PropertySummary,
+} from '@repo/shared';
 
 import type { RequestUser } from '../auth/decorators/current-user.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -36,7 +41,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
+import { WRITE_THROTTLE } from '../common/throttle/throttle.constants';
 
+import { ConfirmPhotoUploadDto } from './dto/confirm-photo-upload.dto';
+import { CreatePresignedPhotoUrlDto } from './dto/create-presigned-photo-url.dto';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { QueryMyPropertiesDto } from './dto/query-my-properties.dto';
 import { ReplaceAmenitiesDto } from './dto/replace-amenities.dto';
@@ -57,11 +65,12 @@ export class PropertiesController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new property listing (host only)' })
-  @ApiCreatedResponse({ description: 'Property created in DRAFT status' })
+  @ApiCreatedResponse({ description: 'Property created in PENDING_REVIEW status' })
   @ApiStandardErrors()
   create(@CurrentUser() user: RequestUser, @Body() dto: CreatePropertyDto): Promise<Property> {
     return this.propertiesService.create(user.userId, dto);
@@ -72,6 +81,7 @@ export class PropertiesController {
   @ApiOkResponse({ description: 'Paginated property search results' })
   @ApiStandardErrors({ auth: false })
   search(@Query() dto: SearchPropertiesDto): Promise<PaginatedResponse<PropertySummary>> {
+    console.log(dto, '=======');
     return this.propertiesService.search(dto);
   }
 
@@ -102,6 +112,7 @@ export class PropertiesController {
   }
 
   @Patch(':id')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
@@ -117,6 +128,7 @@ export class PropertiesController {
   }
 
   @Delete(':id')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
@@ -130,7 +142,20 @@ export class PropertiesController {
     return this.propertiesService.softDelete(id, user.userId);
   }
 
+  @Patch(':id/reactivate')
+  @Throttle(WRITE_THROTTLE)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Reactivate an inactive property listing (owner host only)' })
+  @ApiOkResponse({ description: 'Property reactivated to ACTIVE status' })
+  @ApiStandardErrors({ notFound: true })
+  reactivate(@Param('id') id: string, @CurrentUser() user: RequestUser): Promise<Property> {
+    return this.propertiesService.reactivate(id, user.userId);
+  }
+
   @Patch(':id/status')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'STAFF')
   @ApiBearerAuth()
@@ -141,7 +166,40 @@ export class PropertiesController {
     return this.propertiesService.updateStatus(id, dto.status as PropertyStatus);
   }
 
+  @Post(':id/photos/presigned-url')
+  @Throttle(WRITE_THROTTLE)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a presigned S3 URL to upload a property photo directly' })
+  @ApiOkResponse({ description: 'Presigned upload URL and S3 key' })
+  @ApiStandardErrors({ notFound: true })
+  createPhotoUploadUrl(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+    @Body() dto: CreatePresignedPhotoUrlDto,
+  ): Promise<PresignedPhotoUrlResponse> {
+    return this.propertiesService.createPhotoUploadUrl(id, user.userId, dto.mimeType);
+  }
+
+  @Post(':id/photos/confirm')
+  @Throttle(WRITE_THROTTLE)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Confirm a photo upload after PUT to S3' })
+  @ApiOkResponse({ description: 'Photo record created with presigned read URL' })
+  @ApiStandardErrors({ notFound: true })
+  confirmPhotoUpload(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+    @Body() dto: ConfirmPhotoUploadDto,
+  ): Promise<PropertyPhotoView> {
+    return this.propertiesService.confirmPhotoUpload(id, user.userId, dto);
+  }
+
   @Post(':id/photos')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
@@ -175,6 +233,7 @@ export class PropertiesController {
   }
 
   @Patch(':id/photos/:photoId')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
@@ -191,6 +250,7 @@ export class PropertiesController {
   }
 
   @Delete(':id/photos/:photoId')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()
@@ -206,6 +266,7 @@ export class PropertiesController {
   }
 
   @Put(':id/amenities')
+  @Throttle(WRITE_THROTTLE)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
   @ApiBearerAuth()

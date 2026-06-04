@@ -21,6 +21,7 @@ export class StorageService {
     const region = this.config.get('aws.region', { infer: true });
     const accessKeyId = this.config.get('aws.accessKeyId', { infer: true });
     const secretAccessKey = this.config.get('aws.secretAccessKey', { infer: true });
+    const endpoint = this.config.get('aws.endpoint', { infer: true });
     this.bucket = this.config.get('aws.bucket', { infer: true });
 
     this.isConfigured = Boolean(accessKeyId && secretAccessKey && this.bucket);
@@ -38,6 +39,9 @@ export class StorageService {
         accessKeyId: accessKeyId || 'placeholder',
         secretAccessKey: secretAccessKey || 'placeholder',
       },
+      endpoint: endpoint || undefined,
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+      responseChecksumValidation: 'WHEN_REQUIRED',
     });
   }
 

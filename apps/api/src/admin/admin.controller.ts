@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Booking, Property, User } from '@repo/database/client';
-import type { PaginatedResponse } from '@repo/shared';
+import type { HostDashboardStats, HostListingsResponse, PaginatedResponse } from '@repo/shared';
 
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -16,6 +16,7 @@ import {
   type TimeseriesResponse,
 } from './admin.service';
 import { QueryAdminBookingsDto } from './dto/query-admin-bookings.dto';
+import { QueryAdminPropertiesDto } from './dto/query-admin-properties.dto';
 import { QueryTimeseriesDto } from './dto/query-timeseries.dto';
 import { QueryUsersDto } from './dto/query-users.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
@@ -78,12 +79,20 @@ export class AdminController {
     return this.adminService.setUserRole(id, dto.role);
   }
 
-  @Get('properties')
-  @ApiOperation({ summary: 'List all properties with pagination' })
-  @ApiOkResponse({ description: 'Paginated property list (all statuses)' })
+  @Get('dashboard/stats')
+  @ApiOperation({ summary: 'Get admin dashboard statistics' })
+  @ApiOkResponse({ description: 'Property and booking counts for the admin dashboard' })
   @ApiStandardErrors()
-  getProperties(@Query() dto: QueryUsersDto): Promise<PaginatedResponse<Property>> {
-    return this.adminService.getProperties(dto);
+  getDashboardStats(): Promise<HostDashboardStats> {
+    return this.adminService.getDashboardStats();
+  }
+
+  @Get('properties')
+  @ApiOperation({ summary: 'List all properties with pagination and dashboard stats' })
+  @ApiOkResponse({ description: 'Paginated property list with filters and dashboard stats' })
+  @ApiStandardErrors()
+  getProperties(@Query() dto: QueryAdminPropertiesDto): Promise<HostListingsResponse> {
+    return this.adminService.findListings(dto);
   }
 
   @Patch('properties/:id/status')

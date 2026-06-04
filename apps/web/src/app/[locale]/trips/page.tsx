@@ -1,9 +1,10 @@
 'use client';
 
 import type { BookingDetail } from '@repo/shared';
+import { getLocalizedTitle } from '@repo/shared';
 import { Calendar, CheckCircle2, House, Loader2, Star } from 'lucide-react';
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { Link, useRouter } from '@/i18n/navigation';
@@ -54,6 +55,12 @@ function StatusBadge({ status }: { status: string }): React.JSX.Element {
 }
 
 function BookingCard({ booking }: { booking: BookingDetail }): React.JSX.Element {
+  const locale = useLocale();
+  const localizedTitle = getLocalizedTitle(
+    booking.property.titleLabels,
+    locale,
+    booking.property.title,
+  );
   return (
     <Link
       href={`/bookings/${booking.id}`}
@@ -63,7 +70,7 @@ function BookingCard({ booking }: { booking: BookingDetail }): React.JSX.Element
         {booking.property.coverPhotoUrl ? (
           <Image
             src={booking.property.coverPhotoUrl}
-            alt={booking.property.title}
+            alt={localizedTitle}
             fill
             className="object-cover"
             sizes="96px"
@@ -77,7 +84,7 @@ function BookingCard({ booking }: { booking: BookingDetail }): React.JSX.Element
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <p className="truncate font-semibold text-foreground">{booking.property.title}</p>
+          <p className="truncate font-semibold text-foreground">{localizedTitle}</p>
           <StatusBadge status={booking.status} />
         </div>
         <p className="mt-0.5 text-xs text-muted-foreground">

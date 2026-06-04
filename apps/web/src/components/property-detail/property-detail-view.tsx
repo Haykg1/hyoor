@@ -1,5 +1,7 @@
 import type { PropertyDetail, ReviewView } from '@repo/shared';
+import { getLocalizedTitle } from '@repo/shared';
 import dynamic from 'next/dynamic';
+import { getLocale } from 'next-intl/server';
 
 import { BookingWidget } from './booking-widget/booking-widget';
 import { PropertyAmenities } from './property-amenities';
@@ -20,15 +22,17 @@ interface PropertyDetailViewProps {
   initialReviews: ReviewView[];
 }
 
-export function PropertyDetailView({
+export async function PropertyDetailView({
   property,
   initialReviews,
-}: PropertyDetailViewProps): React.JSX.Element {
+}: PropertyDetailViewProps): Promise<React.JSX.Element> {
+  const locale = await getLocale();
+  const localizedTitle = getLocalizedTitle(property.titleLabels, locale, property.title);
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 space-y-4">
         <PropertyDetailHeader property={property} />
-        <PropertyGallery photos={property.photos} title={property.title} />
+        <PropertyGallery photos={property.photos} title={localizedTitle} />
       </div>
 
       <div className="grid items-start gap-10 lg:grid-cols-[1fr_360px]">
@@ -48,7 +52,7 @@ export function PropertyDetailView({
             <PropertyMap
               latitude={property.latitude}
               longitude={property.longitude}
-              title={property.title}
+              title={localizedTitle}
             />
           )}
           <PropertyReviewsList

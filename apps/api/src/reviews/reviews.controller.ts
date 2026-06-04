@@ -17,6 +17,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { PaginatedResponse } from '@repo/shared';
 
 import type { RequestUser } from '../auth/decorators/current-user.decorator';
@@ -25,6 +26,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
+import { WRITE_THROTTLE } from '../common/throttle/throttle.constants';
 
 import { CreateReviewDto } from './dto/create-review.dto';
 import { QueryReviewsDto } from './dto/query-reviews.dto';
@@ -32,6 +34,7 @@ import { ReviewsService, type ReviewView } from './reviews.service';
 
 @ApiTags('reviews')
 @Controller('reviews')
+@Throttle(WRITE_THROTTLE)
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 

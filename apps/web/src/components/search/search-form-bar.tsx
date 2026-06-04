@@ -1,13 +1,19 @@
 'use client';
 
-import { MapPin, Search } from 'lucide-react';
+import type { PlaceResult } from '@repo/shared';
+import { Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useId, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 
+import { PlaceAutocomplete } from '@/components/search/place-autocomplete';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import type { SearchFilters } from '@/hooks/use-search-filters';
 import { useSearchNavigation } from '@/hooks/use-search-navigation';
-import { ARMENIAN_CITIES } from '@/lib/constants/armenian-cities';
+import {
+  filtersToLocationFilters,
+  placeResultToLocationFilters,
+  type LocationFilters,
+} from '@/lib/search/place-to-filters';
 
 interface SearchFormBarProps {
   initialFilters: SearchFilters;
@@ -17,15 +23,29 @@ export function SearchFormBar({ initialFilters }: SearchFormBarProps): React.JSX
   const t = useTranslations('search');
   const { goToSearch } = useSearchNavigation();
   const [location, setLocation] = useState(initialFilters.location);
+  const [placeFilters, setPlaceFilters] = useState<LocationFilters | null>(() =>
+    filtersToLocationFilters(initialFilters),
+  );
   const [checkIn, setCheckIn] = useState(initialFilters.checkIn);
   const [checkOut, setCheckOut] = useState(initialFilters.checkOut);
   const [guests, setGuests] = useState(initialFilters.guests);
-  const datalistId = useId();
+
+  function handleLocationChange(value: string): void {
+    setLocation(value);
+    if (placeFilters && value !== placeFilters.location) {
+      setPlaceFilters(null);
+    }
+  }
+
+  function handleSelectPlace(place: PlaceResult): void {
+    setPlaceFilters(placeResultToLocationFilters(place));
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
+    const locationParams = placeFilters ?? { location: location.trim() || undefined };
     goToSearch({
-      location,
+      ...locationParams,
       checkIn,
       checkOut,
       guests,
@@ -39,25 +59,14 @@ export function SearchFormBar({ initialFilters }: SearchFormBarProps): React.JSX
       className="mb-6 flex flex-col gap-3 sm:flex-row"
       aria-label={t('search_button')}
     >
-      <div className="relative flex-1">
-        <MapPin
-          className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-          aria-hidden
-        />
-        <input
-          type="text"
+      <div className="flex-1">
+        <PlaceAutocomplete
           value={location}
-          onChange={(event) => setLocation(event.target.value)}
+          onChange={handleLocationChange}
+          onSelectPlace={handleSelectPlace}
           placeholder={t('destination_placeholder')}
-          list={datalistId}
-          aria-label={t('destination_placeholder')}
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 pl-9 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          level="any"
         />
-        <datalist id={datalistId}>
-          {ARMENIAN_CITIES.map((city) => (
-            <option key={city} value={city} />
-          ))}
-        </datalist>
       </div>
 
       <div className="flex h-9 w-full items-center rounded-md border border-input bg-transparent px-3 py-1 shadow-sm sm:w-64">

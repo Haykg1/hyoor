@@ -1,9 +1,10 @@
 'use client';
 
-import type { HostListingTab } from '@repo/shared';
 import { useEffect } from 'react';
 
 import { useHostListingsStore } from '@/store/host-listings.store';
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 export function useHostListings() {
   const {
@@ -14,34 +15,33 @@ export function useHostListings() {
     total,
     totalPages,
     tab,
+    statusFilter,
+    propertyTypeFilter,
+    searchQuery,
     isLoading,
     error,
     fetchListings,
     setPage,
     setLimit,
     setTab,
+    setStatusFilter,
+    setPropertyTypeFilter,
+    setSearchQuery,
+    resetFilters,
     softDeleteListing,
+    reactivateListing,
   } = useHostListingsStore();
 
   useEffect(() => {
     void fetchListings();
-  }, [page, limit, tab, fetchListings]);
+  }, [page, limit, tab, statusFilter, propertyTypeFilter, fetchListings]);
 
-  function handleSetTab(nextTab: HostListingTab) {
-    setTab(nextTab);
-  }
-
-  function handleSetLimit(nextLimit: 10 | 20 | 30) {
-    setLimit(nextLimit);
-  }
-
-  function handleSetPage(nextPage: number) {
-    setPage(nextPage);
-  }
-
-  async function handleSoftDelete(id: string) {
-    await softDeleteListing(id);
-  }
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void fetchListings();
+    }, SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery, fetchListings]);
 
   return {
     listings,
@@ -51,11 +51,19 @@ export function useHostListings() {
     total,
     totalPages,
     tab,
+    statusFilter,
+    propertyTypeFilter,
+    searchQuery,
     isLoading,
     error,
-    setTab: handleSetTab,
-    setLimit: handleSetLimit,
-    setPage: handleSetPage,
-    softDeleteListing: handleSoftDelete,
+    setTab,
+    setLimit,
+    setPage,
+    setStatusFilter,
+    setPropertyTypeFilter,
+    setSearchQuery,
+    resetFilters,
+    softDeleteListing,
+    reactivateListing,
   };
 }

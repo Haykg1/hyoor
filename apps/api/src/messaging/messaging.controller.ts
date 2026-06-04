@@ -17,11 +17,13 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 import type { RequestUser } from '../auth/decorators/current-user.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
+import { MESSAGING_THROTTLE } from '../common/throttle/throttle.constants';
 
 import { GetMessagesDto } from './dto/get-messages.dto';
 import { SendMessageDto } from './dto/send-message.dto';
@@ -34,6 +36,7 @@ import {
 
 @ApiTags('messaging')
 @Controller('messaging/conversations')
+@Throttle(MESSAGING_THROTTLE)
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class MessagingController {

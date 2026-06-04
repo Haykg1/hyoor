@@ -2,6 +2,7 @@ import type { PropertySummary } from '@repo/shared';
 
 import type { SearchFilters } from '@/hooks/use-search-filters';
 
+import { AdvancedFiltersDialog } from './advanced-filters-dialog';
 import { SearchFormBar } from './search-form-bar';
 import { SearchResults } from './search-results';
 import { SearchToolbar } from './search-toolbar';
@@ -21,6 +22,7 @@ export function SearchPageView({
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <SearchFormBar initialFilters={filters} />
       <SearchToolbar total={total} filters={filters} />
+      <AdvancedFiltersDialog initialFilters={filters} />
       <SearchResults properties={properties} />
     </div>
   );

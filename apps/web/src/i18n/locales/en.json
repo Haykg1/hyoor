@@ -225,9 +225,16 @@
     "actions": {
       "view": "View",
       "edit": "Edit",
-      "soft_delete": "Disable"
+      "calendar": "Calendar",
+      "soft_delete": "Disable",
+      "reactivate": "Re-enable",
+      "enable": "Enable",
+      "disable": "Disable"
     },
     "deleting": "Disabling…",
+    "reactivating": "Re-enabling…",
+    "reactivate_title": "Re-enable listing",
+    "reactivate_confirm": "This listing will become active and visible to guests again.",
     "soft_delete_title": "Disable listing",
     "soft_delete_confirm": "This listing will be hidden from guests. You can view it under Disabled Properties.",
     "empty_listings": "You have no active listings yet.",
@@ -240,6 +247,103 @@
     "pagination": {
       "page_size": "Per page",
       "page_of": "Page {page} of {totalPages} · {total} total"
+    },
+    "filters": {
+      "search_placeholder": "Search by title, address, or slug",
+      "property_type": "Property type",
+      "all_types": "All types",
+      "status": "Status",
+      "all_statuses": "All statuses",
+      "reset": "Reset",
+      "types": {
+        "APARTMENT": "Apartment",
+        "HOUSE": "House",
+        "VILLA": "Villa",
+        "STUDIO": "Studio",
+        "GUESTHOUSE": "Guesthouse",
+        "HOTEL_ROOM": "Hotel room",
+        "OTHER": "Other"
+      },
+      "statuses": {
+        "DRAFT": "Draft",
+        "PENDING_REVIEW": "Pending review",
+        "ACTIVE": "Active",
+        "SUSPENDED": "Suspended"
+      }
+    },
+    "admin": {
+      "title": "Admin Dashboard",
+      "empty_listings": "No properties match your filters.",
+      "enable_title": "Enable property",
+      "enable_confirm": "This property will become active and visible to guests.",
+      "disable_title": "Disable property",
+      "disable_confirm": "This property will be hidden from guests.",
+      "enabling": "Enabling…",
+      "disabling": "Disabling…",
+      "tabs": {
+        "all_properties": "All Properties"
+      }
+    },
+    "calendar": {
+      "title": "Calendar & Rates",
+      "back_to_dashboard": "Back to dashboard",
+      "base_rate": "Base rate",
+      "prev_month": "Previous month",
+      "next_month": "Next month",
+      "today": "Today",
+      "refreshing": "Refreshing…",
+      "open_year": "Open next 365 days",
+      "set_range_rate": "Set rate for range",
+      "legend": {
+        "available": "Available",
+        "custom_rate": "Custom rate",
+        "closed": "Closed",
+        "booked": "Booked",
+        "selected": "Selected"
+      },
+      "editor": {
+        "empty_hint": "Click a day to select. Click another to extend the selection into a range. Then set the rate and status below.",
+        "editing_count": "Editing {count, plural, one {# day} other {# days}}",
+        "clear": "Clear selection",
+        "skipped_booked": "{count, plural, one {# day is booked and will be skipped} other {# days are booked and will be skipped}}",
+        "only_booked_selected": "All selected days are booked. Nothing to update.",
+        "rate_label": "Nightly rate",
+        "night": "night",
+        "use_base_rate": "Use base rate ({base} AMD)",
+        "status_label": "Status",
+        "available": "Available",
+        "closed": "Closed",
+        "apply": "Apply",
+        "saved": "{count, plural, one {# day updated} other {# days updated}}",
+        "save_failed": "Failed to save changes",
+        "invalid_price": "Enter a valid price"
+      },
+      "open_year_dialog": {
+        "title": "Open the next 365 days?",
+        "description": "Every day in the next year will be marked as available. Days already booked stay unavailable until the booking ends or is cancelled.",
+        "cancel": "Cancel",
+        "confirm": "Open year",
+        "toast_success": "Opened {opened} days · skipped {skipped} booked",
+        "toast_error": "Failed to open the year"
+      },
+      "range_dialog": {
+        "title": "Set rate for a date range",
+        "description": "Pick a check-in and check-out day, choose a rate, and apply it to the whole range. Booked days are skipped automatically.",
+        "pick_dates": "Pick a date range first",
+        "selected_summary": "{count, plural, one {# day selected} other {# days selected}}",
+        "skipped_booked": "{count, plural, one {# booked day skipped} other {# booked days skipped}}",
+        "rate_label": "Nightly rate",
+        "night": "night",
+        "use_base_rate": "Use base rate ({base} AMD)",
+        "status_label": "Status",
+        "available": "Available",
+        "closed": "Closed",
+        "cancel": "Cancel",
+        "apply": "Apply",
+        "saved": "{count, plural, one {# day updated} other {# days updated}}",
+        "save_failed": "Failed to save changes",
+        "invalid_price": "Enter a valid price"
+      }
     },
     "overview": "Dashboard",
     "properties": "My Properties",
@@ -276,6 +380,119 @@
       "save_success": "Capacity updated successfully.",
       "save_error": "Failed to save. Please try again.",
       "cancel": "Cancel"
+    }
+  },
+  "listing_wizard": {
+    "title": "List Your Property",
+    "back_dashboard": "Back to dashboard",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit for Review",
+    "submitting": "Submitting…",
+    "loading": "Loading…",
+    "created_success": "Listing submitted for review. An admin will approve it before it goes live.",
+    "updated_success": "Listing updated successfully.",
+    "submit_error": "Could not save listing. Please try again.",
+    "steps": {
+      "basics": "Basics",
+      "details": "Details",
+      "media": "Photos & Amenities",
+      "pricing_rules": "Pricing & Rules"
+    },
+    "basics": {
+      "property_type": "Property Type",
+      "more_types": "More property types…",
+      "title": "Listing Title",
+      "title_placeholder": "e.g. Cozy apartment in central Yerevan",
+      "title_translations_heading": "Title translations",
+      "title_translations_hint": "Optional but highly recommended. Filling translations in the other languages lets guests searching in those languages find your listing.",
+      "title_translations_hint_aria": "Why add translations?",
+      "title_en": "English title",
+      "title_en_placeholder": "e.g. Cozy apartment near Cascade",
+      "title_ru": "Russian title",
+      "title_ru_placeholder": "напр. Уютная квартира у Каскада",
+      "title_hy": "Armenian title",
+      "title_hy_placeholder": "օր. Հարմարավետ բնակարան Կասկադի մոտ",
+      "description": "Description",
+      "description_placeholder": "Describe your space, neighborhood, and what makes it special…",
+      "city": "City",
+      "city_placeholder": "e.g. Yerevan",
+      "region": "Region / Province",
+      "region_placeholder": "e.g. Tavush",
+      "address": "Full Address",
+      "address_placeholder": "Full street address",
+      "address_search": "Building Address",
+      "address_search_placeholder": "Search for your building address…",
+      "street": "Street",
+      "building_number": "Building Number",
+      "apartment_number": "Apartment / Unit",
+      "apartment_number_placeholder": "e.g. 12A (optional)",
+      "address_verification_required": "Select a verified building address from the list",
+      "place_searching": "Searching…",
+      "place_no_results": "No places found",
+      "country": "Country",
+      "country_placeholder": "AM",
+      "types": {
+        "APARTMENT": "Apartment",
+        "HOUSE": "House",
+        "VILLA": "Villa",
+        "GUESTHOUSE": "Guesthouse",
+        "STUDIO": "Studio",
+        "HOTEL_ROOM": "Hotel room",
+        "OTHER": "Other"
+      }
+    },
+    "details": {
+      "bedrooms": "Bedrooms",
+      "beds": "Beds",
+      "bathrooms": "Bathrooms",
+      "max_guests": "Max Guests",
+      "max_adults": "Adults",
+      "max_children": "Children",
+      "max_infants": "Infants"
+    },
+    "media": {
+      "dropzone_title": "Drag and drop photos here",
+      "dropzone_hint": "JPEG, PNG, or WebP · max 5MB each",
+      "uploading": "Uploading…",
+      "caption_placeholder": "Caption (optional)",
+      "move_up": "Move up",
+      "move_down": "Move down",
+      "set_cover": "Set as cover",
+      "remove_photo": "Remove photo",
+      "amenities_label": "Amenities",
+      "amenities_search": "Search amenities…",
+      "pinned": "Popular"
+    },
+    "pricing_rules": {
+      "pricing_section": "Pricing",
+      "rules_section": "House rules",
+      "price_per_night": "Price per Night (AMD)",
+      "price_placeholder": "e.g. 25000",
+      "price_required": "Enter a price greater than zero",
+      "cleaning_fee": "Cleaning Fee (AMD)",
+      "cleaning_placeholder": "e.g. 5000",
+      "security_deposit": "Security Deposit (AMD)",
+      "deposit_placeholder": "e.g. 50000",
+      "min_nights": "Minimum nights",
+      "max_nights": "Maximum nights",
+      "max_nights_placeholder": "Optional",
+      "cancellation_policy": "Cancellation Policy",
+      "check_in_time": "Check-in time",
+      "check_out_time": "Check-out time",
+      "quiet_hours_start": "Quiet hours start",
+      "quiet_hours_end": "Quiet hours end",
+      "smoking_allowed": "Smoking allowed",
+      "pets_allowed": "Pets allowed",
+      "parties_allowed": "Parties allowed",
+      "additional_rules": "Additional rules",
+      "additional_rules_placeholder": "Any other rules guests should know…",
+      "policies": {
+        "FLEXIBLE": "Flexible",
+        "MODERATE": "Moderate",
+        "STRICT": "Strict",
+        "NON_REFUNDABLE": "Non-refundable"
+      }
     }
   },
   "property_form": {
@@ -335,9 +552,12 @@
     "reviews": "{count} reviews",
     "categories": {
       "apartment": "Apartment",
+      "studio": "Studio",
       "house": "House",
       "villa": "Villa",
-      "guesthouse": "Guesthouse"
+      "guesthouse": "Guesthouse",
+      "hotel_room": "Hotel room",
+      "other": "Other"
     }
   },
   "search": {
@@ -348,10 +568,10 @@
     "check_out": "Check-out",
     "guests": "Guests",
     "search_button": "Search",
-    "filters": "Filters",
+    "filters_button": "Filters",
     "sort": {
       "label": "Sort by",
-      "newest": "Newest First",
+      "newest": "Recently added",
       "price_asc": "Price: Low to High"
     },
     "count": "{count, plural, =0 {No properties found} =1 {1 property found} other {# properties found}}",
@@ -360,6 +580,44 @@
       "title": "No featured stays match your search",
       "description": "Try a different destination or clear your filters.",
       "clear": "Clear filters"
+    },
+    "filters": {
+      "title": "Filters",
+      "apply": "Apply",
+      "reset": "Reset",
+      "cancel": "Cancel",
+      "min": "Min",
+      "max": "Max",
+      "region": "Region",
+      "region_placeholder": "e.g. Tavush",
+      "location": "Location",
+      "location_placeholder": "Search city, street, or address…",
+      "search_city": "City",
+      "search_city_placeholder": "e.g. Yerevan",
+      "search_street": "Street",
+      "search_street_placeholder": "e.g. Azatutyan Avenue",
+      "search_building_number": "Building number",
+      "search_building_number_placeholder": "e.g. 11",
+      "min_bedrooms": "Min bedrooms",
+      "min_beds": "Min beds",
+      "min_bathrooms": "Min bathrooms",
+      "min_adults": "Min adults",
+      "min_children": "Min children",
+      "min_infants": "Min infants",
+      "cleaning_fee_range": "Cleaning fee (AMD)",
+      "security_deposit_range": "Security deposit (AMD)",
+      "min_nights": "Min nights",
+      "max_nights": "Max nights",
+      "house_rules": "House rules",
+      "smoking_allowed": "Smoking allowed",
+      "pets_allowed": "Pets allowed",
+      "parties_allowed": "Parties allowed",
+      "amenities": "Amenities",
+      "amenities_search": "Search amenities…",
+      "min_avg_rating": "Min average rating",
+      "min_review_count": "Min review count",
+      "place_searching": "Searching…",
+      "place_no_results": "No places found"
     }
   },
   "home": {

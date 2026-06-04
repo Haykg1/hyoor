@@ -1,71 +1,104 @@
+import { PropertyFilterCategories, propertyTypeToFilterCategory } from '@repo/shared';
 import type {
+  AmenityInput,
+  ConfirmPhotoUploadInput,
+  CreatePresignedPhotoUrlInput,
+  CreatePropertyInput,
   HostListingTab,
   HostListingsResponse,
   PaginatedResponse,
+  PresignedPhotoUrlResponse,
   PropertyDetail,
+  PropertyFilterCategory,
   PropertySummary,
+  SearchPropertiesQuery,
   PropertyType,
+  UpdatePropertyInput,
 } from '@repo/shared';
+import type { PhotoMimeType } from '@repo/shared';
 
 import { api } from '@/lib/api';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1';
 
-const FILTERABLE_CATEGORIES = ['apartment', 'house', 'villa', 'guesthouse'] as const;
-export type PropertyCategory = (typeof FILTERABLE_CATEGORIES)[number];
-export const PROPERTY_CATEGORIES: readonly PropertyCategory[] = FILTERABLE_CATEGORIES;
+const ALLOWED_PHOTO_MIME_TYPES: PhotoMimeType[] = ['image/jpeg', 'image/png', 'image/webp'];
 
-const PROPERTY_TYPE_TO_CATEGORY: Record<PropertyType, PropertyCategory | null> = {
-  APARTMENT: 'apartment',
-  STUDIO: 'apartment',
-  HOUSE: 'house',
-  VILLA: 'villa',
-  GUESTHOUSE: 'guesthouse',
-  HOTEL_ROOM: null,
-  OTHER: null,
-};
+export type PropertyCategory = PropertyFilterCategory;
+export const PROPERTY_CATEGORIES: readonly PropertyCategory[] = PropertyFilterCategories;
 
-export function categoryFromPropertyType(type: PropertyType): PropertyCategory | null {
-  return PROPERTY_TYPE_TO_CATEGORY[type];
+export function categoryFromPropertyType(type: PropertyType): PropertyCategory {
+  return propertyTypeToFilterCategory(type);
 }
 
-export const PROPERTY_SORT_VALUES = ['createdAt', 'pricePerNight'] as const;
-export type PropertySortValue = (typeof PROPERTY_SORT_VALUES)[number];
+export { PROPERTY_SORT_VALUES, type PropertySortValue } from '@repo/shared';
 
-export interface ListPropertiesParams {
-  featured?: boolean;
-  limit?: number;
-  page?: number;
-  city?: string;
-  propertyType?: PropertyType;
-  checkIn?: string;
-  checkOut?: string;
-  maxGuests?: number;
-  minPrice?: number;
-  maxPrice?: number;
-  sortBy?: PropertySortValue;
-}
+export type ListPropertiesParams = SearchPropertiesQuery;
 
 interface ApiEnvelope<T> {
   success: boolean;
   data: T;
 }
 
+function setOptionalNumber(query: URLSearchParams, key: string, value: number | undefined): void {
+  if (value !== undefined) query.set(key, String(value));
+}
+
+function setOptionalFeeNumber(
+  query: URLSearchParams,
+  key: string,
+  value: number | undefined,
+): void {
+  if (value !== undefined && value !== 0) query.set(key, String(value));
+}
+
+function setOptionalBoolean(query: URLSearchParams, key: string, value: boolean | undefined): void {
+  if (value !== undefined) query.set(key, String(value));
+}
+
 export async function listProperties(
   params: ListPropertiesParams = {},
 ): Promise<PaginatedResponse<PropertySummary>> {
   const query = new URLSearchParams();
-  if (params.featured !== undefined) query.set('featured', String(params.featured));
-  if (params.limit !== undefined) query.set('limit', String(params.limit));
-  if (params.page !== undefined) query.set('page', String(params.page));
+  setOptionalBoolean(query, 'featured', params.featured);
+  setOptionalNumber(query, 'limit', params.limit);
+  setOptionalNumber(query, 'page', params.page);
   if (params.city) query.set('city', params.city);
+  if (params.country) query.set('country', params.country);
+  if (params.region) query.set('region', params.region);
+  if (params.searchCity) query.set('searchCity', params.searchCity);
+  if (params.searchStreet) query.set('searchStreet', params.searchStreet);
+  if (params.searchBuildingNumber) query.set('searchBuildingNumber', params.searchBuildingNumber);
+  if (params.searchPlaceKind) query.set('searchPlaceKind', params.searchPlaceKind);
+  setOptionalNumber(query, 'searchLatitude', params.searchLatitude);
+  setOptionalNumber(query, 'searchLongitude', params.searchLongitude);
   if (params.propertyType) query.set('propertyType', params.propertyType);
   if (params.checkIn) query.set('checkIn', params.checkIn);
   if (params.checkOut) query.set('checkOut', params.checkOut);
-  if (params.maxGuests !== undefined) query.set('maxGuests', String(params.maxGuests));
-  if (params.minPrice !== undefined) query.set('minPrice', String(params.minPrice));
-  if (params.maxPrice !== undefined) query.set('maxPrice', String(params.maxPrice));
+  setOptionalNumber(query, 'maxGuests', params.maxGuests);
+  setOptionalNumber(query, 'minPrice', params.minPrice);
+  setOptionalNumber(query, 'maxPrice', params.maxPrice);
   if (params.sortBy) query.set('sortBy', params.sortBy);
+  setOptionalNumber(query, 'minAdults', params.minAdults);
+  setOptionalNumber(query, 'minChildren', params.minChildren);
+  setOptionalNumber(query, 'minInfants', params.minInfants);
+  setOptionalNumber(query, 'minBedrooms', params.minBedrooms);
+  setOptionalNumber(query, 'minBeds', params.minBeds);
+  setOptionalNumber(query, 'minBathrooms', params.minBathrooms);
+  setOptionalFeeNumber(query, 'minCleaningFee', params.minCleaningFee);
+  setOptionalFeeNumber(query, 'maxCleaningFee', params.maxCleaningFee);
+  setOptionalFeeNumber(query, 'minSecurityDeposit', params.minSecurityDeposit);
+  setOptionalFeeNumber(query, 'maxSecurityDeposit', params.maxSecurityDeposit);
+  setOptionalNumber(query, 'minNights', params.minNights);
+  setOptionalNumber(query, 'maxNights', params.maxNights);
+  setOptionalBoolean(query, 'smokingAllowed', params.smokingAllowed);
+  setOptionalBoolean(query, 'petsAllowed', params.petsAllowed);
+  setOptionalBoolean(query, 'partiesAllowed', params.partiesAllowed);
+  for (const amenity of params.amenities ?? []) {
+    const trimmed = amenity.trim();
+    if (trimmed) query.append('amenities', trimmed);
+  }
+  setOptionalNumber(query, 'minAvgRating', params.minAvgRating);
+  setOptionalNumber(query, 'minReviewCount', params.minReviewCount);
   const url = `${BASE_URL}/properties${query.toString() ? `?${query.toString()}` : ''}`;
   const res = await fetch(url, { next: { revalidate: 60 } });
   if (!res.ok) {
@@ -133,10 +166,104 @@ export async function updateProperty(
   return api.patch<PropertyDetail>(`/properties/${id}`, data);
 }
 
+export async function getMyPropertyDetail(id: string): Promise<PropertyDetail> {
+  return api.get<PropertyDetail>(`/properties/${id}`);
+}
+
+export async function createProperty(payload: CreatePropertyInput): Promise<{ id: string }> {
+  return api.post<{ id: string }>('/properties', payload);
+}
+
+export async function patchProperty(
+  id: string,
+  payload: UpdatePropertyInput,
+): Promise<PropertyDetail> {
+  return api.patch<PropertyDetail>(`/properties/${id}`, payload);
+}
+
+export async function getPresignedPhotoUploadUrl(
+  propertyId: string,
+  body: CreatePresignedPhotoUrlInput,
+): Promise<PresignedPhotoUrlResponse> {
+  return api.post<PresignedPhotoUrlResponse>(
+    `/properties/${propertyId}/photos/presigned-url`,
+    body,
+  );
+}
+
+export async function confirmPhotoUpload(
+  propertyId: string,
+  body: ConfirmPhotoUploadInput,
+): Promise<{ id: string; key: string; url: string; isCover: boolean; sortOrder: number }> {
+  return api.post(`/properties/${propertyId}/photos/confirm`, body);
+}
+
+export async function deletePropertyPhoto(
+  propertyId: string,
+  photoId: string,
+): Promise<{ success: true }> {
+  return api.delete(`/properties/${propertyId}/photos/${photoId}`);
+}
+
+export interface UpdatePropertyPhotoInput {
+  caption?: string;
+  sortOrder?: number;
+  isCover?: boolean;
+}
+
+export async function updatePropertyPhoto(
+  propertyId: string,
+  photoId: string,
+  body: UpdatePropertyPhotoInput,
+): Promise<{ id: string; key: string; url: string; isCover: boolean; sortOrder: number }> {
+  return api.patch(`/properties/${propertyId}/photos/${photoId}`, body);
+}
+
+export async function reactivateProperty(id: string): Promise<PropertyDetail> {
+  return api.patch<PropertyDetail>(`/properties/${id}/reactivate`, {});
+}
+
+export async function replacePropertyAmenities(
+  propertyId: string,
+  amenities: AmenityInput[],
+): Promise<unknown> {
+  return api.put(`/properties/${propertyId}/amenities`, { amenities });
+}
+
+export async function uploadPropertyPhotoFile(
+  propertyId: string,
+  file: File,
+  options: { isCover?: boolean; sortOrder?: number; caption?: string } = {},
+): Promise<{ id: string; key: string; url: string; isCover: boolean; sortOrder: number }> {
+  const mimeType = (
+    ALLOWED_PHOTO_MIME_TYPES.includes(file.type as PhotoMimeType) ? file.type : 'image/jpeg'
+  ) as PhotoMimeType;
+  const { uploadUrl, key } = await getPresignedPhotoUploadUrl(propertyId, { mimeType });
+  const putRes = await fetch(uploadUrl, {
+    method: 'PUT',
+    body: file,
+    headers: { 'Content-Type': mimeType },
+  });
+  if (!putRes.ok) {
+    throw new Error(`S3 upload failed: ${putRes.status}`);
+  }
+  return confirmPhotoUpload(propertyId, {
+    key,
+    isCover: options.isCover,
+    sortOrder: options.sortOrder,
+    caption: options.caption,
+  });
+}
+
+export type HostListingStatusFilter = 'DRAFT' | 'PENDING_REVIEW' | 'ACTIVE';
+
 export interface ListMyPropertiesParams {
   page?: number;
   limit?: 10 | 20 | 30;
   tab?: HostListingTab;
+  status?: HostListingStatusFilter;
+  propertyType?: PropertyType;
+  search?: string;
 }
 
 export async function listMyProperties(
@@ -146,6 +273,10 @@ export async function listMyProperties(
   if (params.page) query.set('page', String(params.page));
   if (params.limit) query.set('limit', String(params.limit));
   if (params.tab) query.set('tab', params.tab);
+  if (params.status) query.set('status', params.status);
+  if (params.propertyType) query.set('propertyType', params.propertyType);
+  const trimmed = params.search?.trim();
+  if (trimmed) query.set('search', trimmed);
   const qs = query.toString();
   return api.get<HostListingsResponse>(`/properties/my${qs ? `?${qs}` : ''}`);
 }

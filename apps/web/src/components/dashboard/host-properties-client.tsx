@@ -1,8 +1,9 @@
 'use client';
 
 import type { PropertyDetail } from '@repo/shared';
+import { getLocalizedTitle } from '@repo/shared';
 import { Pencil, Users } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ export function HostPropertiesClient({
 }: HostPropertiesClientProps): React.JSX.Element {
   const t = useTranslations('dashboard');
   const tc = useTranslations('dashboard.capacity');
+  const locale = useLocale();
   const [properties, setProperties] = useState(initialProperties);
   const [editing, setEditing] = useState<PropertyDetail | null>(null);
 
@@ -56,7 +58,9 @@ export function HostPropertiesClient({
           >
             <div className="min-w-0 space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="truncate text-base font-semibold">{property.title}</h2>
+                <h2 className="truncate text-base font-semibold">
+                  {getLocalizedTitle(property.titleLabels, locale, property.title)}
+                </h2>
                 <Badge variant="outline" className="capitalize text-xs">
                   {property.status.toLowerCase()}
                 </Badge>

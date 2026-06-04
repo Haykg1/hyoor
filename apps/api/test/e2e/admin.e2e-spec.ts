@@ -3,11 +3,13 @@ import request from 'supertest';
 
 import { PrismaService } from '../../src/database/prisma.service';
 import { createTestApp, type TestAppContext } from '../helpers/create-test-app';
-import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
 import { createActiveHostProperty, registerHostUser } from '../helpers/property-test.helper';
 import { resetE2eDatabase } from '../helpers/reset-database';
+import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
 
-async function registerAdmin(app: INestApplication) {
+async function registerAdmin(
+  app: INestApplication,
+): Promise<Awaited<ReturnType<typeof registerUser>> & { accessToken: string }> {
   const admin = await registerUser(app, { email: uniqueEmail('admin') });
   const prisma = app.get(PrismaService);
   await prisma.user.update({ where: { id: admin.userId }, data: { role: 'ADMIN' } });
@@ -130,6 +132,20 @@ describe('Admin (e2e)', () => {
       .set(authHeader(admin.accessToken))
       .expect(200);
     expect(response.body.data.total).toBeGreaterThanOrEqual(1);
+    expect(response.body.data.stats).toBeDefined();
+    expect(response.body.data.stats.totalListings).toBeGreaterThanOrEqual(1);
+  });
+
+  it('returns admin dashboard stats', async () => {
+    const admin = await registerAdmin(app);
+    const host = await registerHostUser(app);
+    await createActiveHostProperty(app, host);
+    const response = await request(app.getHttpServer())
+      .get('/api/v1/admin/dashboard/stats')
+      .set(authHeader(admin.accessToken))
+      .expect(200);
+    expect(response.body.data.totalListings).toBeGreaterThanOrEqual(1);
+    expect(response.body.data.activeListings).toBeGreaterThanOrEqual(1);
   });
 
   it('changes property status', async () => {

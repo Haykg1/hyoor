@@ -12,6 +12,61 @@ function utcDate(daysFromNow = 0): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + daysFromNow));
 }
 
+function parseSeedAddress(addressLine: string): {
+  street: string;
+  buildingNumber: string;
+  formattedAddress: string;
+} {
+  const trimmed = addressLine.trim();
+  const spaceIndex = trimmed.indexOf(' ');
+  if (spaceIndex <= 0) {
+    return { buildingNumber: '', street: trimmed, formattedAddress: trimmed };
+  }
+  return {
+    buildingNumber: trimmed.slice(0, spaceIndex),
+    street: trimmed.slice(spaceIndex + 1),
+    formattedAddress: trimmed,
+  };
+}
+
+type SeedAddressLabels = {
+  hy: { city: string; region: string; street: string; formattedAddress: string };
+  ru: { city: string; region: string; street: string; formattedAddress: string };
+  en: { city: string; region: string; street: string; formattedAddress: string };
+};
+
+type SeedTitleLabels = { en: string; ru: string; hy: string };
+
+function titleLabels(en: string, ru: string, hy: string): SeedTitleLabels {
+  return { en, ru, hy };
+}
+
+function buildSeedAddressLabels(
+  city: string,
+  region: string,
+  street: string,
+  buildingNumber: string,
+  hy: { city?: string; region?: string; street: string; formattedAddress: string },
+  ru: { city?: string; region?: string; street: string; formattedAddress: string },
+): SeedAddressLabels {
+  const enFormatted = `${buildingNumber} ${street}`;
+  return {
+    en: { city, region, street, formattedAddress: enFormatted },
+    hy: {
+      city: hy.city ?? city,
+      region: hy.region ?? region,
+      street: hy.street,
+      formattedAddress: hy.formattedAddress,
+    },
+    ru: {
+      city: ru.city ?? city,
+      region: ru.region ?? region,
+      street: ru.street,
+      formattedAddress: ru.formattedAddress,
+    },
+  };
+}
+
 async function main(): Promise<void> {
   console.log('🌱 Seeding RentStar demo data...');
 
@@ -246,15 +301,54 @@ async function main(): Promise<void> {
   });
 
   // ── Properties ───────────────────────────────────────────────────────────
+  const p1Address = parseSeedAddress('10 Tamanyan Street');
+  const p1Labels = buildSeedAddressLabels(
+    'Yerevan',
+    'Yerevan',
+    p1Address.street,
+    p1Address.buildingNumber,
+    {
+      city: 'Երևան',
+      region: 'Երևան',
+      street: 'Տամանյան փողոց',
+      formattedAddress: 'Հայաստան, Երևան, Տամանյան փող., 10',
+    },
+    {
+      city: 'Ереван',
+      region: 'Ереван',
+      street: 'улица Таманяна',
+      formattedAddress: 'Армения, Ереван, улица Таманяна, 10',
+    },
+  );
   const p1 = await prisma.property.upsert({
     where: { slug: 'cascade-view-apartment' },
-    update: { featured: true, maxAdults: 2, maxChildren: 2, maxInfants: 1 },
+    update: {
+      featured: true,
+      maxAdults: 2,
+      maxChildren: 2,
+      maxInfants: 1,
+      street: p1Address.street,
+      buildingNumber: p1Address.buildingNumber,
+      formattedAddress: p1Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p1Labels,
+      titleLabels: titleLabels(
+        'Cascade View Apartment',
+        'Квартира с видом на Каскад',
+        'Բնակարան՝ Կասկադի տեսարանով',
+      ),
+    },
     create: {
       hostId: hp1.id,
       status: 'ACTIVE',
       propertyType: 'APARTMENT',
       featured: true,
       title: 'Cascade View Apartment',
+      titleLabels: titleLabels(
+        'Cascade View Apartment',
+        'Квартира с видом на Каскад',
+        'Բնակարան՝ Կասկադի տեսարանով',
+      ),
       slug: 'cascade-view-apartment',
       description:
         'Bright 2-bedroom apartment steps from the Cascade with city panorama, fast WiFi, and a fully equipped kitchen. Perfect for couples or small families.',
@@ -263,6 +357,11 @@ async function main(): Promise<void> {
       region: 'Yerevan',
       city: 'Yerevan',
       addressLine: '10 Tamanyan Street',
+      street: p1Address.street,
+      buildingNumber: p1Address.buildingNumber,
+      formattedAddress: p1Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p1Labels,
       latitude: new Decimal('40.1904'),
       longitude: new Decimal('44.5152'),
       maxGuests: 4,
@@ -287,14 +386,52 @@ async function main(): Promise<void> {
     },
   });
 
+  const p2Address = parseSeedAddress('23 Northern Avenue');
+  const p2Labels = buildSeedAddressLabels(
+    'Yerevan',
+    'Yerevan',
+    p2Address.street,
+    p2Address.buildingNumber,
+    {
+      city: 'Երևան',
+      region: 'Երևան',
+      street: 'Հյուսիսային պող.',
+      formattedAddress: 'Հայաստան, Երևան, Հյուսիսային պող., 23',
+    },
+    {
+      city: 'Ереван',
+      region: 'Ереван',
+      street: 'Северный проспект',
+      formattedAddress: 'Армения, Ереван, Северный проспект, 23',
+    },
+  );
   const p2 = await prisma.property.upsert({
     where: { slug: 'northern-avenue-studio' },
-    update: { maxAdults: 2, maxChildren: 0, maxInfants: 1 },
+    update: {
+      maxAdults: 2,
+      maxChildren: 0,
+      maxInfants: 1,
+      street: p2Address.street,
+      buildingNumber: p2Address.buildingNumber,
+      formattedAddress: p2Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p2Labels,
+      titleLabels: titleLabels(
+        'Northern Avenue Studio',
+        'Студия на Северном проспекте',
+        'Ստուդիա Հյուսիսային պողոտայում',
+      ),
+    },
     create: {
       hostId: hp1.id,
       status: 'ACTIVE',
       propertyType: 'STUDIO',
       title: 'Northern Avenue Studio',
+      titleLabels: titleLabels(
+        'Northern Avenue Studio',
+        'Студия на Северном проспекте',
+        'Ստուդիա Հյուսիսային պողոտայում',
+      ),
       slug: 'northern-avenue-studio',
       description:
         'Cozy studio in the heart of Yerevan on the famous Northern Avenue. Walk to Republic Square, cafes, and museums.',
@@ -303,6 +440,11 @@ async function main(): Promise<void> {
       region: 'Yerevan',
       city: 'Yerevan',
       addressLine: '23 Northern Avenue',
+      street: p2Address.street,
+      buildingNumber: p2Address.buildingNumber,
+      formattedAddress: p2Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p2Labels,
       latitude: new Decimal('40.1836'),
       longitude: new Decimal('44.5128'),
       maxGuests: 2,
@@ -325,15 +467,54 @@ async function main(): Promise<void> {
     },
   });
 
+  const p3Address = parseSeedAddress('5 Moskovyan Street');
+  const p3Labels = buildSeedAddressLabels(
+    'Yerevan',
+    'Yerevan',
+    p3Address.street,
+    p3Address.buildingNumber,
+    {
+      city: 'Երևան',
+      region: 'Երևան',
+      street: 'Մոսկովյան փող.',
+      formattedAddress: 'Հայաստան, Երևան, Մոսկովյան փող., 5',
+    },
+    {
+      city: 'Ереван',
+      region: 'Ереван',
+      street: 'улица Московян',
+      formattedAddress: 'Армения, Ереван, улица Московян, 5',
+    },
+  );
   const p3 = await prisma.property.upsert({
     where: { slug: 'kentron-heritage-house' },
-    update: { featured: true, maxAdults: 4, maxChildren: 2, maxInfants: 1 },
+    update: {
+      featured: true,
+      maxAdults: 4,
+      maxChildren: 2,
+      maxInfants: 1,
+      street: p3Address.street,
+      buildingNumber: p3Address.buildingNumber,
+      formattedAddress: p3Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p3Labels,
+      titleLabels: titleLabels(
+        'Kentron Heritage House',
+        'Историческмй таунхаус в Кентроне',
+        'Պատմական տուն Կենտրոնում',
+      ),
+    },
     create: {
       hostId: hp2.id,
       status: 'ACTIVE',
       propertyType: 'HOUSE',
       featured: true,
       title: 'Kentron Heritage House',
+      titleLabels: titleLabels(
+        'Kentron Heritage House',
+        'Историческмй таунхаус в Кентроне',
+        'Պատմական տուն Կենտրոնում',
+      ),
       slug: 'kentron-heritage-house',
       description:
         'A lovingly restored Soviet-era apartment converted into a 3-bedroom townhouse in Kentron. Balcony, garden, full kitchen.',
@@ -342,6 +523,11 @@ async function main(): Promise<void> {
       region: 'Yerevan',
       city: 'Yerevan',
       addressLine: '5 Moskovyan Street',
+      street: p3Address.street,
+      buildingNumber: p3Address.buildingNumber,
+      formattedAddress: p3Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p3Labels,
       latitude: new Decimal('40.1776'),
       longitude: new Decimal('44.5169'),
       maxGuests: 6,
@@ -366,15 +552,54 @@ async function main(): Promise<void> {
     },
   });
 
+  const p4Address = parseSeedAddress('88 Abovyan Street');
+  const p4Labels = buildSeedAddressLabels(
+    'Yerevan',
+    'Yerevan',
+    p4Address.street,
+    p4Address.buildingNumber,
+    {
+      city: 'Երևան',
+      region: 'Երևան',
+      street: 'Աբովյան փող.',
+      formattedAddress: 'Հայաստան, Երևան, Աբովյան փող., 88',
+    },
+    {
+      city: 'Ереван',
+      region: 'Ереван',
+      street: 'улица Абовяна',
+      formattedAddress: 'Армения, Ереван, улица Абовяна, 88',
+    },
+  );
   const p4 = await prisma.property.upsert({
     where: { slug: 'ararat-mountain-guesthouse' },
-    update: { featured: true, maxAdults: 3, maxChildren: 2, maxInfants: 1 },
+    update: {
+      featured: true,
+      maxAdults: 3,
+      maxChildren: 2,
+      maxInfants: 1,
+      street: p4Address.street,
+      buildingNumber: p4Address.buildingNumber,
+      formattedAddress: p4Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p4Labels,
+      titleLabels: titleLabels(
+        'Ararat Mountain Guesthouse',
+        'Гостевой дом с видом на Арарат',
+        'Հյուրատուն՝ Արարատի տեսարանով',
+      ),
+    },
     create: {
       hostId: hp2.id,
       status: 'ACTIVE',
       propertyType: 'GUESTHOUSE',
       featured: true,
       title: 'Ararat Mountain Guesthouse',
+      titleLabels: titleLabels(
+        'Ararat Mountain Guesthouse',
+        'Гостевой дом с видом на Арарат',
+        'Հյուրատուն՝ Արարատի տեսարանով',
+      ),
       slug: 'ararat-mountain-guesthouse',
       description:
         'Boutique guesthouse with iconic Mt. Ararat views. Homemade breakfast available on request. Ideal for hiking and photography lovers.',
@@ -383,6 +608,11 @@ async function main(): Promise<void> {
       region: 'Yerevan',
       city: 'Yerevan',
       addressLine: '88 Abovyan Street',
+      street: p4Address.street,
+      buildingNumber: p4Address.buildingNumber,
+      formattedAddress: p4Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p4Labels,
       latitude: new Decimal('40.1870'),
       longitude: new Decimal('44.5310'),
       maxGuests: 5,
@@ -405,15 +635,54 @@ async function main(): Promise<void> {
     },
   });
 
+  const p5Address = parseSeedAddress('1 Grigor Lusavorich Street');
+  const p5Labels = buildSeedAddressLabels(
+    'Yerevan',
+    'Yerevan',
+    p5Address.street,
+    p5Address.buildingNumber,
+    {
+      city: 'Երևան',
+      region: 'Երևան',
+      street: 'Գրիգոր Լուսավորիչ փող.',
+      formattedAddress: 'Հայաստան, Երևան, Գրիգոր Լուսավորիչ փող., 1',
+    },
+    {
+      city: 'Ереван',
+      region: 'Ереван',
+      street: 'улица Григора Лусаворича',
+      formattedAddress: 'Армения, Ереван, улица Григора Лусаворича, 1',
+    },
+  );
   const p5 = await prisma.property.upsert({
     where: { slug: 'silk-road-penthouse' },
-    update: { featured: true, maxAdults: 2, maxChildren: 2, maxInfants: 1 },
+    update: {
+      featured: true,
+      maxAdults: 2,
+      maxChildren: 2,
+      maxInfants: 1,
+      street: p5Address.street,
+      buildingNumber: p5Address.buildingNumber,
+      formattedAddress: p5Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p5Labels,
+      titleLabels: titleLabels(
+        'Silk Road Penthouse',
+        'Пентхаус «Шёлковый путь»',
+        'Փենտհաուզ «Մետաքսի ճանապարհ»',
+      ),
+    },
     create: {
       hostId: hp3.id,
       status: 'ACTIVE',
       propertyType: 'APARTMENT',
       featured: true,
       title: 'Silk Road Penthouse',
+      titleLabels: titleLabels(
+        'Silk Road Penthouse',
+        'Пентхаус «Шёлковый путь»',
+        'Փենտհաուզ «Մետաքսի ճանապարհ»',
+      ),
       slug: 'silk-road-penthouse',
       description:
         'Luxury penthouse on the 18th floor with 360° Yerevan views. Private rooftop terrace, jacuzzi, and concierge service.',
@@ -422,6 +691,11 @@ async function main(): Promise<void> {
       region: 'Yerevan',
       city: 'Yerevan',
       addressLine: '1 Grigor Lusavorich Street',
+      street: p5Address.street,
+      buildingNumber: p5Address.buildingNumber,
+      formattedAddress: p5Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p5Labels,
       latitude: new Decimal('40.1781'),
       longitude: new Decimal('44.5121'),
       maxGuests: 4,
@@ -444,15 +718,54 @@ async function main(): Promise<void> {
     },
   });
 
+  const p6Address = parseSeedAddress('28 Forest Lane');
+  const p6Labels = buildSeedAddressLabels(
+    'Dilijan',
+    'Tavush',
+    p6Address.street,
+    p6Address.buildingNumber,
+    {
+      city: 'Դիլիջան',
+      region: 'Տավուշ',
+      street: 'Անտառային նրբ.',
+      formattedAddress: 'Հայաստան, Տավուշ, Դիլիջան, Անտառային նրբ., 28',
+    },
+    {
+      city: 'Дилижан',
+      region: 'Тавуш',
+      street: 'Forest Lane',
+      formattedAddress: 'Армения, Тавуш, Дилижан, Forest Lane, 28',
+    },
+  );
   const p6 = await prisma.property.upsert({
     where: { slug: 'dilijan-forest-villa' },
-    update: { featured: true, maxAdults: 4, maxChildren: 3, maxInfants: 2 },
+    update: {
+      featured: true,
+      maxAdults: 4,
+      maxChildren: 3,
+      maxInfants: 2,
+      street: p6Address.street,
+      buildingNumber: p6Address.buildingNumber,
+      formattedAddress: p6Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p6Labels,
+      titleLabels: titleLabels(
+        'Dilijan Forest Villa',
+        'Лесная вилла в Дилижане',
+        'Անտառային վիլլա Դիլիջանում',
+      ),
+    },
     create: {
       hostId: hp3.id,
       status: 'ACTIVE',
       propertyType: 'VILLA',
       featured: true,
       title: 'Dilijan Forest Villa',
+      titleLabels: titleLabels(
+        'Dilijan Forest Villa',
+        'Лесная вилла в Дилижане',
+        'Անտառային վիլլա Դիլիջանում',
+      ),
       slug: 'dilijan-forest-villa',
       description:
         'Private villa surrounded by Dilijan national forest. Perfect for family retreats, remote work, and nature lovers.',
@@ -461,6 +774,11 @@ async function main(): Promise<void> {
       region: 'Tavush',
       city: 'Dilijan',
       addressLine: '28 Forest Lane',
+      street: p6Address.street,
+      buildingNumber: p6Address.buildingNumber,
+      formattedAddress: p6Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p6Labels,
       latitude: new Decimal('40.7414'),
       longitude: new Decimal('44.8631'),
       maxGuests: 8,
@@ -483,14 +801,52 @@ async function main(): Promise<void> {
     },
   });
 
+  const p7Address = parseSeedAddress('17 Varshavyan Street');
+  const p7Labels = buildSeedAddressLabels(
+    'Yerevan',
+    'Yerevan',
+    p7Address.street,
+    p7Address.buildingNumber,
+    {
+      city: 'Երևան',
+      region: 'Երևան',
+      street: 'Վարշավյան փող.',
+      formattedAddress: 'Հայաստան, Երևան, Վարշավյան փող., 17',
+    },
+    {
+      city: 'Ереван',
+      region: 'Ереван',
+      street: 'улица Варшавяна',
+      formattedAddress: 'Армения, Ереван, улица Варшавяна, 17',
+    },
+  );
   const p7 = await prisma.property.upsert({
     where: { slug: 'yerevan-city-loft-draft' },
-    update: { maxAdults: 2, maxChildren: 1, maxInfants: 0 },
+    update: {
+      maxAdults: 2,
+      maxChildren: 1,
+      maxInfants: 0,
+      street: p7Address.street,
+      buildingNumber: p7Address.buildingNumber,
+      formattedAddress: p7Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p7Labels,
+      titleLabels: titleLabels(
+        'Yerevan City Loft',
+        'Городской лофт в Ереване',
+        'Քաղաքային լոֆթ Երևանում',
+      ),
+    },
     create: {
       hostId: hp1.id,
       status: 'DRAFT',
       propertyType: 'APARTMENT',
       title: 'Yerevan City Loft',
+      titleLabels: titleLabels(
+        'Yerevan City Loft',
+        'Городской лофт в Ереване',
+        'Քաղաքային լոֆթ Երևանում',
+      ),
       slug: 'yerevan-city-loft-draft',
       description:
         'Industrial-style loft in the Malatia-Sebastia district, still being set up for guests.',
@@ -499,6 +855,11 @@ async function main(): Promise<void> {
       region: 'Yerevan',
       city: 'Yerevan',
       addressLine: '17 Varshavyan Street',
+      street: p7Address.street,
+      buildingNumber: p7Address.buildingNumber,
+      formattedAddress: p7Address.formattedAddress,
+      placeKind: 'house',
+      addressLabels: p7Labels,
       latitude: new Decimal('40.1550'),
       longitude: new Decimal('44.4900'),
       maxGuests: 3,

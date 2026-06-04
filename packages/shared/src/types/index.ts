@@ -1,3 +1,5 @@
+import type { PropertyAddressLabels, PropertyTitleLabels } from '../dto/geocoding';
+
 export interface PaginationParams {
   page?: number;
   limit?: number;
@@ -60,6 +62,7 @@ export type PropertyType = (typeof PropertyTypes)[number];
 export interface PropertySummary {
   id: string;
   title: string;
+  titleLabels?: PropertyTitleLabels | null;
   slug: string;
   propertyType: PropertyType;
   city: string;
@@ -73,6 +76,7 @@ export interface PropertySummary {
   avgRating?: number;
   reviewCount: number;
   featured: boolean;
+  addressLabels?: PropertyAddressLabels | null;
 }
 
 export const HostTypes = ['INDIVIDUAL', 'COMPANY'] as const;
@@ -96,7 +100,9 @@ export interface PropertyPhotoView {
   key: string;
   url: string;
   caption: string | null;
-  displayOrder: number;
+  sortOrder: number;
+  isCover: boolean;
+  displayOrder?: number;
 }
 
 export interface PropertyAmenityView {
@@ -112,11 +118,17 @@ export interface PropertyDetail {
   status: string;
   propertyType: PropertyType;
   title: string;
+  titleLabels?: PropertyTitleLabels | null;
   slug: string;
   description: string | null;
   country: string;
   region: string | null;
   city: string;
+  street: string | null;
+  buildingNumber: string | null;
+  formattedAddress: string | null;
+  placeKind: string | null;
+  apartmentNumber: string | null;
   addressLine: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -131,6 +143,7 @@ export interface PropertyDetail {
   pricePerNight: number;
   cleaningFee: number | null;
   securityDeposit: number | null;
+  cancellationPolicy: string;
   minNights: number;
   maxNights: number | null;
   checkInTime: string | null;
@@ -138,6 +151,8 @@ export interface PropertyDetail {
   smokingAllowed: boolean;
   petsAllowed: boolean;
   partiesAllowed: boolean;
+  quietHoursStart: string | null;
+  quietHoursEnd: string | null;
   additionalRules: string | null;
   featured: boolean;
   createdAt: string;
@@ -147,6 +162,7 @@ export interface PropertyDetail {
   host: PublicHostProfile;
   avgRating: number | null;
   reviewCount: number;
+  addressLabels: PropertyAddressLabels | null;
 }
 
 export interface ReviewAuthorProfile {
@@ -181,6 +197,7 @@ export interface CreateBookingInput {
 export interface BookingPropertySummary {
   id: string;
   title: string;
+  titleLabels?: PropertyTitleLabels | null;
   slug: string;
   city: string;
   country: string;
@@ -232,6 +249,7 @@ export type HostListingTab = (typeof HostListingTabs)[number];
 export interface HostListingSummary {
   id: string;
   title: string;
+  titleLabels?: PropertyTitleLabels | null;
   status: PropertyStatus;
   propertyType: PropertyType;
   city: string;

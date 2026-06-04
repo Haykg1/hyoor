@@ -16,6 +16,7 @@ import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
+import { AUTH_THROTTLE } from '../common/throttle/throttle.constants';
 import type { AppConfig } from '../config/configuration';
 
 import { AuthService, type AuthResponse } from './auth.service';
@@ -27,12 +28,6 @@ import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-
-const AUTH_THROTTLE_TTL_MS = parseInt(process.env.THROTTLE_TTL_MS ?? '60000', 10);
-const AUTH_THROTTLE_LIMIT = parseInt(process.env.THROTTLE_AUTH_LIMIT ?? '10', 10);
-const AUTH_THROTTLE = {
-  default: { ttl: AUTH_THROTTLE_TTL_MS, limit: AUTH_THROTTLE_LIMIT },
-};
 
 @ApiTags('auth')
 @Controller('auth')

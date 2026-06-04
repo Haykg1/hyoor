@@ -1,34 +1,60 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import type { CreatePropertyInput, PropertyTitleLabels } from '@repo/shared';
+import { CancellationPolicies, PropertyTypes } from '@repo/shared';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsIn,
   IsInt,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   IsUrl,
   MaxLength,
   Min,
+  ValidateNested,
 } from 'class-validator';
 
-export const PROPERTY_TYPES = [
-  'APARTMENT',
-  'HOUSE',
-  'VILLA',
-  'STUDIO',
-  'GUESTHOUSE',
-  'HOTEL_ROOM',
-  'OTHER',
-] as const;
+class TitleLabelsDto {
+  @ApiPropertyOptional({ maxLength: 200 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  hy?: string;
 
-export const CANCELLATION_POLICIES = ['FLEXIBLE', 'MODERATE', 'STRICT', 'NON_REFUNDABLE'] as const;
+  @ApiPropertyOptional({ maxLength: 200 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  ru?: string;
 
-export class CreatePropertyDto {
+  @ApiPropertyOptional({ maxLength: 200 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  en?: string;
+}
+
+export const PROPERTY_TYPES = PropertyTypes;
+export const CANCELLATION_POLICIES = CancellationPolicies;
+
+export class CreatePropertyDto implements CreatePropertyInput {
   @ApiProperty({ example: 'Cascade View Apartment', maxLength: 200 })
   @IsString()
   @MaxLength(200)
   title!: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Optional translations of the title per locale (hy/ru/en). Every key is optional; missing locales fall back to `title`.',
+    type: TitleLabelsDto,
+  })
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => TitleLabelsDto)
+  titleLabels?: PropertyTitleLabels;
 
   @ApiProperty({ example: 'Spacious apartment with a view of Mount Ararat.', maxLength: 5000 })
   @IsString()
@@ -113,6 +139,39 @@ export class CreatePropertyDto {
   @IsString()
   @MaxLength(100)
   region?: string;
+
+  @ApiPropertyOptional({ example: 'Tamanyan Street', maxLength: 200 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  street?: string;
+
+  @ApiPropertyOptional({ example: '10', maxLength: 50 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  buildingNumber?: string;
+
+  @ApiPropertyOptional({
+    example: 'Armenia, Yerevan, Tamanyan Street, 10',
+    maxLength: 500,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  formattedAddress?: string;
+
+  @ApiPropertyOptional({ example: 'house', maxLength: 50 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  placeKind?: string;
+
+  @ApiPropertyOptional({ example: '4', maxLength: 50 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  apartmentNumber?: string;
 
   @ApiPropertyOptional({ example: '12 Cascade Ave', maxLength: 300 })
   @IsOptional()

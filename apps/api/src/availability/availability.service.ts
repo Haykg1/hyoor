@@ -12,6 +12,7 @@ import { HostProfilesService } from '../host-profiles/host-profiles.service';
 import { AvailabilityEntryDto } from './dto/availability-entry.dto';
 
 const BLOCKING_BOOKING_STATUSES = ['PENDING', 'CONFIRMED'] as const;
+const MAX_OPEN_RANGE_DAYS = 366;
 
 export interface AvailabilityRangeResponse {
   propertyId: string;
@@ -25,8 +26,17 @@ export interface AvailabilityRangeResponse {
 export interface AvailabilityDayView {
   date: string;
   isAvailable: boolean;
+  isBlockedByBooking: boolean;
   priceOverride: number | null;
   effectivePricePerNight: number;
+}
+
+export interface OpenRangeResult {
+  propertyId: string;
+  from: string;
+  to: string;
+  openedCount: number;
+  skippedBookedCount: number;
 }
 
 @Injectable()
@@ -45,36 +55,48 @@ export class AvailabilityService {
     const fromDate = parseIsoDate(from, 'from');
     const toDate = parseIsoDate(to, 'to');
     validateDateRange(fromDate, toDate);
-    const rows = await this.prisma.availability.findMany({
-      where: {
-        propertyId,
-        date: { gte: fromDate, lte: toDate },
-      },
-      orderBy: { date: 'asc' },
-    });
+    const [rows, bookedDates] = await Promise.all([
+      this.prisma.availability.findMany({
+        where: { propertyId, date: { gte: fromDate, lte: toDate } },
+      }),
+      this.collectBookingBlockedDates(propertyId, fromDate, toDate),
+    ]);
+    const rowByDate = new Map<string, Availability>();
+    for (const row of rows) rowByDate.set(formatIsoDate(row.date), row);
+    const entries: AvailabilityDayView[] = [];
+    for (const date of eachDayInclusive(fromDate, toDate)) {
+      const iso = formatIsoDate(date);
+      const row = rowByDate.get(iso) ?? null;
+      const isBlockedByBooking = bookedDates.has(iso);
+      entries.push(this.toDayView(iso, row, property.pricePerNight, isBlockedByBooking));
+    }
     return {
       propertyId,
       basePricePerNight: property.pricePerNight,
       currency: property.currency,
       from: formatIsoDate(fromDate),
       to: formatIsoDate(toDate),
-      entries: rows.map((row) => this.toDayView(row, property.pricePerNight)),
+      entries,
     };
   }
 
   async bulkUpsert(
     propertyId: string,
-    hostUserId: string,
+    actingUserId: string,
+    actingUserRole: string,
     entries: AvailabilityEntryDto[],
   ): Promise<AvailabilityDayView[]> {
-    const property = await this.assertHostOwnsProperty(propertyId, hostUserId);
+    const property = await this.assertCanManageProperty(propertyId, actingUserId, actingUserRole);
     const upserted: Availability[] = [];
+    const bookedBlocked: Set<string> = await this.collectBookingBlockedDates(
+      propertyId,
+      parseIsoDate(entries[0]!.date, 'date'),
+      parseIsoDate(entries[entries.length - 1]!.date, 'date'),
+    );
     for (const entry of entries) {
       const date = parseIsoDate(entry.date, 'date');
       const row = await this.prisma.availability.upsert({
-        where: {
-          propertyId_date: { propertyId, date },
-        },
+        where: { propertyId_date: { propertyId, date } },
         create: {
           propertyId,
           date,
@@ -90,7 +112,58 @@ export class AvailabilityService {
     }
     return upserted
       .sort((a, b) => a.date.getTime() - b.date.getTime())
-      .map((row) => this.toDayView(row, property.pricePerNight));
+      .map((row) =>
+        this.toDayView(
+          formatIsoDate(row.date),
+          row,
+          property.pricePerNight,
+          bookedBlocked.has(formatIsoDate(row.date)),
+        ),
+      );
+  }
+
+  /**
+   * Marks every day in [from, to] (inclusive) as available, except dates already
+   * blocked by an active booking (those stay unavailable). Defaults to the next
+   * 365 days starting from today when `from` and `to` are omitted.
+   */
+  async openRange(
+    propertyId: string,
+    actingUserId: string,
+    actingUserRole: string,
+    from?: string,
+    to?: string,
+  ): Promise<OpenRangeResult> {
+    await this.assertCanManageProperty(propertyId, actingUserId, actingUserRole);
+    const today = todayUtc();
+    const fromDate = from ? parseIsoDate(from, 'from') : today;
+    const toDate = to ? parseIsoDate(to, 'to') : addDays(today, 364);
+    validateDateRange(fromDate, toDate);
+    const totalDays = diffDaysInclusive(fromDate, toDate);
+    if (totalDays > MAX_OPEN_RANGE_DAYS) {
+      throw new BadRequestException(
+        `openRange supports at most ${MAX_OPEN_RANGE_DAYS} days at a time`,
+      );
+    }
+    const bookedBlocked = await this.collectBookingBlockedDates(propertyId, fromDate, toDate);
+    let opened = 0;
+    for (const date of eachDayInclusive(fromDate, toDate)) {
+      const iso = formatIsoDate(date);
+      if (bookedBlocked.has(iso)) continue;
+      await this.prisma.availability.upsert({
+        where: { propertyId_date: { propertyId, date } },
+        create: { propertyId, date, isAvailable: true },
+        update: { isAvailable: true },
+      });
+      opened += 1;
+    }
+    return {
+      propertyId,
+      from: formatIsoDate(fromDate),
+      to: formatIsoDate(toDate),
+      openedCount: opened,
+      skippedBookedCount: bookedBlocked.size,
+    };
   }
 
   async getBlockedDates(
@@ -115,6 +188,27 @@ export class AvailabilityService {
     for (const row of unavailableRows) {
       blocked.add(formatIsoDate(row.date));
     }
+    const bookedDates = await this.collectBookingBlockedDates(
+      propertyId,
+      fromDate,
+      toDate,
+      excludeBookingId,
+    );
+    for (const iso of bookedDates) blocked.add(iso);
+    return [...blocked].sort();
+  }
+
+  /**
+   * Returns the set of ISO dates inside [fromDate, toDate] (inclusive) that are
+   * occupied by an active booking (PENDING/CONFIRMED). These dates cannot be
+   * opened back up by the host until the booking is cancelled/completed.
+   */
+  private async collectBookingBlockedDates(
+    propertyId: string,
+    fromDate: Date,
+    toDate: Date,
+    excludeBookingId?: string,
+  ): Promise<Set<string>> {
     const bookings = await this.prisma.booking.findMany({
       where: {
         propertyId,
@@ -125,6 +219,7 @@ export class AvailabilityService {
       },
       select: { checkIn: true, checkOut: true },
     });
+    const blocked = new Set<string>();
     for (const booking of bookings) {
       for (const date of eachNightBetween(booking.checkIn, booking.checkOut)) {
         if (date >= fromDate && date <= toDate) {
@@ -132,7 +227,7 @@ export class AvailabilityService {
         }
       }
     }
-    return [...blocked].sort();
+    return blocked;
   }
 
   async blockDatesForBooking(propertyId: string, checkIn: Date, checkOut: Date): Promise<void> {
@@ -196,12 +291,35 @@ export class AvailabilityService {
     return property;
   }
 
-  private toDayView(row: Availability, basePricePerNight: number): AvailabilityDayView {
+  /**
+   * Property managers = owning HOST, or any ADMIN/STAFF user. Used by mutation
+   * endpoints that should be available to platform operators in addition to
+   * the property's own host.
+   */
+  private async assertCanManageProperty(
+    propertyId: string,
+    actingUserId: string,
+    actingUserRole: string,
+  ): Promise<Property> {
+    if (actingUserRole === 'ADMIN' || actingUserRole === 'STAFF') {
+      return this.getPropertyOrThrow(propertyId);
+    }
+    return this.assertHostOwnsProperty(propertyId, actingUserId);
+  }
+
+  private toDayView(
+    iso: string,
+    row: Availability | null,
+    basePricePerNight: number,
+    isBlockedByBooking: boolean,
+  ): AvailabilityDayView {
+    const baseAvailability = row?.isAvailable ?? true;
     return {
-      date: formatIsoDate(row.date),
-      isAvailable: row.isAvailable,
-      priceOverride: row.priceOverride,
-      effectivePricePerNight: row.priceOverride ?? basePricePerNight,
+      date: iso,
+      isAvailable: baseAvailability && !isBlockedByBooking,
+      isBlockedByBooking,
+      priceOverride: row?.priceOverride ?? null,
+      effectivePricePerNight: row?.priceOverride ?? basePricePerNight,
     };
   }
 }
@@ -247,4 +365,25 @@ function eachNightBetween(checkIn: Date, checkOut: Date): Date[] {
     current = addDays(current, 1);
   }
   return nights;
+}
+
+function eachDayInclusive(from: Date, to: Date): Date[] {
+  const out: Date[] = [];
+  let cursor = utcDateFromString(formatIsoDate(from));
+  const end = utcDateFromString(formatIsoDate(to));
+  while (cursor <= end) {
+    out.push(new Date(cursor.getTime()));
+    cursor = addDays(cursor, 1);
+  }
+  return out;
+}
+
+function diffDaysInclusive(from: Date, to: Date): number {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  return Math.round((to.getTime() - from.getTime()) / msPerDay) + 1;
+}
+
+function todayUtc(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 }

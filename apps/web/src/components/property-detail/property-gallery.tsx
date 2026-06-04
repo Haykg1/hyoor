@@ -8,8 +8,7 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-
-const PLACEHOLDER = 'https://placehold.co/800x600/e2e8f0/94a3b8?text=No+photo';
+import { PROPERTY_PLACEHOLDER_IMAGE } from '@/lib/constants/property-placeholder';
 
 interface PropertyGalleryProps {
   photos: PropertyPhotoView[];
@@ -19,8 +18,7 @@ interface PropertyGalleryProps {
 export function PropertyGallery({ photos, title }: PropertyGalleryProps): React.JSX.Element {
   const t = useTranslations('property_detail');
   const [lightbox, setLightbox] = useState<string | null>(null);
-
-  const cover = photos[0]?.url ?? PLACEHOLDER;
+  const cover = photos[0]?.url ?? PROPERTY_PLACEHOLDER_IMAGE;
   const side = photos.slice(1, 5);
 
   return (

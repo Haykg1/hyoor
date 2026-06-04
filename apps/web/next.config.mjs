@@ -9,6 +9,9 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: '*.amazonaws.com' },
       { protocol: 'http', hostname: 'localhost' },
+      { protocol: 'http', hostname: '*.localhost' },
+      { protocol: 'http', hostname: 'localhost.localstack.cloud' },
+      { protocol: 'http', hostname: '*.localhost.localstack.cloud' },
     ],
   },
 };
