@@ -89,9 +89,17 @@ describe('Host profiles (e2e)', () => {
     const response = await request(app.getHttpServer())
       .patch('/api/v1/host-profiles/me')
       .set(authHeader(user.accessToken))
-      .send({ payoutEmail: 'payout@rentstar.am' })
+      .send({
+        payoutEmail: 'payout@rentstar.am',
+        description: 'Welcoming guests to Armenia since 2018.',
+      })
       .expect(200);
     expect(response.body.data.payoutEmail).toBe('payout@rentstar.am');
+    expect(response.body.data.description).toBe('Welcoming guests to Armenia since 2018.');
+    const publicProfile = await request(app.getHttpServer())
+      .get(`/api/v1/host-profiles/${response.body.data.id}`)
+      .expect(200);
+    expect(publicProfile.body.data.description).toBe('Welcoming guests to Armenia since 2018.');
   });
 
   it('returns public host profile by id', async () => {

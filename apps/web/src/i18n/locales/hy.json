@@ -75,7 +75,73 @@
     "sign_up": "Գրանցում",
     "logout": "Դուրս գալ",
     "account": "Հաշիվ",
-    "menu": "Մենյու"
+    "favorites": "Ընտրյալներ",
+    "menu": "Մենյու",
+    "notifications": "Ծանուցումներ"
+  },
+  "notifications": {
+    "title": "Ծանուցումներ",
+    "bell_label": "Ծանուցումներ",
+    "empty": "Ծանուցումներ չկան։",
+    "loading": "Բեռնվում է…",
+    "mark_read": "Նշել կարդացված",
+    "mark_unread": "Նշել չկարդացված",
+    "mark_all_read": "Բոլորը կարդացված",
+    "clear_all": "Մաքրել բոլորը",
+    "remove": "Ջնջել"
+  },
+  "favorites": {
+    "title": "Ընտրյալներ",
+    "subtitle": "{count, plural, =0 {Պահված տեղակայումներ չկան} one {# պահված} other {# պահված}}",
+    "login_modal": {
+      "title": "Մուտք գործեք՝ պահելու համար",
+      "description": "Ստեղծեք հաշիվ կամ մուտք գործեք՝ անշարժ գույքերը ընտրյալներում պահելու համար։",
+      "cancel": "Չեղարկել",
+      "sign_in": "Մուտք"
+    },
+    "empty": {
+      "title": "Դեռ ընտրյալներ չկան",
+      "description": "Սեղմեք սրտիկը՝ անշարժ գույքը այստեղ պահելու համար։",
+      "explore": "Դիտել տեղակայումները"
+    },
+    "filters": {
+      "title_placeholder": "Փնտրել վերնագրով",
+      "search": "Փնտրել",
+      "regions_label": "Մարզեր",
+      "regions_placeholder": "Բոլոր մարզերը",
+      "cities_label": "Քաղաքներ",
+      "cities_placeholder": "Բոլոր քաղաքները",
+      "selected_count": "{count} ընտրված",
+      "property_type": "Տեսակ",
+      "all_types": "Բոլոր տեսակները",
+      "min_price": "Նվազ. գին",
+      "max_price": "Առավել. գին",
+      "max_guests": "Հյուրեր",
+      "min_bedrooms": "Նվազ. սենյակ",
+      "sort": "Դասավորել",
+      "sort_newest": "Վերջին պահված",
+      "sort_oldest": "Ամենահին",
+      "sort_price_asc": "Գին՝ աճող",
+      "sort_price_desc": "Գին՝ նվող",
+      "reset": "Մաքրել ֆիլտրերը",
+      "more_filters": "Լրացուցիչ ֆիլտրեր",
+      "clear_filters": "Մաքրել ֆիլտրերը",
+      "applied_count": "{count} ֆիլտր կիրառված",
+      "types": {
+        "APARTMENT": "Բնակարան",
+        "HOUSE": "Տուն",
+        "VILLA": "Վիլլա",
+        "STUDIO": "Ստուդիո",
+        "GUESTHOUSE": "Հյուրատուն",
+        "HOTEL_ROOM": "Հյուրանոցի սենյակ",
+        "OTHER": "Այլ"
+      }
+    },
+    "pagination": {
+      "prev": "Նախորդ",
+      "next": "Հաջորդ",
+      "page": "Էջ {page} / {totalPages}"
+    }
   },
   "search": {
     "page_title": "Որոնել կացարան",
@@ -154,10 +220,67 @@
     "copyright": "© {year} RentStar. Բոլոր իրավունքները պաշտպանված են։"
   },
   "property": {
+    "nearby_places": "Մոտակա վայրեր",
+    "nearest_metro": "Մոտակա մետրո",
+    "featured_destinations": "Ընտրված վայրեր",
+    "travel_time_walk": "{travelTime} քայլով",
+    "travel_time_vehicle": "{travelTime} տրանսպորտով",
+    "copy_id": "Պատճենել ID",
+    "copy_id_success": "Գույքի ID-ն պատճենված է",
+    "copy_id_error": "Չհաջողվեց պատճենել ID-ն",
+    "compare": {
+      "button": "Համեմատել",
+      "tooltip": "Համեմատեք այս հայտը մեկ այլ գույքի հետ՝ մուտքագրելով նրա ID-ն։",
+      "popover_title": "Համեմատել այլ գույքի հետ",
+      "property_id_label": "Այլ գույքի ID",
+      "property_id_placeholder": "Տեղադրեք գույքի ID",
+      "compare_action": "Համեմատել",
+      "copy_id": "Պատճենել ID",
+      "copy_success": "Գույքի ID-ն պատճենված է",
+      "copy_error": "Չհաջողվեց պատճենել ID-ն",
+      "page_title": "Գույքերի համեմատություն",
+      "summary_title": "Համեմատության ամփոփում",
+      "per_night": " / գիշեր",
+      "guests": "մինչև {count} հյուր",
+      "bedrooms": "{count} ննհասենյակ",
+      "bathrooms": "{count} լոգասենյակ",
+      "amenities_count": "{count} հարմարավետություն",
+      "reviews_count": "({count} կարծիք)",
+      "no_reviews": "Դեռ կարծիքներ չկան",
+      "view_listing": "Դիտել հայտը",
+      "back_to_search": "Վերադառնալ որոնման",
+      "share": "Կիսվել",
+      "share_tooltip": "Այս հղումը գործում է 24 ժամ։",
+      "share_copied": "Հղումը պատճենվեց",
+      "share_error": "Չհաջողվեց ստեղծել հղումը",
+      "meta_title": "{left} ընդդեմ {right}",
+      "meta_description": "Համեմատեք {left}-ը ({leftPrice}) և {right}-ը ({rightPrice}) կողք կողքի RentStar-ում։",
+      "meta_description_fallback": "Համեմատեք երկու գույք կողք կողքի RentStar-ում։",
+      "errors": {
+        "required": "Մուտքագրեք գույքի ID։",
+        "same_property": "Ընտրեք այլ գույք, ոչ թե սա։",
+        "not_found": "Գույքը չի գտնվել։",
+        "not_found_page": "Մեկ կամ երկու գույքը չի գտնվել։",
+        "invalid_params": "Համեմատելու համար նշեք երկու գույքի ID։",
+        "expired": "Այս հղման ժամկետն անցել է։ Համեմատման հղումները գործում են 24 ժամ։"
+      },
+      "summary": {
+        "price_cheaper": "{name}՝ ավելի էժան գիշերական։",
+        "price_tie": "Երկու գույքերն էլ նույն գիշերական գին ունեն։",
+        "amenities_more": "{name}՝ ավելի շատ հարմարավետություն ({count} vs {otherCount})։",
+        "amenities_tie": "Երկու գույքերն էլ ունեն {count} հարմարավետություն։",
+        "reviews_more": "{name}՝ ավելի շատ կարծիք ({count} vs {otherCount})։",
+        "reviews_tie": "Երկու գույքերն էլ ունեն {count} կարծիք։",
+        "reviews_none": "Երկու գույքերին էլ դեռ կարծիք չկա։",
+        "rating_higher": "{name}՝ ավելի բարձր միջին գնահատական ({rating} vs {otherRating})։",
+        "rating_tie": "Երկու գույքերն էլ ունեն {rating} միջին գնահատական։",
+        "rating_insufficient": "Բավարար կարծիքներ չկան գնահատական համեմատելու համար։"
+      }
+    },
     "per_night": "/ night",
     "guests": "{count} guests",
     "bedrooms": "{count} bedrooms",
-    "book_now": "Request to Book",
+    "book_now": "Ամրագրել",
     "contact_host": "Contact host directly",
     "show_all_photos": "Show all photos",
     "show_more": "Show more",
@@ -201,6 +324,14 @@
     "submitting": "Ամրագրում…",
     "nights_subtotal": "{count} գիշեր × {price}",
     "cleaning_fee": "Մաքրման վճար",
+    "security_deposit": "Գրավ",
+    "promo_code": "Պրոմո կոդ",
+    "promo_code_placeholder": "Մուտքագրեք կոդը",
+    "promo_code_invalid": "Անվավեր կամ ժամկետանց պրոմո կոդ",
+    "promotion_discount": "Ակցիա",
+    "promotion_applied_code": "Կոդ {code}",
+    "promotion_applied_percent": "{percent}% զեղչ",
+    "loading_quote": "Գինը հաշվարկվում է…",
     "validation": {
       "dates_required": "Խնդրում ենք ընտրել ժամանման և մեկնման ամսաթվերը",
       "invalid_range": "Մեկնման ամսաթիվը պետք է ուշ լինի ժամանմանից",
@@ -208,9 +339,15 @@
       "max_nights": "Առավելագույն կեցությունը {max} գիշեր է",
       "too_many_guests": "Թույլատրված է առավելագույնը {max} հյուր"
     },
+    "confirm_dialog": {
+      "title": "Հաստատեք ամրագրումը",
+      "description": "Ստուգեք մանրամասները նախքան ամրագրումն ավարտելը։",
+      "confirm": "Հաստատել ամրագրումը",
+      "cancel": "Չեղարկել"
+    },
     "confirmation": {
-      "title": "Ամրագրումը կատարված է։",
-      "subtitle": "Ձեր կեցությունը սպասում է հաստատման։ Կտեղեկացնենք հաստատումից հետո։",
+      "title": "Ամրագրումը հաստատված է։",
+      "subtitle": "Ձեր կեցությունը ամրագրված է։ Հաստատումն ուղարկվել է ձեզ։",
       "continue_payment": "Անցնել վճարման (շուտով)"
     }
   },
@@ -293,7 +430,63 @@
     "tabs": {
       "listings": "Իմ հայտերը",
       "disabled": "Անջատված",
-      "booking_requests": "Ամրագրման հայտեր"
+      "reservations": "Ամրագրումներ",
+      "promotions": "Ակցիաներ"
+    },
+    "reservations": {
+      "tab_upcoming": "Առաջիկա",
+      "tab_past": "Անցած",
+      "empty_upcoming": "Առաջիկա ամրագրումներ չկան։",
+      "empty_past": "Անցած ամրագրումներ չկան։"
+    },
+    "promotions": {
+      "pick_property": "Գույք",
+      "no_listings": "Ընտրեք հայտ",
+      "add_promotion": "Ակցիա ավելացնել",
+      "empty_listings": "Նախ ստեղծեք ակտիվ հայտ։",
+      "empty_promotions": "Այս գույքի համար ակցիաներ չկան։",
+      "loading": "Բեռնվում է…",
+      "meta": "{start} – {end} · {remaining} մնաց · {type}",
+      "types": { "date_range": "Ժամկետային զեղչ" },
+      "form": {
+        "title": "Նոր ակցիա",
+        "subtitle": "Ակցիա՝ {title}",
+        "no_property": "Նախ ընտրեք գույք։",
+        "promotion_type": "Տեսակ",
+        "discount_type": "Զեղչի տեսակ",
+        "types": { "date_range": "Ժամկետային", "promo_code": "Պրոմո կոդ" },
+        "discount": {
+          "percent": "Տոկոս",
+          "fixed": "Ֆիքսված",
+          "percent_label": "Զեղչ (%)",
+          "fixed_label": "Գումար ({currency})"
+        },
+        "promo_code": "Պրոմո կոդ",
+        "booking_dates": "Ամրագրման ամսաթվեր",
+        "max_applications": "Օգտագործումների սահման",
+        "description": "Նկարագրություն (պարտադիր)",
+        "smart_description": "Գեներացնել նկարագրությունը",
+        "notify_guests": "Ծանուցել հյուրերին, ովքեր պահել են այս գույքը",
+        "cancel": "Չեղարկել",
+        "create": "Ստեղծել",
+        "errors": {
+          "date_range": "Ընտրեք ամսաթվերի միջակայք։",
+          "description": "Նկարագրությունը առնվազն 10 նիշ պետք է լինի։",
+          "max_applications": "Մուտքագրեք վավեր սահման։",
+          "submit": "Չհաջողվեց ստեղծել ակցիան։"
+        }
+      },
+      "created_dialog": {
+        "title": "Ակցիան ստեղծված է",
+        "notified": "Ծանուցում է ուղարկվել {count} հյուրի։",
+        "not_notified": "Հյուրերին ծանուցում չի ուղարկվել։",
+        "close": "Փակել"
+      },
+      "remove": "Հեռացնել",
+      "removing": "Հեռացվում է…",
+      "remove_title": "Հեռացնե՞լ ակցիան",
+      "remove_confirm": "Ակցիան կջնջվի ընդմիշտ։ Հյուրերը այլևս չեն տեսնի այն։",
+      "remove_error": "Չհաջողվեց հեռացնել ակցիան։"
     },
     "pagination": {
       "page_size": "Էջում",
@@ -408,6 +601,7 @@
       "active_listings": "Ակտիվ հայտեր",
       "active_bookings": "Active Bookings",
       "pending_requests": "Pending Requests",
+      "upcoming_reservations": "Առաջիկա ամրագրումներ",
       "total_earned": "Total Earned"
     },
     "sidebar_preview": "Host sidebar preview",
@@ -479,6 +673,23 @@
       "apartment_number": "Բնակարան / Պահեստ",
       "apartment_number_placeholder": "օր. 12Ա (ընտրովի)",
       "address_verification_required": "Ընտրեք հաստատված շենքի հասցե ցանկից",
+      "nearest_metro_loading": "Ստուգվում է մոտակա մետրոն…",
+      "nearest_metro_walk": "{travelTime} քայլով մինչև {station} մետրո",
+      "nearest_metro_vehicle": "{travelTime} տրանսպորտով մինչև {station} մետրո",
+      "poi_section_title": "Մոտակա վայրեր",
+      "poi_select_hint": "Ընտրեք մինչև 5 տեսարժան վայր, որոնք հյուրերը պետք է իմանան։",
+      "poi_selected_count": "{count}/{max} ընտրված",
+      "poi_none_available": "Այս քաղաքի համար վայրերի կատալոգ չկա։",
+      "poi_loading": "Բեռնվում են մոտակա վայրերը…",
+      "poi_distance_walk": "{distanceKm} կմ · {travelTime} քայլով",
+      "poi_distance_vehicle": "{distanceKm} կմ · {travelTime} տրանսպորտով",
+      "poi_categories": {
+        "landmark": "Տեսարժան վայր",
+        "museum": "Թանգարան",
+        "park": "Պուրակ",
+        "market": "Շուկա",
+        "memorial": "Հուշարձան"
+      },
       "place_searching": "Որոնում…",
       "place_no_results": "Վայրեր չեն գտնվել",
       "country": "Երկիր",
@@ -669,7 +880,18 @@
     "subtitle": "Կառավարեք ձեր պրոֆիլը և նախընտրությունները",
     "photo": {
       "title": "Պրոֆիլի լուսանկար",
-      "upload": "Վերբեռնել լուսանկար"
+      "upload": "Վերբեռնել լուսանկար",
+      "uploading": "Վերբեռնվում է…",
+      "remove": "Հեռացնել լուսանկար"
+    },
+    "host": {
+      "title": "Տանտերի պրոֆիլ",
+      "subtitle": "Այս նկարագրությունը հյուրերին երևում է ձեր հայտարարություններում։",
+      "description": "Ձեր մասին որպես տանտեր",
+      "description_placeholder": "Ներկայացրեք ինքներդ, հյուրընկալության ոճը և ինչ կարելի է սպասել…",
+      "save": "Պահպանել տանտերի պրոֆիլը",
+      "saving": "Պահպանվում է…",
+      "save_success": "Տանտերի պրոֆիլը պահպանված է։"
     },
     "personal": {
       "title": "Անձնական տվյալներ",

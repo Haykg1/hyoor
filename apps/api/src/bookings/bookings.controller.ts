@@ -18,7 +18,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import type { PaginatedResponse } from '@repo/shared';
+import type { BookingQuoteResult, PaginatedResponse } from '@repo/shared';
 
 import type { RequestUser } from '../auth/decorators/current-user.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -32,6 +32,7 @@ import type { CheckoutInitResult } from '../payments/payment-provider.interface'
 import { PaymentsService } from '../payments/payments.service';
 
 import { BookingsService, type BookingDetail } from './bookings.service';
+import { BookingQuoteDto } from './dto/booking-quote.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { PaymentRefDto } from './dto/payment-ref.dto';
@@ -40,28 +41,36 @@ import { QueryBookingsDto } from './dto/query-bookings.dto';
 @ApiTags('bookings')
 @Controller('bookings')
 @Throttle(WRITE_THROTTLE)
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
 export class BookingsController {
   constructor(
     private readonly bookingsService: BookingsService,
     private readonly paymentsService: PaymentsService,
   ) {}
 
+  @Get('quote')
+  @ApiOperation({ summary: 'Preview stay pricing with eligible promotions' })
+  @ApiOkResponse({ description: 'Price breakdown including promotion discount' })
+  @ApiStandardErrors({ auth: false, notFound: true })
+  getQuote(@Query() dto: BookingQuoteDto): Promise<BookingQuoteResult> {
+    return this.bookingsService.getQuote(dto);
+  }
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('GUEST', 'HOST')
-  @ApiOperation({ summary: 'Create a booking request for a property' })
-  @ApiCreatedResponse({ description: 'Booking created in PENDING status' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create an instant reservation for a property' })
+  @ApiCreatedResponse({ description: 'Booking created in CONFIRMED status' })
   @ApiStandardErrors({ conflict: true })
   create(@CurrentUser() user: RequestUser, @Body() dto: CreateBookingDto): Promise<BookingDetail> {
     return this.bookingsService.create(user.userId, dto);
   }
 
   @Get()
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'STAFF')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'List all bookings (admin/staff only)' })
   @ApiOkResponse({ description: 'Paginated booking list with filters' })
   @ApiStandardErrors()
@@ -70,6 +79,8 @@ export class BookingsController {
   }
 
   @Get('my')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'List bookings for the authenticated user (guest or host)' })
   @ApiOkResponse({ description: 'Paginated bookings relevant to the current user' })
   @ApiStandardErrors()
@@ -81,6 +92,8 @@ export class BookingsController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get booking detail by ID' })
   @ApiOkResponse({ description: 'Booking with property and participant info' })
   @ApiStandardErrors({ notFound: true })
@@ -89,9 +102,13 @@ export class BookingsController {
   }
 
   @Patch(':id/confirm')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HOST')
-  @ApiOperation({ summary: 'Confirm a pending booking (property host only)' })
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Confirm a pending booking (legacy — new bookings are instant)',
+    deprecated: true,
+  })
   @ApiOkResponse({ description: 'Booking confirmed; dates blocked on calendar' })
   @ApiStandardErrors({ notFound: true, conflict: true })
   confirm(@Param('id') id: string, @CurrentUser() user: RequestUser): Promise<BookingDetail> {
@@ -99,6 +116,8 @@ export class BookingsController {
   }
 
   @Patch(':id/cancel')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Cancel a booking (guest or host)' })
   @ApiOkResponse({ description: 'Booking cancelled; dates unblocked if previously confirmed' })
   @ApiStandardErrors({ notFound: true })
@@ -111,8 +130,9 @@ export class BookingsController {
   }
 
   @Patch(':id/complete')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'STAFF')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Mark a booking as completed (admin/staff only)' })
   @ApiOkResponse({ description: 'Booking marked COMPLETED; enables reviews' })
   @ApiStandardErrors({ notFound: true })
@@ -121,6 +141,8 @@ export class BookingsController {
   }
 
   @Patch(':id/payment-ref')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Attach an external payment reference to a booking (guest only)' })
   @ApiOkResponse({ description: 'Payment reference saved' })
   @ApiStandardErrors({ notFound: true })
@@ -134,6 +156,8 @@ export class BookingsController {
 
   @Post(':id/checkout')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Initiate checkout with a payment provider for the booking' })
   @ApiOkResponse({ description: 'Provider-specific checkout details (redirect URL or token)' })
   @ApiStandardErrors({ notFound: true })

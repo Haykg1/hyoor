@@ -28,7 +28,7 @@ import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
 
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { UsersService, type PublicUserProfile, type SafeUserWithProfile } from './users.service';
+import { UsersService, type PublicUserProfile, type UserMeResponse } from './users.service';
 
 @ApiTags('users')
 @Controller('users')
@@ -41,7 +41,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get the authenticated user profile' })
   @ApiOkResponse({ description: 'Current user with profile' })
   @ApiStandardErrors()
-  getMe(@CurrentUser() user: RequestUser): Promise<SafeUserWithProfile> {
+  getMe(@CurrentUser() user: RequestUser): Promise<UserMeResponse> {
     return this.usersService.getMe(user.userId);
   }
 
@@ -54,7 +54,7 @@ export class UsersController {
   updateProfile(
     @CurrentUser() user: RequestUser,
     @Body() dto: UpdateProfileDto,
-  ): Promise<SafeUserWithProfile> {
+  ): Promise<UserMeResponse> {
     return this.usersService.updateProfile(user.userId, dto);
   }
 

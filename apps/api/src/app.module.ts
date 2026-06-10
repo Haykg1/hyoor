@@ -11,10 +11,12 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { NoopThrottlerGuard } from './common/guards/noop-throttler.guard';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { CompareShareModule } from './compare-share/compare-share.module';
 import type { AppConfig } from './config/configuration';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation.schema';
 import { DatabaseModule } from './database/database.module';
+import { FavoritesModule } from './favorites/favorites.module';
 import { GeocodingModule } from './geocoding/geocoding.module';
 import { HealthController } from './health/health.controller';
 import { HostProfilesModule } from './host-profiles/host-profiles.module';
@@ -22,7 +24,10 @@ import { MailModule } from './mail/mail.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
+import { PoiModule } from './poi/poi.module';
+import { PromotionsModule } from './promotions/promotions.module';
 import { PropertiesModule } from './properties/properties.module';
+import { RedisModule } from './redis/redis.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { StorageModule } from './storage/storage.module';
 import { UsersModule } from './users/users.module';
@@ -51,6 +56,7 @@ const isTestEnv = process.env.NODE_ENV === 'test';
       ],
     }),
     DatabaseModule,
+    RedisModule,
     StorageModule,
     MailModule,
     AuthModule,
@@ -58,12 +64,16 @@ const isTestEnv = process.env.NODE_ENV === 'test';
     HostProfilesModule,
     PropertiesModule,
     GeocodingModule,
+    PoiModule,
     AvailabilityModule,
     PaymentsModule,
     BookingsModule,
     MessagingModule,
     ReviewsModule,
+    FavoritesModule,
+    PromotionsModule,
     NotificationsModule,
+    CompareShareModule,
     AdminModule,
   ],
   controllers: [HealthController],

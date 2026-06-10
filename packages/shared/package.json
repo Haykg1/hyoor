@@ -23,6 +23,13 @@
     "./property-types": {
       "types": "./src/property-types.ts",
       "default": "./dist/property-types.js"
+    },
+    "./data/yerevan-metro-stations.json": "./src/data/yerevan-metro-stations.json",
+    "./data/yerevan_pois.json": "./src/data/yerevan_pois.json",
+    "./data/armenia_pois.json": "./src/data/armenia_pois.json",
+    "./data/poi-datasets": {
+      "types": "./src/data/poi-datasets.ts",
+      "default": "./dist/data/poi-datasets.js"
     }
   },
   "scripts": {

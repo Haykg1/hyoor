@@ -15,13 +15,16 @@ interface MeResponse {
   id: string;
   email: string;
   role: AuthUser['role'];
+  avatarUrl?: string | null;
 }
 
 interface AuthState {
   user: AuthUser | null;
+  avatarUrl: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   setUser: (user: AuthUser) => void;
+  setAvatarUrl: (url: string | null) => void;
   clearAuth: () => void;
   login: (input: LoginInput) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
@@ -51,13 +54,15 @@ export const useAuthStore = create<AuthState>()(
   devtools(
     (set, get) => ({
       user: null,
+      avatarUrl: null,
       isAuthenticated: false,
       isLoading: true,
       setUser: (user) => set({ user, isAuthenticated: true, isLoading: false }),
+      setAvatarUrl: (avatarUrl) => set({ avatarUrl }),
       clearAuth: () => {
         api.clearAuthToken();
         clearAuthCookies();
-        set({ user: null, isAuthenticated: false, isLoading: false });
+        set({ user: null, avatarUrl: null, isAuthenticated: false, isLoading: false });
       },
       login: async (input) => {
         set({ isLoading: true });
@@ -93,14 +98,19 @@ export const useAuthStore = create<AuthState>()(
         api.hydrateAccessTokenFromCookie();
         const hasSession = Boolean(getAccessTokenFromCookie() || getRefreshTokenFromCookie());
         if (!hasSession) {
-          set({ user: null, isAuthenticated: false, isLoading: false });
+          set({ user: null, avatarUrl: null, isAuthenticated: false, isLoading: false });
           return;
         }
         try {
           const me = await api.get<MeResponse>('/users/me');
-          set({ user: toAuthUser(me), isAuthenticated: true, isLoading: false });
+          set({
+            user: toAuthUser(me),
+            avatarUrl: me.avatarUrl ?? null,
+            isAuthenticated: true,
+            isLoading: false,
+          });
         } catch {
-          set({ user: null, isAuthenticated: false, isLoading: false });
+          set({ user: null, avatarUrl: null, isAuthenticated: false, isLoading: false });
         }
       },
       setSessionFromTokens: async (tokens) => {
@@ -109,11 +119,16 @@ export const useAuthStore = create<AuthState>()(
         setAuthCookies(tokens);
         try {
           const me = await api.get<MeResponse>('/users/me');
-          set({ user: toAuthUser(me), isAuthenticated: true, isLoading: false });
+          set({
+            user: toAuthUser(me),
+            avatarUrl: me.avatarUrl ?? null,
+            isAuthenticated: true,
+            isLoading: false,
+          });
         } catch {
           api.clearAuthToken();
           clearAuthCookies();
-          set({ user: null, isAuthenticated: false, isLoading: false });
+          set({ user: null, avatarUrl: null, isAuthenticated: false, isLoading: false });
           throw new Error('Failed to load user profile');
         }
       },

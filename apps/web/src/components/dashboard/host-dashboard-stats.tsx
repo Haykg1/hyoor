@@ -21,7 +21,11 @@ export function HostDashboardStatsPanel({ stats }: HostDashboardStatsProps): Rea
         label={t('active_listings')}
         value={String(stats.activeListings)}
       />
-      <StatCard icon={Clock} label={t('pending_requests')} value={String(stats.pendingRequests)} />
+      <StatCard
+        icon={Clock}
+        label={t('upcoming_reservations')}
+        value={String(stats.upcomingReservations)}
+      />
       <StatCard
         icon={DollarSign}
         label={t('total_earned')}

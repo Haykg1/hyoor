@@ -1,8 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { CreatePropertyInput, PropertyTitleLabels } from '@repo/shared';
 import { CancellationPolicies, PropertyTypes } from '@repo/shared';
+import { MAX_FEATURED_POIS } from '@repo/shared';
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayUnique,
+  IsArray,
   IsBoolean,
   IsIn,
   IsInt,
@@ -274,4 +278,17 @@ export class CreatePropertyDto implements CreatePropertyInput {
   @IsOptional()
   @IsUrl()
   externalBookingUrl?: string;
+
+  @ApiPropertyOptional({
+    example: ['republic_square', 'cascade'],
+    description: 'Up to 5 destination POI ids from the city catalog',
+    maxItems: MAX_FEATURED_POIS,
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(MAX_FEATURED_POIS)
+  @ArrayUnique()
+  @IsString({ each: true })
+  @MaxLength(100, { each: true })
+  featuredPoiIds?: string[];
 }

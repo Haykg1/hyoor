@@ -27,4 +27,13 @@ export class CreateHostProfileDto {
   @IsString()
   @MaxLength(50)
   vatNumber?: string;
+
+  @ApiPropertyOptional({
+    example: 'Experienced host offering cozy stays in central Yerevan.',
+    maxLength: 2000,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  description?: string;
 }

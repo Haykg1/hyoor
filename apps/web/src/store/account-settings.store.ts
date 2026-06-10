@@ -1,13 +1,17 @@
+import { toast } from 'sonner';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+import { getMyHostProfile, updateMyHostProfile } from '@/lib/api/host-profiles';
 import {
   changePassword,
+  deleteAvatar,
   getMyProfile,
   type MyProfile,
   updateMyProfile,
   uploadAvatar,
 } from '@/lib/api/users';
+import { useAuthStore } from '@/store/auth.store';
 
 export interface ProfileForm {
   fullName: string;
@@ -27,10 +31,16 @@ interface AccountSettingsState {
   initialized: boolean;
   avatarUrl: string | null;
   avatarUploading: boolean;
+  avatarError: string | null;
   profileForm: ProfileForm;
   profileSaving: boolean;
   profileError: string | null;
   profileSuccess: boolean;
+  hostDescription: string;
+  hostDescriptionSaving: boolean;
+  hostDescriptionError: string | null;
+  hostDescriptionSuccess: boolean;
+  isHost: boolean;
   passwordForm: PasswordForm;
   passwordSaving: boolean;
   passwordError: string | null;
@@ -41,9 +51,12 @@ interface AccountSettingsActions {
   fetchProfile: () => Promise<void>;
   setProfileForm: (partial: Partial<ProfileForm>) => void;
   setPasswordForm: (partial: Partial<PasswordForm>) => void;
+  setHostDescription: (description: string) => void;
   saveProfile: () => Promise<void>;
+  saveHostDescription: () => Promise<void>;
   saveNewPassword: () => Promise<void>;
   uploadAvatarFile: (file: File) => Promise<void>;
+  removeAvatar: () => Promise<void>;
   reset: () => void;
 }
 
@@ -58,6 +71,7 @@ const SUCCESS_FLAG_TIMEOUT_MS = 3000;
 
 let profileSuccessTimer: ReturnType<typeof setTimeout> | null = null;
 let passwordSuccessTimer: ReturnType<typeof setTimeout> | null = null;
+let hostDescriptionSuccessTimer: ReturnType<typeof setTimeout> | null = null;
 
 function profileFormFromApi(profile: MyProfile): ProfileForm {
   const first = profile.profile?.firstName ?? '';
@@ -69,6 +83,10 @@ function profileFormFromApi(profile: MyProfile): ProfileForm {
   };
 }
 
+function isHostRole(role: string): boolean {
+  return role === 'HOST' || role === 'ADMIN' || role === 'STAFF';
+}
+
 export const useAccountSettingsStore = create<AccountSettingsState & AccountSettingsActions>()(
   devtools(
     (set, get) => ({
@@ -77,23 +95,46 @@ export const useAccountSettingsStore = create<AccountSettingsState & AccountSett
       initialized: false,
       avatarUrl: null,
       avatarUploading: false,
+      avatarError: null,
       profileForm: EMPTY_PROFILE_FORM,
       profileSaving: false,
       profileError: null,
       profileSuccess: false,
+      hostDescription: '',
+      hostDescriptionSaving: false,
+      hostDescriptionError: null,
+      hostDescriptionSuccess: false,
+      isHost: false,
       passwordForm: EMPTY_PASSWORD_FORM,
       passwordSaving: false,
       passwordError: null,
       passwordSuccess: false,
 
       fetchProfile: async () => {
-        if (get().initialized) return;
-        set({ loading: true, initialized: true });
+        set({ loading: true, profileError: null });
         try {
           const profile = await getMyProfile();
-          set({ profile, profileForm: profileFormFromApi(profile), loading: false });
+          const hostRole = isHostRole(profile.role);
+          let hostDescription = '';
+          if (hostRole) {
+            try {
+              const hostProfile = await getMyHostProfile();
+              hostDescription = hostProfile.description ?? '';
+            } catch {
+              hostDescription = '';
+            }
+          }
+          set({
+            profile,
+            profileForm: profileFormFromApi(profile),
+            avatarUrl: profile.avatarUrl,
+            isHost: hostRole,
+            hostDescription,
+            loading: false,
+            initialized: true,
+          });
         } catch {
-          set({ loading: false });
+          set({ loading: false, initialized: true });
         }
       },
 
@@ -111,6 +152,13 @@ export const useAccountSettingsStore = create<AccountSettingsState & AccountSett
           passwordSuccess: false,
         })),
 
+      setHostDescription: (description) =>
+        set({
+          hostDescription: description,
+          hostDescriptionError: null,
+          hostDescriptionSuccess: false,
+        }),
+
       saveProfile: async () => {
         const { profileForm } = get();
         set({ profileSaving: true, profileError: null, profileSuccess: false });
@@ -124,7 +172,11 @@ export const useAccountSettingsStore = create<AccountSettingsState & AccountSett
             phone: profileForm.phone.trim() || undefined,
             bio: profileForm.bio.trim() || undefined,
           });
-          set({ profile: updated, profileSuccess: true });
+          set({
+            profile: updated,
+            avatarUrl: updated.avatarUrl ?? get().avatarUrl,
+            profileSuccess: true,
+          });
           if (profileSuccessTimer) clearTimeout(profileSuccessTimer);
           profileSuccessTimer = setTimeout(
             () => set({ profileSuccess: false }),
@@ -134,6 +186,30 @@ export const useAccountSettingsStore = create<AccountSettingsState & AccountSett
           set({ profileError: 'Failed to save profile. Please try again.' });
         } finally {
           set({ profileSaving: false });
+        }
+      },
+
+      saveHostDescription: async () => {
+        const { hostDescription } = get();
+        set({
+          hostDescriptionSaving: true,
+          hostDescriptionError: null,
+          hostDescriptionSuccess: false,
+        });
+        try {
+          await updateMyHostProfile({
+            description: hostDescription.trim() || undefined,
+          });
+          set({ hostDescriptionSuccess: true });
+          if (hostDescriptionSuccessTimer) clearTimeout(hostDescriptionSuccessTimer);
+          hostDescriptionSuccessTimer = setTimeout(
+            () => set({ hostDescriptionSuccess: false }),
+            SUCCESS_FLAG_TIMEOUT_MS,
+          );
+        } catch {
+          set({ hostDescriptionError: 'Failed to save host description. Please try again.' });
+        } finally {
+          set({ hostDescriptionSaving: false });
         }
       },
 
@@ -170,12 +246,30 @@ export const useAccountSettingsStore = create<AccountSettingsState & AccountSett
       },
 
       uploadAvatarFile: async (file) => {
-        set({ avatarUploading: true });
+        set({ avatarUploading: true, avatarError: null });
         try {
           const result = await uploadAvatar(file);
           set({ avatarUrl: result.avatarUrl });
+          useAuthStore.getState().setAvatarUrl(result.avatarUrl);
+          toast.success('Profile photo updated');
         } catch {
-          // Avatar upload silently fails — S3 may not be configured in dev
+          set({ avatarError: 'Failed to upload photo. Try a JPEG, PNG, or WebP under 5MB.' });
+          toast.error('Failed to upload profile photo');
+        } finally {
+          set({ avatarUploading: false });
+        }
+      },
+
+      removeAvatar: async () => {
+        set({ avatarUploading: true, avatarError: null });
+        try {
+          await deleteAvatar();
+          set({ avatarUrl: null });
+          useAuthStore.getState().setAvatarUrl(null);
+          toast.success('Profile photo removed');
+        } catch {
+          set({ avatarError: 'Failed to remove photo.' });
+          toast.error('Failed to remove profile photo');
         } finally {
           set({ avatarUploading: false });
         }
@@ -184,18 +278,26 @@ export const useAccountSettingsStore = create<AccountSettingsState & AccountSett
       reset: () => {
         if (profileSuccessTimer) clearTimeout(profileSuccessTimer);
         if (passwordSuccessTimer) clearTimeout(passwordSuccessTimer);
+        if (hostDescriptionSuccessTimer) clearTimeout(hostDescriptionSuccessTimer);
         profileSuccessTimer = null;
         passwordSuccessTimer = null;
+        hostDescriptionSuccessTimer = null;
         set({
           profile: null,
           loading: true,
           initialized: false,
           avatarUrl: null,
           avatarUploading: false,
+          avatarError: null,
           profileForm: EMPTY_PROFILE_FORM,
           profileSaving: false,
           profileError: null,
           profileSuccess: false,
+          hostDescription: '',
+          hostDescriptionSaving: false,
+          hostDescriptionError: null,
+          hostDescriptionSuccess: false,
+          isHost: false,
           passwordForm: EMPTY_PASSWORD_FORM,
           passwordSaving: false,
           passwordError: null,

@@ -1,3 +1,6 @@
+export * from './poi-city';
+export * from './geo-distance';
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()

@@ -75,7 +75,73 @@
     "sign_up": "Sign up",
     "logout": "Sign out",
     "account": "Account",
-    "menu": "Menu"
+    "favorites": "Favorites",
+    "menu": "Menu",
+    "notifications": "Notifications"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "bell_label": "Notifications",
+    "empty": "No notifications yet.",
+    "loading": "Loading…",
+    "mark_read": "Mark as read",
+    "mark_unread": "Mark as unread",
+    "mark_all_read": "Mark all read",
+    "clear_all": "Clear all",
+    "remove": "Remove"
+  },
+  "favorites": {
+    "title": "Favorites",
+    "subtitle": "{count, plural, =0 {No saved stays} one {# saved stay} other {# saved stays}}",
+    "login_modal": {
+      "title": "Sign in to save favorites",
+      "description": "Create an account or log in to save properties to your favorites list.",
+      "cancel": "Cancel",
+      "sign_in": "Log in"
+    },
+    "empty": {
+      "title": "No favorites yet",
+      "description": "Tap the heart on a property to save it here.",
+      "explore": "Explore stays"
+    },
+    "filters": {
+      "title_placeholder": "Search by title",
+      "search": "Search",
+      "regions_label": "Regions",
+      "regions_placeholder": "All regions",
+      "cities_label": "Cities",
+      "cities_placeholder": "All cities",
+      "selected_count": "{count, plural, one {# selected} other {# selected}}",
+      "property_type": "Property type",
+      "all_types": "All types",
+      "min_price": "Min price",
+      "max_price": "Max price",
+      "max_guests": "Guests",
+      "min_bedrooms": "Min bedrooms",
+      "sort": "Sort",
+      "sort_newest": "Recently saved",
+      "sort_oldest": "Oldest saved",
+      "sort_price_asc": "Price: low to high",
+      "sort_price_desc": "Price: high to low",
+      "reset": "Reset filters",
+      "more_filters": "More filters",
+      "clear_filters": "Clear filters",
+      "applied_count": "{count, plural, one {# filter applied} other {# filters applied}}",
+      "types": {
+        "APARTMENT": "Apartment",
+        "HOUSE": "House",
+        "VILLA": "Villa",
+        "STUDIO": "Studio",
+        "GUESTHOUSE": "Guesthouse",
+        "HOTEL_ROOM": "Hotel room",
+        "OTHER": "Other"
+      }
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "page": "Page {page} of {totalPages}"
+    }
   },
   "search": {
     "where": "Where",
@@ -103,10 +169,67 @@
     "copyright": "© {year} RentStar. All rights reserved."
   },
   "property": {
+    "nearby_places": "Nearby places",
+    "nearest_metro": "Nearest metro",
+    "featured_destinations": "Featured destinations",
+    "travel_time_walk": "{travelTime} on foot",
+    "travel_time_vehicle": "{travelTime} by vehicle",
+    "copy_id": "Copy ID",
+    "copy_id_success": "Property ID copied to clipboard",
+    "copy_id_error": "Could not copy property ID",
+    "compare": {
+      "button": "Compare",
+      "tooltip": "Compare this listing with another property by entering its ID.",
+      "popover_title": "Compare with another property",
+      "property_id_label": "Other property ID",
+      "property_id_placeholder": "Paste property ID",
+      "compare_action": "Compare",
+      "copy_id": "Copy ID",
+      "copy_success": "Property ID copied to clipboard",
+      "copy_error": "Could not copy property ID",
+      "page_title": "Compare properties",
+      "summary_title": "Comparison summary",
+      "per_night": " / night",
+      "guests": "{count, plural, one {# guest max} other {# guests max}}",
+      "bedrooms": "{count, plural, one {# bedroom} other {# bedrooms}}",
+      "bathrooms": "{count, plural, one {# bathroom} other {# bathrooms}}",
+      "amenities_count": "{count, plural, one {# amenity} other {# amenities}}",
+      "reviews_count": "({count, plural, one {# review} other {# reviews}})",
+      "no_reviews": "No reviews yet",
+      "view_listing": "View listing",
+      "back_to_search": "Back to search",
+      "share": "Share",
+      "share_tooltip": "This share link works for 24 hours.",
+      "share_copied": "Share link copied to clipboard",
+      "share_error": "Could not create share link",
+      "meta_title": "{left} vs {right}",
+      "meta_description": "Compare {left} ({leftPrice}) and {right} ({rightPrice}) side by side on RentStar.",
+      "meta_description_fallback": "Compare two properties side by side on RentStar.",
+      "errors": {
+        "required": "Enter a property ID.",
+        "same_property": "Choose a different property than this one.",
+        "not_found": "Property not found.",
+        "not_found_page": "One or both properties could not be found.",
+        "invalid_params": "Add two property IDs to compare (left and right).",
+        "expired": "This share link has expired. Compare links are valid for 24 hours."
+      },
+      "summary": {
+        "price_cheaper": "{name} is cheaper per night.",
+        "price_tie": "Both properties have the same price per night.",
+        "amenities_more": "{name} offers more amenities ({count} vs {otherCount}).",
+        "amenities_tie": "Both properties have the same number of amenities ({count}).",
+        "reviews_more": "{name} has more guest reviews ({count} vs {otherCount}).",
+        "reviews_tie": "Both properties have the same number of reviews ({count}).",
+        "reviews_none": "Neither property has guest reviews yet.",
+        "rating_higher": "{name} has a higher average rating ({rating} vs {otherRating}).",
+        "rating_tie": "Both properties share the same average rating ({rating}).",
+        "rating_insufficient": "Not enough reviews to compare ratings."
+      }
+    },
     "per_night": "/ night",
     "guests": "{count} guests",
     "bedrooms": "{count} bedrooms",
-    "book_now": "Request to Book",
+    "book_now": "Book now",
     "contact_host": "Contact host directly",
     "show_all_photos": "Show all photos",
     "show_more": "Show more",
@@ -146,10 +269,18 @@
     "select_dates_hint": "Select dates to see total price",
     "guests": "Guests",
     "guests_max": "Max {max} guests",
-    "book_now": "Request to Book",
+    "book_now": "Book now",
     "submitting": "Booking…",
     "nights_subtotal": "{count} nights × {price}",
     "cleaning_fee": "Cleaning fee",
+    "security_deposit": "Security deposit",
+    "promo_code": "Promo code",
+    "promo_code_placeholder": "Enter code",
+    "promo_code_invalid": "Invalid or expired promo code",
+    "promotion_discount": "Promotion",
+    "promotion_applied_code": "Code {code}",
+    "promotion_applied_percent": "{percent}% off",
+    "loading_quote": "Calculating price…",
     "validation": {
       "dates_required": "Please select check-in and check-out dates",
       "invalid_range": "Check-out must be after check-in",
@@ -157,9 +288,15 @@
       "max_nights": "Maximum stay is {max} nights",
       "too_many_guests": "Maximum {max} guests allowed"
     },
+    "confirm_dialog": {
+      "title": "Confirm your reservation",
+      "description": "Review the details below before completing your booking.",
+      "confirm": "Confirm reservation",
+      "cancel": "Cancel"
+    },
     "confirmation": {
-      "title": "Booking requested!",
-      "subtitle": "Your stay is pending host confirmation. We'll notify you once confirmed.",
+      "title": "Reservation confirmed!",
+      "subtitle": "Your stay is booked. We sent you a confirmation.",
       "continue_payment": "Continue to payment (coming soon)"
     }
   },
@@ -242,7 +379,68 @@
     "tabs": {
       "listings": "My Listings",
       "disabled": "Disabled Properties",
-      "booking_requests": "Booking Requests"
+      "reservations": "Reservations",
+      "promotions": "Promotions"
+    },
+    "reservations": {
+      "tab_upcoming": "Upcoming",
+      "tab_past": "Past",
+      "empty_upcoming": "No upcoming reservations yet.",
+      "empty_past": "No past reservations yet."
+    },
+    "promotions": {
+      "pick_property": "Property",
+      "no_listings": "Select a listing",
+      "add_promotion": "Add promotion",
+      "empty_listings": "Create an active listing before adding promotions.",
+      "empty_promotions": "No promotions for this property yet.",
+      "loading": "Loading promotions…",
+      "meta": "{start} – {end} · {remaining} left · {type}",
+      "types": {
+        "date_range": "Date range deal"
+      },
+      "form": {
+        "title": "New promotion",
+        "subtitle": "Promotion for {title}",
+        "no_property": "Select a property first.",
+        "promotion_type": "Promotion type",
+        "discount_type": "Discount type",
+        "types": {
+          "date_range": "Limited-time deal",
+          "promo_code": "Promo code"
+        },
+        "discount": {
+          "percent": "Percentage",
+          "fixed": "Fixed amount",
+          "percent_label": "Discount (%)",
+          "fixed_label": "Discount amount ({currency}, minor units)"
+        },
+        "promo_code": "Promo code",
+        "booking_dates": "Valid booking dates",
+        "max_applications": "Max uses / future bookings",
+        "description": "Description (required)",
+        "smart_description": "Generate description",
+        "notify_guests": "Notify guests who saved this property",
+        "cancel": "Cancel",
+        "create": "Create promotion",
+        "errors": {
+          "date_range": "Select a booking date range.",
+          "description": "Description must be at least 10 characters.",
+          "max_applications": "Enter a valid max applications count.",
+          "submit": "Could not create promotion."
+        }
+      },
+      "created_dialog": {
+        "title": "Promotion created",
+        "notified": "Notifications sent to {count, plural, one {# guest} other {# guests}} who saved this property.",
+        "not_notified": "Guest notifications were not sent.",
+        "close": "Done"
+      },
+      "remove": "Remove",
+      "removing": "Removing…",
+      "remove_title": "Remove promotion?",
+      "remove_confirm": "This promotion will be deleted permanently. Guests will no longer see it.",
+      "remove_error": "Could not remove promotion."
     },
     "pagination": {
       "page_size": "Per page",
@@ -357,6 +555,7 @@
       "active_listings": "Active Listings",
       "active_bookings": "Active Bookings",
       "pending_requests": "Pending Requests",
+      "upcoming_reservations": "Upcoming Reservations",
       "total_earned": "Total Earned"
     },
     "sidebar_preview": "Host sidebar preview",
@@ -428,6 +627,23 @@
       "apartment_number": "Apartment / Unit",
       "apartment_number_placeholder": "e.g. 12A (optional)",
       "address_verification_required": "Select a verified building address from the list",
+      "nearest_metro_loading": "Checking nearest metro…",
+      "nearest_metro_walk": "{travelTime} on foot to {station}",
+      "nearest_metro_vehicle": "{travelTime} by vehicle to {station}",
+      "poi_section_title": "Nearby destinations",
+      "poi_select_hint": "Select up to 5 landmarks guests should know about.",
+      "poi_selected_count": "{count}/{max} selected",
+      "poi_none_available": "No destination catalog is available for this city.",
+      "poi_loading": "Loading nearby destinations…",
+      "poi_distance_walk": "{distanceKm} km · {travelTime} on foot",
+      "poi_distance_vehicle": "{distanceKm} km · {travelTime} by vehicle",
+      "poi_categories": {
+        "landmark": "Landmark",
+        "museum": "Museum",
+        "park": "Park",
+        "market": "Market",
+        "memorial": "Memorial"
+      },
       "place_searching": "Searching…",
       "place_no_results": "No places found",
       "country": "Country",
@@ -678,7 +894,18 @@
     "subtitle": "Manage your profile and preferences",
     "photo": {
       "title": "Profile Photo",
-      "upload": "Upload photo"
+      "upload": "Upload photo",
+      "uploading": "Uploading…",
+      "remove": "Remove photo"
+    },
+    "host": {
+      "title": "Host Profile",
+      "subtitle": "This description is shown to guests on your listings.",
+      "description": "About you as a host",
+      "description_placeholder": "Introduce yourself, your hosting style, and what guests can expect…",
+      "save": "Save host profile",
+      "saving": "Saving…",
+      "save_success": "Host profile saved."
     },
     "personal": {
       "title": "Personal Information",

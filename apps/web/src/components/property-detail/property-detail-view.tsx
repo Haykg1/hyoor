@@ -9,6 +9,7 @@ import { PropertyDescription } from './property-description';
 import { PropertyDetailHeader } from './property-detail-header';
 import { PropertyGallery } from './property-gallery';
 import { PropertyHostCard } from './property-host-card';
+import { PropertyNearbyPlaces } from './property-nearby-places';
 import { PropertyReviewsList } from './property-reviews-list';
 import { PropertyStats } from './property-stats';
 
@@ -47,6 +48,7 @@ export async function PropertyDetailView({
           />
           <PropertyDescription description={property.description} />
           <PropertyAmenities amenities={property.amenities} />
+          <PropertyNearbyPlaces property={property} />
           <PropertyHostCard host={property.host} />
           {property.latitude !== null && property.longitude !== null && (
             <PropertyMap

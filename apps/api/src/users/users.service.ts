@@ -23,6 +23,8 @@ export type UserWithProfile = User & { profile: UserProfile | null };
 
 export type SafeUserWithProfile = Omit<UserWithProfile, 'passwordHash'>;
 
+export type UserMeResponse = SafeUserWithProfile & { avatarUrl: string | null };
+
 function omitPasswordHash(user: UserWithProfile): SafeUserWithProfile {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- intentionally omitted from response
   const { passwordHash, ...safeUser } = user;
@@ -86,15 +88,23 @@ export class UsersService {
     });
   }
 
-  async getMe(userId: string): Promise<SafeUserWithProfile> {
+  async getMe(userId: string): Promise<UserMeResponse> {
     const user = await this.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return omitPasswordHash(user);
+    const safe = omitPasswordHash(user);
+    let avatarUrl: string | null = null;
+    if (user.profile?.avatarKey) {
+      avatarUrl = await this.storage.getPresignedUrl(
+        user.profile.avatarKey,
+        S3_PRESIGNED_URL_EXPIRES,
+      );
+    }
+    return { ...safe, avatarUrl };
   }
 
-  async updateProfile(userId: string, dto: UpdateProfileDto): Promise<SafeUserWithProfile> {
+  async updateProfile(userId: string, dto: UpdateProfileDto): Promise<UserMeResponse> {
     const user = await this.findById(userId);
     if (!user?.profile) {
       throw new NotFoundException('User profile not found');

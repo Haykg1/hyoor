@@ -51,6 +51,7 @@ export interface CreatePropertyInput {
   quietHoursEnd?: string;
   additionalRules?: string;
   externalBookingUrl?: string;
+  featuredPoiIds?: string[];
 }
 
 export type UpdatePropertyInput = Partial<CreatePropertyInput> & {

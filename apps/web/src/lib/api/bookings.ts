@@ -1,6 +1,24 @@
-import type { BookingDetail, CreateBookingInput, PaginatedResponse } from '@repo/shared';
+import type {
+  BookingDetail,
+  BookingQuoteInput,
+  BookingQuoteResult,
+  CreateBookingInput,
+  PaginatedResponse,
+} from '@repo/shared';
 
 import { api } from '@/lib/api';
+
+export async function getBookingQuote(input: BookingQuoteInput): Promise<BookingQuoteResult> {
+  const qs = new URLSearchParams({
+    propertyId: input.propertyId,
+    checkIn: input.checkIn,
+    checkOut: input.checkOut,
+  });
+  if (input.promoCode?.trim()) {
+    qs.set('promoCode', input.promoCode.trim().toUpperCase());
+  }
+  return api.get<BookingQuoteResult>(`/bookings/quote?${qs.toString()}`);
+}
 
 export async function createBooking(input: CreateBookingInput): Promise<BookingDetail> {
   return api.post<BookingDetail>('/bookings', input);

@@ -2,13 +2,15 @@
 
 import type { PropertySummary } from '@repo/shared';
 import { getLocalizedAddress, getLocalizedTitle, propertyTypeLabelKey } from '@repo/shared';
-import { Heart, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { usePriceFormatter } from '@/hooks/use-price-formatter';
 import { Link } from '@/i18n/navigation';
 import { PROPERTY_PLACEHOLDER_IMAGE } from '@/lib/constants/property-placeholder';
+
+import { FavoriteButton } from './favorite-button';
 
 interface PropertyCardProps {
   property: PropertySummary;
@@ -32,6 +34,7 @@ export function PropertyCard({ property }: PropertyCardProps): React.JSX.Element
     <Link href={`/property/${property.id}`} className="group block">
       <article className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
         <PropertyCardMedia
+          propertyId={property.id}
           imageUrl={property.coverPhotoUrl ?? PROPERTY_PLACEHOLDER_IMAGE}
           title={localizedTitle}
           categoryLabel={tc(propertyTypeLabelKey(property.propertyType))}
@@ -67,12 +70,14 @@ export function PropertyCard({ property }: PropertyCardProps): React.JSX.Element
 }
 
 interface PropertyCardMediaProps {
+  propertyId: string;
   imageUrl: string;
   title: string;
   categoryLabel: string;
 }
 
 function PropertyCardMedia({
+  propertyId,
   imageUrl,
   title,
   categoryLabel,
@@ -90,23 +95,7 @@ function PropertyCardMedia({
       <span className="absolute left-3 top-3 inline-flex items-center rounded-md bg-white/90 px-2.5 py-0.5 text-xs font-medium text-neutral-900 shadow-sm backdrop-blur">
         {categoryLabel}
       </span>
-      <FavoriteButton />
+      <FavoriteButton propertyId={propertyId} />
     </div>
-  );
-}
-
-function FavoriteButton(): React.JSX.Element {
-  return (
-    <button
-      type="button"
-      aria-label="Save to favorites"
-      onClick={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-      }}
-      className="absolute right-3 top-3 rounded-full bg-white/80 p-1.5 transition-colors hover:bg-white"
-    >
-      <Heart className="h-4 w-4 text-muted-foreground" aria-hidden />
-    </button>
   );
 }

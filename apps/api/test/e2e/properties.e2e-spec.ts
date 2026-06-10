@@ -4,6 +4,7 @@ import request from 'supertest';
 import { PrismaService } from '../../src/database/prisma.service';
 import { createTestApp, type TestAppContext } from '../helpers/create-test-app';
 import {
+  createActivePropertyDirect,
   createCompletedGuestBooking,
   registerHostUser,
   sampleProperty,
@@ -299,7 +300,8 @@ describe('Properties (e2e)', () => {
         totalListings: number;
         activeListings: number;
         pendingRequests: number;
-        totalEarnings: number;
+        upcomingReservations: number;
+        pastReservations: number;
       };
     };
     expect(body.data).toHaveLength(1);
@@ -310,7 +312,32 @@ describe('Properties (e2e)', () => {
     expect(body.stats).toBeDefined();
     expect(body.stats.totalListings).toBe(1);
     expect(body.stats.pendingRequests).toBe(0);
-    expect(body.stats.totalEarnings).toBe(0);
+    expect(body.stats.upcomingReservations).toBe(0);
+    expect(body.stats.pastReservations).toBe(0);
+  });
+
+  it('returns upcomingReservations count after guest creates a confirmed booking', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2027-06-10',
+        checkOut: '2027-06-13',
+        guestCount: 2,
+      })
+      .expect(201);
+    const response = await request(app.getHttpServer())
+      .get('/api/v1/properties/my')
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    const body = response.body.data as {
+      stats: { upcomingReservations: number };
+    };
+    expect(body.stats.upcomingReservations).toBe(1);
   });
 
   it('host A cannot see host B listings at GET /properties/my', async () => {

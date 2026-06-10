@@ -1,3 +1,4 @@
+export { PropertyCompareView } from './property-compare-view';
 export { PropertyDetailView } from './property-detail-view';
 export { PropertyDetailHeader } from './property-detail-header';
 export { PropertyGallery } from './property-gallery';

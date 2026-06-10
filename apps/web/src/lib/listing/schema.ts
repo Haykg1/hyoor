@@ -1,4 +1,9 @@
-import { CancellationPolicies, PropertyTypes, type CreatePropertyInput } from '@repo/shared';
+import {
+  CancellationPolicies,
+  MAX_FEATURED_POIS,
+  PropertyTypes,
+  type CreatePropertyInput,
+} from '@repo/shared';
 import { z } from 'zod';
 
 const stepBasicsFieldsSchema = z.object({
@@ -19,6 +24,7 @@ const stepBasicsFieldsSchema = z.object({
   country: z.string().min(2).max(2),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
+  featuredPoiIds: z.array(z.string().max(100)).max(MAX_FEATURED_POIS),
 });
 
 function validateBasicsAddress(
@@ -133,6 +139,7 @@ export const DEFAULT_LISTING_VALUES: ListingFormValues = {
   country: 'AM',
   latitude: undefined,
   longitude: undefined,
+  featuredPoiIds: [],
   bedrooms: 1,
   beds: 1,
   bathrooms: 1,
@@ -215,5 +222,6 @@ export function toCreatePropertyInput(values: ListingFormValues): CreateProperty
     quietHoursStart: optionalTime(values.quietHoursStart),
     quietHoursEnd: optionalTime(values.quietHoursEnd),
     additionalRules: optionalText(values.additionalRules),
+    featuredPoiIds: values.featuredPoiIds,
   };
 }

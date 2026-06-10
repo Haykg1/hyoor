@@ -1,30 +1,33 @@
 'use client';
 
+import type { BookingQuoteResult } from '@repo/shared';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { ApiError } from '@/lib/api';
-import { createBooking } from '@/lib/api/bookings';
+import { createBooking, getBookingQuote } from '@/lib/api/bookings';
+
+const QUOTE_DEBOUNCE_MS = 300;
 
 export interface BookingFormValues {
   checkIn: string;
   checkOut: string;
   guests: number;
+  promoCode: string;
 }
 
 export interface BookingFormErrors {
   checkIn?: string;
   checkOut?: string;
   guests?: string;
+  promoCode?: string;
   submit?: string;
 }
 
 interface UseBookingFormOptions {
   propertyId: string;
-  pricePerNight: number;
-  cleaningFee: number | null;
   maxGuests: number;
   minNights: number;
   maxNights: number | null;
@@ -34,13 +37,15 @@ interface UseBookingFormReturn {
   values: BookingFormValues;
   errors: BookingFormErrors;
   isSubmitting: boolean;
+  isQuoteLoading: boolean;
+  isConfirmOpen: boolean;
+  quote: BookingQuoteResult | null;
   nights: number | null;
-  subtotal: number | null;
-  cleaningFee: number | null;
-  total: number | null;
   canSubmit: boolean;
   setField: <K extends keyof BookingFormValues>(key: K, value: BookingFormValues[K]) => void;
-  submit: () => Promise<void>;
+  setConfirmOpen: (open: boolean) => void;
+  openConfirmDialog: () => void;
+  confirmBooking: () => Promise<void>;
 }
 
 function countNights(checkIn: string, checkOut: string): number {
@@ -60,8 +65,6 @@ function parseApiErrorMessage(err: ApiError): string {
 
 export function useBookingForm({
   propertyId,
-  pricePerNight,
-  cleaningFee,
   maxGuests,
   minNights,
   maxNights,
@@ -75,14 +78,23 @@ export function useBookingForm({
     checkIn: '',
     checkOut: '',
     guests: 1,
+    promoCode: '',
   });
   const [errors, setErrors] = useState<BookingFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isQuoteLoading, setIsQuoteLoading] = useState(false);
+  const [isConfirmOpen, setConfirmOpen] = useState(false);
+  const [quote, setQuote] = useState<BookingQuoteResult | null>(null);
 
   const setField = useCallback(
     <K extends keyof BookingFormValues>(key: K, value: BookingFormValues[K]) => {
       setValues((prev) => ({ ...prev, [key]: value }));
-      setErrors((prev) => ({ ...prev, [key]: undefined, submit: undefined }));
+      setErrors((prev) => ({
+        ...prev,
+        [key]: undefined,
+        submit: undefined,
+        ...(key === 'promoCode' ? { promoCode: undefined } : {}),
+      }));
     },
     [],
   );
@@ -93,13 +105,9 @@ export function useBookingForm({
     return n > 0 ? n : null;
   }, [values.checkIn, values.checkOut]);
 
-  const subtotal = nights !== null ? nights * pricePerNight : null;
-  const total = subtotal !== null ? subtotal + (cleaningFee ?? 0) : null;
-
-  function validate(): BookingFormErrors {
+  const dateValidationErrors = useMemo((): BookingFormErrors => {
     const errs: BookingFormErrors = {};
     if (!values.checkIn || !values.checkOut) {
-      errs.checkIn = t('dates_required');
       return errs;
     }
     const n = countNights(values.checkIn, values.checkOut);
@@ -119,21 +127,82 @@ export function useBookingForm({
       errs.guests = t('too_many_guests', { max: maxGuests });
     }
     return errs;
-  }
+  }, [values, minNights, maxNights, maxGuests, t]);
+
+  useEffect(() => {
+    if (!values.checkIn || !values.checkOut || Object.keys(dateValidationErrors).length > 0) {
+      setQuote(null);
+      setIsQuoteLoading(false);
+      return;
+    }
+    setIsQuoteLoading(true);
+    const timer = setTimeout(() => {
+      void getBookingQuote({
+        propertyId,
+        checkIn: values.checkIn,
+        checkOut: values.checkOut,
+        promoCode: values.promoCode || undefined,
+      })
+        .then((result) => {
+          setQuote(result);
+          setErrors((prev) => ({
+            ...prev,
+            promoCode: result.promoCodeError ? tBooking('promo_code_invalid') : undefined,
+          }));
+        })
+        .catch(() => {
+          setQuote(null);
+        })
+        .finally(() => {
+          setIsQuoteLoading(false);
+        });
+    }, QUOTE_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [
+    propertyId,
+    values.checkIn,
+    values.checkOut,
+    values.promoCode,
+    dateValidationErrors,
+    tBooking,
+  ]);
 
   const canSubmit = useMemo(() => {
     if (!values.checkIn || !values.checkOut) return false;
     if (nights === null) return false;
-    if (nights < minNights) return false;
-    if (maxNights !== null && nights > maxNights) return false;
-    if (values.guests < 1 || values.guests > maxGuests) return false;
+    if (Object.keys(dateValidationErrors).length > 0) return false;
+    if (isQuoteLoading || !quote) return false;
+    if (quote.promoCodeError && values.promoCode.trim()) return false;
     return true;
-  }, [values, nights, minNights, maxNights, maxGuests]);
+  }, [values, nights, dateValidationErrors, isQuoteLoading, quote]);
 
-  const submit = useCallback(async () => {
+  function validate(): BookingFormErrors {
+    const errs: BookingFormErrors = {};
+    if (!values.checkIn || !values.checkOut) {
+      errs.checkIn = t('dates_required');
+      return errs;
+    }
+    Object.assign(errs, dateValidationErrors);
+    if (quote?.promoCodeError && values.promoCode.trim()) {
+      errs.promoCode = tBooking('promo_code_invalid');
+    }
+    return errs;
+  }
+
+  const openConfirmDialog = useCallback(() => {
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
+      return;
+    }
+    setConfirmOpen(true);
+  }, [values, quote, t, tBooking, dateValidationErrors]);
+
+  const confirmBooking = useCallback(async () => {
+    const errs = validate();
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      setConfirmOpen(false);
       return;
     }
     setIsSubmitting(true);
@@ -143,7 +212,9 @@ export function useBookingForm({
         checkIn: values.checkIn,
         checkOut: values.checkOut,
         guestCount: values.guests,
+        promoCode: values.promoCode.trim() || undefined,
       });
+      setConfirmOpen(false);
       router.push(`/${locale}/bookings/${booking.id}`);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
@@ -156,6 +227,7 @@ export function useBookingForm({
           const msg = tBooking('dates_unavailable');
           toast.error(msg);
           setErrors({ submit: msg });
+          setConfirmOpen(false);
           return;
         }
         const msg = parseApiErrorMessage(err);
@@ -170,18 +242,20 @@ export function useBookingForm({
       setIsSubmitting(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values, propertyId, locale, router]);
+  }, [values, propertyId, locale, router, quote]);
 
   return {
     values,
     errors,
     isSubmitting,
+    isQuoteLoading,
+    isConfirmOpen,
+    quote,
     nights,
-    subtotal,
-    cleaningFee,
-    total,
     canSubmit,
     setField,
-    submit,
+    setConfirmOpen,
+    openConfirmDialog,
+    confirmBooking,
   };
 }

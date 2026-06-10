@@ -1,0 +1,202 @@
+{
+  "generatedAt": "2026-06-05T13:29:15.652Z",
+  "source": "wikipedia",
+  "sourceUrl": "https://en.wikipedia.org/wiki/List_of_Yerevan_Metro_stations",
+  "city": "Yerevan",
+  "region": "Yerevan",
+  "country": "AM",
+  "category": "metro",
+  "stationCount": 10,
+  "stations": [
+    {
+      "id": "barekamutyun",
+      "sortOrder": 1,
+      "category": "metro",
+      "city": "Yerevan",
+      "region": "Yerevan",
+      "country": "AM",
+      "wikipediaTitle": "Barekamutyun (Yerevan Metro)",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Barekamutyun_(Yerevan_Metro)",
+      "wikidataId": "Q2061891",
+      "opened": "1981-03-07",
+      "latitude": 40.197889,
+      "longitude": 44.494233,
+      "nameLabels": {
+        "en": "Barekamutyun",
+        "hy": "Բարեկամություն",
+        "ru": "Барекамуцюн"
+      }
+    },
+    {
+      "id": "marshal-baghramyan",
+      "sortOrder": 2,
+      "category": "metro",
+      "city": "Yerevan",
+      "region": "Yerevan",
+      "country": "AM",
+      "wikipediaTitle": "Marshal Baghramyan (Yerevan Metro)",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Marshal_Baghramyan_(Yerevan_Metro)",
+      "wikidataId": "Q3289683",
+      "opened": "1981-03-07",
+      "latitude": 40.191694,
+      "longitude": 44.505944,
+      "nameLabels": {
+        "en": "Marshal Baghramyan",
+        "hy": "Մարշալ Բաղրամյան",
+        "ru": "Маршал Баграмян"
+      }
+    },
+    {
+      "id": "yeritasardakan",
+      "sortOrder": 3,
+      "category": "metro",
+      "city": "Yerevan",
+      "region": "Yerevan",
+      "country": "AM",
+      "wikipediaTitle": "Yeritasardakan (Yerevan Metro)",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Yeritasardakan_(Yerevan_Metro)",
+      "wikidataId": "Q3572188",
+      "opened": "1981-03-08",
+      "latitude": 40.186944,
+      "longitude": 44.521111,
+      "nameLabels": {
+        "en": "Yeritasardakan",
+        "hy": "Երիտասարդական",
+        "ru": "Еритасардакан"
+      }
+    },
+    {
+      "id": "republic-square",
+      "sortOrder": 4,
+      "category": "metro",
+      "city": "Yerevan",
+      "region": "Yerevan",
+      "country": "AM",
+      "wikipediaTitle": "Republic Square (Yerevan Metro)",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Republic_Square_(Yerevan_Metro)",
+      "wikidataId": "Q3390443",
+      "opened": "1981-12-26",
+      "latitude": 40.178515,
+      "longitude": 44.515628,
+      "nameLabels": {
+        "en": "Republic Square",
+        "hy": "Հանրապետության հրապարակ",
+        "ru": "Площадь Республики"
+      }
+    },
+    {
+      "id": "zoravar-andranik",
+      "sortOrder": 5,
+      "category": "metro",
+      "city": "Yerevan",
+      "region": "Yerevan",
+      "country": "AM",
+      "wikipediaTitle": "General Andranik (Yerevan Metro)",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/General_Andranik_(Yerevan_Metro)",
+      "wikidataId": "Q3576098",
+      "opened": "1989-12-26",
+      "latitude": 40.1717,
+      "longitude": 44.5133,
+      "nameLabels": {
+        "en": "Zoravar Andranik",
+        "hy": "Զորավար Անդրանիկ",
+        "ru": "Зоравар Андраник"
+      }
+    },
+    {
+      "id": "sasuntsi-davit",
+      "sortOrder": 6,
+      "category": "metro",
+      "city": "Yerevan",
+      "region": "Yerevan",
+      "country": "AM",
+      "wikipediaTitle": "David of Sasun (Yerevan Metro)",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/David_of_Sasun_(Yerevan_Metro)",
+      "wikidataId": "Q3473832",
+      "opened": "1981-03-07",
+      "latitude": 40.155175,
+      "longitude": 44.507236,
+      "nameLabels": {
+        "en": "David of Sasun",
+        "hy": "Սասունցի Դավիթ",
+        "ru": "Сасунци Давид"
+      }
+    },
+    {
+      "id": "gortsaranayin",
+      "sortOrder": 7,
+      "category": "metro",
+      "city": "Yerevan",
+      "region": "Yerevan",
+      "country": "AM",
+      "wikipediaTitle": "Gortsaranayin (Yerevan Metro)",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Gortsaranayin_(Yerevan_Metro)",
+      "wikidataId": "Q4145969",
+      "opened": "1983-06-11",
+      "latitude": 40.1405,
+      "longitude": 44.4981,
+      "nameLabels": {
+        "en": "Gortsaranain",
+        "hy": "Գործարանային",
+        "ru": "Горцаранаин"
+      }
+    },
+    {
+      "id": "shengavit",
+      "sortOrder": 8,
+      "category": "metro",
+      "city": "Yerevan",
+      "region": "Yerevan",
+      "country": "AM",
+      "wikipediaTitle": "Shengavit (Yerevan Metro)",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Shengavit_(Yerevan_Metro)",
+      "wikidataId": "Q3918537",
+      "opened": "1985-12-26",
+      "latitude": 40.1453,
+      "longitude": 44.4849,
+      "nameLabels": {
+        "en": "Shengavit",
+        "hy": "Շենգավիթ",
+        "ru": "Шенгавит"
+      }
+    },
+    {
+      "id": "garegin-nzhdeh",
+      "sortOrder": 9,
+      "category": "metro",
+      "city": "Yerevan",
+      "region": "Yerevan",
+      "country": "AM",
+      "wikipediaTitle": "Garegin Nzhdeh Square (Yerevan Metro)",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Garegin_Nzhdeh_Square_(Yerevan_Metro)",
+      "wikidataId": "Q2498675",
+      "opened": "1987-01-04",
+      "latitude": 40.151,
+      "longitude": 44.4835,
+      "nameLabels": {
+        "en": "Garegin Nzhdeh Square",
+        "hy": "Գարեգին Նժդեհի հրապարակ",
+        "ru": "Площадь Гарегина Нжде"
+      }
+    },
+    {
+      "id": "charbakh",
+      "sortOrder": 10,
+      "category": "metro",
+      "city": "Yerevan",
+      "region": "Yerevan",
+      "country": "AM",
+      "wikipediaTitle": "Charbakh (Yerevan Metro)",
+      "wikipediaUrl": "https://en.wikipedia.org/wiki/Charbakh_(Yerevan_Metro)",
+      "wikidataId": "Q3918517",
+      "opened": "1996-12-26",
+      "latitude": 40.140657,
+      "longitude": 44.470748,
+      "nameLabels": {
+        "en": "Charbakh",
+        "hy": "Չարբախ",
+        "ru": "Чарбах"
+      }
+    }
+  ]
+}

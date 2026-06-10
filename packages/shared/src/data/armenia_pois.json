@@ -1,0 +1,230 @@
+{
+  "Abovyan": [
+    {
+      "id": "abovyan_town_center",
+      "sortOrder": 1,
+      "category": "landmark",
+      "city": "Abovyan",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.2739,
+      "longitude": 44.6266,
+      "nameLabels": {
+        "en": "Abovyan Town Center",
+        "hy": "Աբովյանի կենտրոն",
+        "ru": "Центр Абовяна"
+      }
+    },
+    {
+      "id": "abovyan_park",
+      "sortOrder": 2,
+      "category": "park",
+      "city": "Abovyan",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.2712,
+      "longitude": 44.6291,
+      "nameLabels": {
+        "en": "Abovyan Central Park",
+        "hy": "Աբովյանի կենտրոնական պուրակ",
+        "ru": "Центральный парк Абовяна"
+      }
+    }
+  ],
+  "Vagharshapat": [
+    {
+      "id": "etchmiadzin_cathedral",
+      "sortOrder": 1,
+      "category": "landmark",
+      "city": "Vagharshapat",
+      "region": "Armavir",
+      "country": "AM",
+      "latitude": 40.1615,
+      "longitude": 44.2914,
+      "nameLabels": {
+        "en": "Etchmiadzin Cathedral",
+        "hy": "Էջմիածնի մայր տաճար",
+        "ru": "Эчмиадзинский собор"
+      }
+    },
+    {
+      "id": "zvartnots",
+      "sortOrder": 2,
+      "category": "landmark",
+      "city": "Vagharshapat",
+      "region": "Armavir",
+      "country": "AM",
+      "latitude": 40.1569,
+      "longitude": 44.3375,
+      "nameLabels": {
+        "en": "Zvartnots Cathedral",
+        "hy": "Զվարթնոց",
+        "ru": "Храм Звартноц"
+      }
+    }
+  ],
+  "Gyumri": [
+    {
+      "id": "gyumri_vardanants",
+      "sortOrder": 1,
+      "category": "landmark",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.7894,
+      "longitude": 43.8475,
+      "nameLabels": {
+        "en": "Vardanants Square",
+        "hy": "Վարդանանց հրապարակ",
+        "ru": "Площадь Вардананцев"
+      }
+    },
+    {
+      "id": "gyumri_black_fortress",
+      "sortOrder": 2,
+      "category": "landmark",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.8012,
+      "longitude": 43.8351,
+      "nameLabels": {
+        "en": "Black Fortress",
+        "hy": "Սև բերդ",
+        "ru": "Чёрная крепость"
+      }
+    }
+  ],
+  "Dilijan": [
+    {
+      "id": "dilijan_old_town",
+      "sortOrder": 1,
+      "category": "landmark",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7412,
+      "longitude": 44.8631,
+      "nameLabels": {
+        "en": "Dilijan Old Town",
+        "hy": "Դիլիջանի հին թաղ",
+        "ru": "Старый город Дилижана"
+      }
+    },
+    {
+      "id": "dilijan_national_park",
+      "sortOrder": 2,
+      "category": "park",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7518,
+      "longitude": 44.8925,
+      "nameLabels": {
+        "en": "Dilijan National Park",
+        "hy": "Դիլիջանի ազգային պուրակ",
+        "ru": "Дилижанский национальный парк"
+      }
+    }
+  ],
+  "Sevan": [
+    {
+      "id": "sevan_lake",
+      "sortOrder": 1,
+      "category": "landmark",
+      "city": "Sevan",
+      "region": "Gegharkunik",
+      "country": "AM",
+      "latitude": 40.5501,
+      "longitude": 45.0102,
+      "nameLabels": {
+        "en": "Lake Sevan",
+        "hy": "Սևանա լիճ",
+        "ru": "Озеро Севан"
+      }
+    },
+    {
+      "id": "sevanavank",
+      "sortOrder": 2,
+      "category": "landmark",
+      "city": "Sevan",
+      "region": "Gegharkunik",
+      "country": "AM",
+      "latitude": 40.5625,
+      "longitude": 45.0128,
+      "nameLabels": {
+        "en": "Sevanavank Monastery",
+        "hy": "Սևանավանք",
+        "ru": "Севанаванк"
+      }
+    }
+  ],
+  "Goris": [
+    {
+      "id": "goris_center",
+      "sortOrder": 1,
+      "category": "landmark",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.5125,
+      "longitude": 46.3382,
+      "nameLabels": {
+        "en": "Goris Town Center",
+        "hy": "Գորիսի կենտրոն",
+        "ru": "Центр Гориса"
+      }
+    }
+  ],
+  "Kapan": [
+    {
+      "id": "kapan_center",
+      "sortOrder": 1,
+      "category": "landmark",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.2012,
+      "longitude": 46.4151,
+      "nameLabels": {
+        "en": "Kapan Town Center",
+        "hy": "Կապանի կենտրոն",
+        "ru": "Центр Капана"
+      }
+    }
+  ],
+  "Vanadzor": [
+    {
+      "id": "vanadzor_center",
+      "sortOrder": 1,
+      "category": "landmark",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.8128,
+      "longitude": 44.4883,
+      "nameLabels": {
+        "en": "Vanadzor Town Center",
+        "hy": "Վանաձորի կենտրոն",
+        "ru": "Центр Ванадзора"
+      }
+    }
+  ],
+  "Tsakhkadzor": [
+    {
+      "id": "tsaghkadzor_ski",
+      "sortOrder": 1,
+      "category": "landmark",
+      "city": "Tsaghkadzor",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.5325,
+      "longitude": 44.7201,
+      "nameLabels": {
+        "en": "Tsaghkadzor Ski Resort",
+        "hy": "Ծաղկաձորի լեռնային օդանավակայան",
+        "ru": "Горнолыжный курорт Цахкадзор"
+      }
+    }
+  ]
+}

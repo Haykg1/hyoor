@@ -1,0 +1,38 @@
+// Property promotions and seasonal deals
+
+enum PromotionType {
+  DATE_RANGE
+  PROMO_CODE
+}
+
+enum PromotionDiscountType {
+  PERCENT
+  FIXED_AMOUNT
+}
+
+model PropertyPromotion {
+  id               String                @id @default(cuid())
+  propertyId       String
+  type             PromotionType
+  discountType     PromotionDiscountType
+  discountPercent  Int?
+  discountAmount   Int?
+  description      String
+  bookingStartDate DateTime              @db.Date
+  bookingEndDate   DateTime              @db.Date
+  promoCode        String?
+  maxApplications  Int
+  appliedCount     Int                   @default(0)
+  notifyGuests     Boolean               @default(false)
+  isActive         Boolean               @default(true)
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  property Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@unique([propertyId, promoCode])
+  @@index([propertyId])
+  @@index([isActive])
+  @@map("property_promotions")
+}

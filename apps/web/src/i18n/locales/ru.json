@@ -75,7 +75,73 @@
     "sign_up": "Регистрация",
     "logout": "Выйти",
     "account": "Аккаунт",
-    "menu": "Меню"
+    "favorites": "Избранное",
+    "menu": "Меню",
+    "notifications": "Уведомления"
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "bell_label": "Уведомления",
+    "empty": "Уведомлений пока нет.",
+    "loading": "Загрузка…",
+    "mark_read": "Прочитано",
+    "mark_unread": "Непрочитано",
+    "mark_all_read": "Прочитать все",
+    "clear_all": "Очистить все",
+    "remove": "Удалить"
+  },
+  "favorites": {
+    "title": "Избранное",
+    "subtitle": "{count, plural, =0 {Нет сохранённых объектов} one {# сохранён} few {# сохранено} many {# сохранено} other {# сохранено}}",
+    "login_modal": {
+      "title": "Войдите, чтобы сохранять",
+      "description": "Создайте аккаунт или войдите, чтобы добавлять объекты в избранное.",
+      "cancel": "Отмена",
+      "sign_in": "Войти"
+    },
+    "empty": {
+      "title": "Пока пусто",
+      "description": "Нажмите на сердечко у объекта, чтобы сохранить его здесь.",
+      "explore": "Смотреть объекты"
+    },
+    "filters": {
+      "title_placeholder": "Поиск по названию",
+      "search": "Искать",
+      "regions_label": "Регионы",
+      "regions_placeholder": "Все регионы",
+      "cities_label": "Города",
+      "cities_placeholder": "Все города",
+      "selected_count": "{count, plural, one {# выбран} few {# выбрано} many {# выбрано} other {# выбрано}}",
+      "property_type": "Тип",
+      "all_types": "Все типы",
+      "min_price": "Мин. цена",
+      "max_price": "Макс. цена",
+      "max_guests": "Гости",
+      "min_bedrooms": "Мин. спален",
+      "sort": "Сортировка",
+      "sort_newest": "Недавно добавленные",
+      "sort_oldest": "Старые",
+      "sort_price_asc": "Цена: по возрастанию",
+      "sort_price_desc": "Цена: по убыванию",
+      "reset": "Сбросить фильтры",
+      "more_filters": "Доп. фильтры",
+      "clear_filters": "Очистить фильтры",
+      "applied_count": "{count, plural, one {Применён # фильтр} few {Применено # фильтра} many {Применено # фильтров} other {Применено # фильтра}}",
+      "types": {
+        "APARTMENT": "Квартира",
+        "HOUSE": "Дом",
+        "VILLA": "Вилла",
+        "STUDIO": "Студия",
+        "GUESTHOUSE": "Гостевой дом",
+        "HOTEL_ROOM": "Номер в отеле",
+        "OTHER": "Другое"
+      }
+    },
+    "pagination": {
+      "prev": "Назад",
+      "next": "Вперёд",
+      "page": "Страница {page} из {totalPages}"
+    }
   },
   "search": {
     "page_title": "Поиск жилья",
@@ -154,10 +220,67 @@
     "copyright": "© {year} RentStar. Все права защищены."
   },
   "property": {
+    "nearby_places": "Что рядом",
+    "nearest_metro": "Ближайшее метро",
+    "featured_destinations": "Избранные места",
+    "travel_time_walk": "{travelTime} пешком",
+    "travel_time_vehicle": "{travelTime} на транспорте",
+    "copy_id": "Копировать ID",
+    "copy_id_success": "ID объекта скопирован",
+    "copy_id_error": "Не удалось скопировать ID",
+    "compare": {
+      "button": "Сравнить",
+      "tooltip": "Сравните это объявление с другим объектом, указав его ID.",
+      "popover_title": "Сравнить с другим объектом",
+      "property_id_label": "ID другого объекта",
+      "property_id_placeholder": "Вставьте ID объекта",
+      "compare_action": "Сравнить",
+      "copy_id": "Копировать ID",
+      "copy_success": "ID объекта скопирован",
+      "copy_error": "Не удалось скопировать ID",
+      "page_title": "Сравнение объектов",
+      "summary_title": "Итог сравнения",
+      "per_night": " / ночь",
+      "guests": "до {count} гостей",
+      "bedrooms": "{count, plural, one {# спальня} few {# спальни} many {# спален} other {# спальни}}",
+      "bathrooms": "{count, plural, one {# ванная} few {# ванные} many {# ванных} other {# ванные}}",
+      "amenities_count": "{count, plural, one {# удобство} few {# удобства} many {# удобств} other {# удобства}}",
+      "reviews_count": "({count, plural, one {# отзыв} few {# отзыва} many {# отзывов} other {# отзыва}})",
+      "no_reviews": "Пока нет отзывов",
+      "view_listing": "Открыть объявление",
+      "back_to_search": "Вернуться к поиску",
+      "share": "Поделиться",
+      "share_tooltip": "Эта ссылка действует 24 часа.",
+      "share_copied": "Ссылка скопирована в буфер обмена",
+      "share_error": "Не удалось создать ссылку",
+      "meta_title": "{left} и {right}",
+      "meta_description": "Сравните {left} ({leftPrice}) и {right} ({rightPrice}) рядом на RentStar.",
+      "meta_description_fallback": "Сравните два объекта рядом на RentStar.",
+      "errors": {
+        "required": "Введите ID объекта.",
+        "same_property": "Выберите другой объект, не этот.",
+        "not_found": "Объект не найден.",
+        "not_found_page": "Один или оба объекта не найдены.",
+        "invalid_params": "Укажите два ID объекта для сравнения.",
+        "expired": "Срок действия ссылки истёк. Ссылки сравнения действуют 24 часа."
+      },
+      "summary": {
+        "price_cheaper": "{name} — дешевле за ночь.",
+        "price_tie": "Одинаковая цена за ночь у обоих объектов.",
+        "amenities_more": "У {name} больше удобств ({count} vs {otherCount}).",
+        "amenities_tie": "У обоих объектов одинаковое число удобств ({count}).",
+        "reviews_more": "У {name} больше отзывов ({count} vs {otherCount}).",
+        "reviews_tie": "У обоих объектов одинаковое число отзывов ({count}).",
+        "reviews_none": "У обоих объектов пока нет отзывов.",
+        "rating_higher": "У {name} выше средний рейтинг ({rating} vs {otherRating}).",
+        "rating_tie": "Одинаковый средний рейтинг ({rating}).",
+        "rating_insufficient": "Недостаточно отзывов для сравнения рейтинга."
+      }
+    },
     "per_night": "/ night",
     "guests": "{count} guests",
     "bedrooms": "{count} bedrooms",
-    "book_now": "Request to Book",
+    "book_now": "Забронировать",
     "contact_host": "Contact host directly",
     "show_all_photos": "Show all photos",
     "show_more": "Show more",
@@ -201,6 +324,14 @@
     "submitting": "Бронирование…",
     "nights_subtotal": "{count} ночей × {price}",
     "cleaning_fee": "Уборка",
+    "security_deposit": "Залог",
+    "promo_code": "Промокод",
+    "promo_code_placeholder": "Введите код",
+    "promo_code_invalid": "Недействительный или просроченный промокод",
+    "promotion_discount": "Акция",
+    "promotion_applied_code": "Код {code}",
+    "promotion_applied_percent": "Скидка {percent}%",
+    "loading_quote": "Расчёт цены…",
     "validation": {
       "dates_required": "Пожалуйста, выберите даты заезда и выезда",
       "invalid_range": "Дата выезда должна быть позже даты заезда",
@@ -208,9 +339,15 @@
       "max_nights": "Максимальный срок проживания — {max} ночей",
       "too_many_guests": "Максимально разрешено {max} гостей"
     },
+    "confirm_dialog": {
+      "title": "Подтвердите бронирование",
+      "description": "Проверьте детали перед завершением бронирования.",
+      "confirm": "Подтвердить бронирование",
+      "cancel": "Отмена"
+    },
     "confirmation": {
-      "title": "Запрос на бронирование отправлен!",
-      "subtitle": "Ваше проживание ожидает подтверждения хозяина. Мы уведомим вас после подтверждения.",
+      "title": "Бронирование подтверждено!",
+      "subtitle": "Ваше проживание забронировано. Мы отправили вам подтверждение.",
       "continue_payment": "Перейти к оплате (скоро)"
     }
   },
@@ -293,7 +430,63 @@
     "tabs": {
       "listings": "Мои объявления",
       "disabled": "Отключённые",
-      "booking_requests": "Запросы на бронирование"
+      "reservations": "Бронирования",
+      "promotions": "Акции"
+    },
+    "reservations": {
+      "tab_upcoming": "Предстоящие",
+      "tab_past": "Прошедшие",
+      "empty_upcoming": "Нет предстоящих бронирований.",
+      "empty_past": "Нет прошедших бронирований."
+    },
+    "promotions": {
+      "pick_property": "Объект",
+      "no_listings": "Выберите объявление",
+      "add_promotion": "Добавить акцию",
+      "empty_listings": "Сначала создайте активное объявление.",
+      "empty_promotions": "Для этого объекта акций пока нет.",
+      "loading": "Загрузка…",
+      "meta": "{start} – {end} · осталось {remaining} · {type}",
+      "types": { "date_range": "Скидка по датам" },
+      "form": {
+        "title": "Новая акция",
+        "subtitle": "Акция для {title}",
+        "no_property": "Сначала выберите объект.",
+        "promotion_type": "Тип акции",
+        "discount_type": "Тип скидки",
+        "types": { "date_range": "По датам", "promo_code": "Промокод" },
+        "discount": {
+          "percent": "Процент",
+          "fixed": "Фиксированная",
+          "percent_label": "Скидка (%)",
+          "fixed_label": "Сумма ({currency})"
+        },
+        "promo_code": "Промокод",
+        "booking_dates": "Даты бронирования",
+        "max_applications": "Лимит использований",
+        "description": "Описание (обязательно)",
+        "smart_description": "Сгенерировать описание",
+        "notify_guests": "Уведомить гостей, сохранивших объект",
+        "cancel": "Отмена",
+        "create": "Создать",
+        "errors": {
+          "date_range": "Выберите диапазон дат.",
+          "description": "Описание — минимум 10 символов.",
+          "max_applications": "Укажите корректный лимит.",
+          "submit": "Не удалось создать акцию."
+        }
+      },
+      "created_dialog": {
+        "title": "Акция создана",
+        "notified": "Уведомления отправлены {count} гостям.",
+        "not_notified": "Уведомления гостям не отправлялись.",
+        "close": "Готово"
+      },
+      "remove": "Удалить",
+      "removing": "Удаление…",
+      "remove_title": "Удалить акцию?",
+      "remove_confirm": "Акция будет удалена без возможности восстановления. Гости больше не увидят её.",
+      "remove_error": "Не удалось удалить акцию."
     },
     "pagination": {
       "page_size": "На странице",
@@ -408,6 +601,7 @@
       "active_listings": "Активные объявления",
       "active_bookings": "Active Bookings",
       "pending_requests": "Pending Requests",
+      "upcoming_reservations": "Предстоящие бронирования",
       "total_earned": "Total Earned"
     },
     "sidebar_preview": "Host sidebar preview",
@@ -490,6 +684,23 @@
       "apartment_number": "Квартира / офис",
       "apartment_number_placeholder": "напр. 12А (необязательно)",
       "address_verification_required": "Выберите подтверждённый адрес здания из списка",
+      "nearest_metro_loading": "Ищем ближайшее метро…",
+      "nearest_metro_walk": "{travelTime} пешком до {station}",
+      "nearest_metro_vehicle": "{travelTime} на транспорте до {station}",
+      "poi_section_title": "Ближайшие достопримечательности",
+      "poi_select_hint": "Выберите до 5 мест, о которых должны знать гости.",
+      "poi_selected_count": "Выбрано {count}/{max}",
+      "poi_none_available": "Для этого города каталог мест недоступен.",
+      "poi_loading": "Загрузка ближайших мест…",
+      "poi_distance_walk": "{distanceKm} км · {travelTime} пешком",
+      "poi_distance_vehicle": "{distanceKm} км · {travelTime} на транспорте",
+      "poi_categories": {
+        "landmark": "Достопримечательность",
+        "museum": "Музей",
+        "park": "Парк",
+        "market": "Рынок",
+        "memorial": "Мемориал"
+      },
       "place_searching": "Поиск…",
       "place_no_results": "Места не найдены"
     },
@@ -669,7 +880,18 @@
     "subtitle": "Управляйте своим профилем и настройками",
     "photo": {
       "title": "Фото профиля",
-      "upload": "Загрузить фото"
+      "upload": "Загрузить фото",
+      "uploading": "Загрузка…",
+      "remove": "Удалить фото"
+    },
+    "host": {
+      "title": "Профиль хозяина",
+      "subtitle": "Это описание видят гости на страницах ваших объявлений.",
+      "description": "О вас как о хозяине",
+      "description_placeholder": "Расскажите о себе, стиле приёма гостей и чего им ожидать…",
+      "save": "Сохранить профиль хозяина",
+      "saving": "Сохранение…",
+      "save_success": "Профиль хозяина сохранён."
     },
     "personal": {
       "title": "Личная информация",

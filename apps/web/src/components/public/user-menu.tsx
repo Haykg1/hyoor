@@ -3,7 +3,7 @@
 import { LayoutDashboard, LogOut, Plane, User as UserIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -30,6 +30,7 @@ export function UserMenu({ variant = 'default' }: UserMenuProps = {}): React.JSX
   const t = useTranslations('nav');
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const avatarUrl = useAuthStore((s) => s.avatarUrl);
   const isLoading = useAuthStore((s) => s.isLoading);
   const logout = useAuthStore((s) => s.logout);
   const isCompact = variant === 'compact';
@@ -63,6 +64,7 @@ export function UserMenu({ variant = 'default' }: UserMenuProps = {}): React.JSX
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className={cn('gap-2 rounded-full px-2', isCompact && 'h-8')}>
           <Avatar className={cn(isCompact ? 'h-6 w-6' : 'h-7 w-7')}>
+            {avatarUrl ? <AvatarImage src={avatarUrl} alt={user.email} /> : null}
             <AvatarFallback className="bg-primary text-xs text-primary-foreground">
               {getInitials(user.email)}
             </AvatarFallback>

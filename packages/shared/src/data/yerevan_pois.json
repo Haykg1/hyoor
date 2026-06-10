@@ -1,0 +1,383 @@
+[
+  {
+    "id": "republic_square",
+    "sortOrder": 1,
+    "category": "landmark",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "wikipediaTitle": "Republic Square, Yerevan",
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Republic_Square,_Yerevan",
+    "latitude": 40.1777,
+    "longitude": 44.5128,
+    "nameLabels": {
+      "en": "Republic Square",
+      "hy": "Հանրապետության հրապարակ",
+      "ru": "Площадь Республики"
+    }
+  },
+  {
+    "id": "cascade",
+    "sortOrder": 2,
+    "category": "landmark",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "wikipediaTitle": "Yerevan Cascade",
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Yerevan_Cascade",
+    "latitude": 40.1872,
+    "longitude": 44.5076,
+    "nameLabels": {
+      "en": "Cascade",
+      "hy": "Կասկադ",
+      "ru": "Каскад"
+    }
+  },
+  {
+    "id": "matenadaran",
+    "sortOrder": 3,
+    "category": "museum",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "wikipediaTitle": "Matenadaran",
+    "wikipediaUrl": "https://en.wikipedia.org/wiki/Matenadaran",
+    "latitude": 40.1916,
+    "longitude": 44.5153,
+    "nameLabels": {
+      "en": "Matenadaran",
+      "hy": "Մատենադարան",
+      "ru": "Матенадаран"
+    }
+  },
+  {
+    "id": "opera_house",
+    "sortOrder": 4,
+    "category": "landmark",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1856,
+    "longitude": 44.5139,
+    "nameLabels": {
+      "en": "Yerevan Opera House",
+      "hy": "Օպերայի և բալետի ազգային ակադեմիական թատրոն",
+      "ru": "Ереванский оперный театр"
+    }
+  },
+  {
+    "id": "vernisage",
+    "sortOrder": 5,
+    "category": "market",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1792,
+    "longitude": 44.5145,
+    "nameLabels": {
+      "en": "Vernissage Market",
+      "hy": "Վերնիսաժ",
+      "ru": "Вернисаж"
+    }
+  },
+  {
+    "id": "tsitsernakaberd",
+    "sortOrder": 6,
+    "category": "memorial",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1878,
+    "longitude": 44.4895,
+    "nameLabels": {
+      "en": "Tsitsernakaberd Memorial",
+      "hy": "Ծիծեռնակաբերդ",
+      "ru": "Цицернакаберд"
+    }
+  },
+  {
+    "id": "northern_avenue",
+    "sortOrder": 7,
+    "category": "landmark",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1812,
+    "longitude": 44.5141,
+    "nameLabels": {
+      "en": "Northern Avenue",
+      "hy": "Հյուսիսային պողոտա",
+      "ru": "Северный проспект"
+    }
+  },
+  {
+    "id": "victory_park",
+    "sortOrder": 8,
+    "category": "park",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1956,
+    "longitude": 44.5092,
+    "nameLabels": {
+      "en": "Victory Park",
+      "hy": "Հաղթանակի պուրակ",
+      "ru": "Парк Победы"
+    }
+  },
+  {
+    "id": "blue_mosque",
+    "sortOrder": 9,
+    "category": "landmark",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1758,
+    "longitude": 44.5159,
+    "nameLabels": {
+      "en": "Blue Mosque",
+      "hy": "Կապույտ մզկիթ",
+      "ru": "Голубая мечеть"
+    }
+  },
+  {
+    "id": "saint_gregory_cathedral",
+    "sortOrder": 10,
+    "category": "landmark",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1731,
+    "longitude": 44.5142,
+    "nameLabels": {
+      "en": "Saint Gregory the Illuminator Cathedral",
+      "hy": "Սուրբ Գրիգոր Լուսավորիչ մայր տաճար",
+      "ru": "Собор Святого Григория Просветителя"
+    }
+  },
+  {
+    "id": "history_museum",
+    "sortOrder": 11,
+    "category": "museum",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1779,
+    "longitude": 44.5134,
+    "nameLabels": {
+      "en": "History Museum of Armenia",
+      "hy": "Հայաստանի պատմության թանգարան",
+      "ru": "Музей истории Армении"
+    }
+  },
+  {
+    "id": "cascade_complex",
+    "sortOrder": 12,
+    "category": "museum",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1881,
+    "longitude": 44.5082,
+    "nameLabels": {
+      "en": "Cafesjian Center for the Arts",
+      "hy": "Կաֆեսճյան արվեստի կենտրոն",
+      "ru": "Центр искусств Кафесджяна"
+    }
+  },
+  {
+    "id": "mashtots_avenue",
+    "sortOrder": 13,
+    "category": "landmark",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1815,
+    "longitude": 44.5125,
+    "nameLabels": {
+      "en": "Mashtots Avenue",
+      "hy": "Մաշտոցի պողոտա",
+      "ru": "Проспект Маштоца"
+    }
+  },
+  {
+    "id": "lovers_park",
+    "sortOrder": 14,
+    "category": "park",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1895,
+    "longitude": 44.5098,
+    "nameLabels": {
+      "en": "Lovers' Park",
+      "hy": "Սիրահարների պուրակ",
+      "ru": "Парк влюблённых"
+    }
+  },
+  {
+    "id": "zoravor_church",
+    "sortOrder": 15,
+    "category": "landmark",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1765,
+    "longitude": 44.5182,
+    "nameLabels": {
+      "en": "Zoravor Surp Astvatsatsin Church",
+      "hy": "Զորավոր Սուրբ Աստվածածին եկեղեցի",
+      "ru": "Церковь Зоравор Сурб Аствацацин"
+    }
+  },
+  {
+    "id": "hrazdan_stadium",
+    "sortOrder": 16,
+    "category": "landmark",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1818,
+    "longitude": 44.5051,
+    "nameLabels": {
+      "en": "Hrazdan Stadium",
+      "hy": "Հրազդան մարզադաշտ",
+      "ru": "Стадион Раздан"
+    }
+  },
+  {
+    "id": "komitas_museum",
+    "sortOrder": 17,
+    "category": "museum",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1942,
+    "longitude": 44.5087,
+    "nameLabels": {
+      "en": "Komitas Museum-Institute",
+      "hy": "Կոմիտասի թանգարան-ինստիտուտ",
+      "ru": "Музей-институт Комитаса"
+    }
+  },
+  {
+    "id": "sasuntsi_davit",
+    "sortOrder": 18,
+    "category": "landmark",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1968,
+    "longitude": 44.5095,
+    "nameLabels": {
+      "en": "Sasuntsi Davit Statue",
+      "hy": "Սասունցի Դավիթ արձան",
+      "ru": "Памятник Сасунцi Давиду"
+    }
+  },
+  {
+    "id": "yerevan_brandy",
+    "sortOrder": 19,
+    "category": "landmark",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1682,
+    "longitude": 44.5021,
+    "nameLabels": {
+      "en": "Yerevan Brandy Company",
+      "hy": "Երևանի կոնյակի գործարան",
+      "ru": "Ереванский коньячный завод"
+    }
+  },
+  {
+    "id": "arabkir_park",
+    "sortOrder": 20,
+    "category": "park",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.2051,
+    "longitude": 44.5089,
+    "nameLabels": {
+      "en": "Arabkir Park",
+      "hy": "Արաբկիրի պուրակ",
+      "ru": "Парк Арабкир"
+    }
+  },
+  {
+    "id": "dalma_garden",
+    "sortOrder": 21,
+    "category": "market",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.2012,
+    "longitude": 44.5215,
+    "nameLabels": {
+      "en": "Dalma Garden Mall",
+      "hy": "Դալմա Գարդեն",
+      "ru": "ТРЦ Dalma Garden"
+    }
+  },
+  {
+    "id": "zorats_karer",
+    "sortOrder": 22,
+    "category": "landmark",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1582,
+    "longitude": 44.4891,
+    "nameLabels": {
+      "en": "Erebuni Fortress",
+      "hy": "Էրեբունի",
+      "ru": "Крепость Эребуни"
+    }
+  },
+  {
+    "id": "shengavit",
+    "sortOrder": 23,
+    "category": "landmark",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1558,
+    "longitude": 44.4682,
+    "nameLabels": {
+      "en": "Shengavit Settlement",
+      "hy": "Շենգավիթ",
+      "ru": "Шенгавит"
+    }
+  },
+  {
+    "id": "zoravar_andranik",
+    "sortOrder": 24,
+    "category": "memorial",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1745,
+    "longitude": 44.5098,
+    "nameLabels": {
+      "en": "Andranik Statue",
+      "hy": "Անդրանիկի արձան",
+      "ru": "Памятник Андранику"
+    }
+  },
+  {
+    "id": "yerevan_zoo",
+    "sortOrder": 25,
+    "category": "park",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1925,
+    "longitude": 44.5012,
+    "nameLabels": {
+      "en": "Yerevan Zoo",
+      "hy": "Երևանի կենդանաբանական այգի",
+      "ru": "Ереванский зоопарк"
+    }
+  }
+]

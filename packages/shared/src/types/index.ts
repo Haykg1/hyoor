@@ -87,7 +87,9 @@ export interface PublicHostProfile {
   hostType: HostType;
   displayName: string;
   companyName: string | null;
+  description: string | null;
   logoUrl: string | null;
+  avatarUrl: string | null;
   isVerified: boolean;
   responseRatePercent: number | null;
   responseTimeHours: number | null;
@@ -163,6 +165,8 @@ export interface PropertyDetail {
   avgRating: number | null;
   reviewCount: number;
   addressLabels: PropertyAddressLabels | null;
+  featuredPoiIds?: string[];
+  featuredPois?: import('./poi').PropertyFeaturedPoiView[];
 }
 
 export interface ReviewAuthorProfile {
@@ -192,6 +196,7 @@ export interface CreateBookingInput {
   checkOut: string;
   guestCount: number;
   specialRequests?: string;
+  promoCode?: string;
 }
 
 export interface BookingPropertySummary {
@@ -223,6 +228,8 @@ export interface BookingDetail {
   nightlyRate: number;
   cleaningFee: number;
   securityDeposit: number;
+  discountAmount: number;
+  promotionId: string | null;
   totalAmount: number;
   currency: string;
   specialRequests: string | null;
@@ -232,6 +239,7 @@ export interface BookingDetail {
   property: BookingPropertySummary;
   guest: BookingGuestProfile;
   conversationId: string | null;
+  promotionSummary?: import('../dto/booking-quote').BookingPromotionSummary | null;
 }
 
 export const PropertyStatuses = [
@@ -263,6 +271,8 @@ export interface HostDashboardStats {
   totalListings: number;
   activeListings: number;
   pendingRequests: number;
+  upcomingReservations: number;
+  pastReservations: number;
   totalEarnings: number;
 }
 

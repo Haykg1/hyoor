@@ -5,6 +5,7 @@ import { AvailabilityModule } from '../availability/availability.module';
 import { HostProfilesModule } from '../host-profiles/host-profiles.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PaymentsModule } from '../payments/payments.module';
+import { PromotionsModule } from '../promotions/promotions.module';
 import { StorageModule } from '../storage/storage.module';
 
 import { BookingsController } from './bookings.controller';
@@ -17,6 +18,7 @@ import { BookingsService } from './bookings.service';
     HostProfilesModule,
     NotificationsModule,
     PaymentsModule,
+    PromotionsModule,
     StorageModule,
   ],
   controllers: [BookingsController],

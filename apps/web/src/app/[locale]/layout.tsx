@@ -6,6 +6,8 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import type { ReactNode } from 'react';
 
 import { AuthProvider } from '@/components/providers/auth-provider';
+import { FavoritesHydrator } from '@/components/providers/favorites-hydrator';
+import { NotificationsHydrator } from '@/components/providers/notifications-hydrator';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import type { Locale } from '@/i18n/routing';
@@ -20,6 +22,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   title: 'RentStar',
   description: 'Short-term rentals in Armenia and beyond',
 };
@@ -45,6 +48,8 @@ export default async function LocaleLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider>
           <AuthProvider>
+            <FavoritesHydrator />
+            <NotificationsHydrator />
             <NextIntlClientProvider messages={messages}>
               {children}
               <Toaster richColors closeButton />

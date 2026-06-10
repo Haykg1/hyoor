@@ -42,6 +42,6 @@ const googleOAuthEnabled = Boolean(process.env.GOOGLE_CLIENT_ID);
     OptionalJwtAuthGuard,
     RolesGuard,
   ],
-  exports: [AuthService, JwtAuthGuard, OptionalJwtAuthGuard, RolesGuard],
+  exports: [AuthService, JwtAuthGuard, OptionalJwtAuthGuard, RolesGuard, JwtModule],
 })
 export class AuthModule {}

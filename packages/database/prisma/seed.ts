@@ -260,7 +260,10 @@ async function main(): Promise<void> {
   // ── Host Profiles ────────────────────────────────────────────────────────
   const hp1 = await prisma.hostProfile.upsert({
     where: { userId: host1.id },
-    update: {},
+    update: {
+      description:
+        'Local host with 5+ years of experience welcoming guests to Yerevan. I love sharing tips on food, culture, and hidden gems.',
+    },
     create: {
       userId: host1.id,
       hostType: 'INDIVIDUAL',
@@ -268,12 +271,16 @@ async function main(): Promise<void> {
       responseRatePercent: 98,
       responseTimeHours: 2,
       payoutEmail: 'armen@rentstar.am',
+      description:
+        'Local host with 5+ years of experience welcoming guests to Yerevan. I love sharing tips on food, culture, and hidden gems.',
     },
   });
 
   const hp2 = await prisma.hostProfile.upsert({
     where: { userId: host2.id },
-    update: {},
+    update: {
+      description: 'Passionate about hospitality and making every stay comfortable and memorable.',
+    },
     create: {
       userId: host2.id,
       hostType: 'INDIVIDUAL',
@@ -281,12 +288,16 @@ async function main(): Promise<void> {
       responseRatePercent: 95,
       responseTimeHours: 4,
       payoutEmail: 'nare@rentstar.am',
+      description: 'Passionate about hospitality and making every stay comfortable and memorable.',
     },
   });
 
   const hp3 = await prisma.hostProfile.upsert({
     where: { userId: host3.id },
-    update: {},
+    update: {
+      description:
+        'RentStar Hospitality manages premium short-term rentals across Armenia with 24/7 guest support.',
+    },
     create: {
       userId: host3.id,
       hostType: 'COMPANY',
@@ -297,6 +308,8 @@ async function main(): Promise<void> {
       companyRegNumber: 'AM-12345678',
       vatNumber: 'AM-VAT-001',
       payoutEmail: 'finance@rentstar.am',
+      description:
+        'RentStar Hospitality manages premium short-term rentals across Armenia with 24/7 guest support.',
     },
   });
 
@@ -1113,6 +1126,15 @@ async function main(): Promise<void> {
     }
   }
 
+  // ── Property favorites (guest demo) ─────────────────────────────────────
+  for (const propertyId of [p1.id, p2.id]) {
+    await prisma.propertyFavorite.upsert({
+      where: { userId_propertyId: { userId: guest1.id, propertyId } },
+      update: {},
+      create: { userId: guest1.id, propertyId },
+    });
+  }
+
   // ── Bookings ─────────────────────────────────────────────────────────────
 
   // COMPLETED: guest1 stayed at p1 (needed for reviews)
@@ -1697,6 +1719,32 @@ async function main(): Promise<void> {
     },
   });
 
+  // ── Favorites & promotions (demo) ───────────────────────────────────────
+  await prisma.propertyFavorite.upsert({
+    where: { userId_propertyId: { userId: guest1.id, propertyId: p1.id } },
+    update: {},
+    create: { userId: guest1.id, propertyId: p1.id },
+  });
+  const demoPromotion = await prisma.propertyPromotion.upsert({
+    where: { id: 'seed-promotion-001' },
+    update: {},
+    create: {
+      id: 'seed-promotion-001',
+      propertyId: p1.id,
+      type: 'DATE_RANGE',
+      discountType: 'PERCENT',
+      discountPercent: 15,
+      description:
+        '15% off for stays booked between July and August. Valid for 5 future bookings in this period (0 already applied).',
+      bookingStartDate: utcDate(30),
+      bookingEndDate: utcDate(90),
+      maxApplications: 5,
+      appliedCount: 0,
+      notifyGuests: true,
+      isActive: true,
+    },
+  });
+
   // ── Notifications ────────────────────────────────────────────────────────
   const notifications = [
     {
@@ -1709,34 +1757,19 @@ async function main(): Promise<void> {
       refType: 'booking',
     },
     {
-      id: 'seed-notif-002',
-      userId: guest2.id,
-      type: 'BOOKING_REQUEST' as const,
-      title: 'Booking sent',
-      body: 'Your request for Ararat Mountain Guesthouse is pending approval.',
-      refId: pendingBooking.id,
-      refType: 'booking',
-    },
-    {
-      id: 'seed-notif-003',
+      id: 'seed-notif-005',
       userId: guest1.id,
-      type: 'BOOKING_CONFIRMED' as const,
-      title: 'Booking confirmed',
-      body: 'Your booking for Kentron Heritage House has been confirmed.',
-      refId: confirmedBooking2.id,
-      refType: 'booking',
-    },
-    {
-      id: 'seed-notif-004',
-      userId: guest1.id,
-      type: 'NEW_REVIEW' as const,
-      title: 'New review received',
-      body: 'Armen left you a 5-star review.',
-      refId: completedBooking.id,
-      refType: 'booking',
+      type: 'PROPERTY_PROMOTION' as const,
+      title: `Deal: ${p1.title}`,
+      body: `${demoPromotion.description}\n${p1.formattedAddress ?? p1.addressLine ?? `${p1.city}, ${p1.country}`}`,
+      refId: demoPromotion.id,
+      refType: 'promotion',
     },
   ];
 
+  await prisma.notification.deleteMany({
+    where: { id: { in: ['seed-notif-002', 'seed-notif-003', 'seed-notif-004'] } },
+  });
   for (const n of notifications) {
     await prisma.notification.upsert({ where: { id: n.id }, update: {}, create: n });
   }

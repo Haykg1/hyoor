@@ -32,6 +32,7 @@ export default function BookingConfirmationPage(): React.JSX.Element {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const t = useTranslations('booking.confirmation');
+  const tBooking = useTranslations('booking');
   const locale = useLocale();
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -94,9 +95,27 @@ export default function BookingConfirmationPage(): React.JSX.Element {
             <span className="text-muted-foreground">Guests</span>
             <span>{booking.guestCount}</span>
           </div>
+          {booking.discountAmount > 0 && (
+            <div className="flex justify-between text-emerald-600">
+              <span>{tBooking('promotion_discount')}</span>
+              <span>−{formatPrice(booking.discountAmount, booking.currency)}</span>
+            </div>
+          )}
+          {booking.cleaningFee > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{tBooking('cleaning_fee')}</span>
+              <span>{formatPrice(booking.cleaningFee, booking.currency)}</span>
+            </div>
+          )}
+          {booking.securityDeposit > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{tBooking('security_deposit')}</span>
+              <span>{formatPrice(booking.securityDeposit, booking.currency)}</span>
+            </div>
+          )}
           <Separator />
           <div className="flex justify-between font-semibold">
-            <span>Total</span>
+            <span>{tBooking('total')}</span>
             <span>{formatPrice(booking.totalAmount, booking.currency)}</span>
           </div>
         </CardContent>

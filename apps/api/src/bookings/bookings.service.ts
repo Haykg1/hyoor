@@ -6,15 +6,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Booking, BookingStatus, Prisma, Property } from '@repo/database/client';
-import type { PaginatedResponse } from '@repo/shared';
+import type { BookingQuoteResult, PaginatedResponse } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 
 import { AvailabilityService } from '../availability/availability.service';
 import { PrismaService } from '../database/prisma.service';
 import { HostProfilesService } from '../host-profiles/host-profiles.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { PromotionsService } from '../promotions/promotions.service';
 import { StorageService } from '../storage/storage.service';
 
+import { BookingQuoteDto } from './dto/booking-quote.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { QueryBookingsDto } from './dto/query-bookings.dto';
@@ -42,6 +44,7 @@ export interface BookingDetail extends Booking {
   property: BookingPropertySummary;
   guest: BookingGuestProfile;
   conversationId: string | null;
+  promotionSummary?: import('@repo/shared').BookingPromotionSummary | null;
 }
 
 const COVER_PHOTO_PRESIGN_EXPIRES = 3600;
@@ -53,8 +56,25 @@ export class BookingsService {
     private readonly availabilityService: AvailabilityService,
     private readonly hostProfilesService: HostProfilesService,
     private readonly notificationsService: NotificationsService,
+    private readonly promotionsService: PromotionsService,
     private readonly storage: StorageService,
   ) {}
+
+  async getQuote(dto: BookingQuoteDto): Promise<BookingQuoteResult> {
+    const property = await this.prisma.property.findUnique({
+      where: { id: dto.propertyId },
+    });
+    if (!property) {
+      throw new NotFoundException('Property not found');
+    }
+    if (property.status !== 'ACTIVE') {
+      throw new BadRequestException('Property is not available for booking');
+    }
+    const checkIn = parseIsoDate(dto.checkIn, 'checkIn');
+    const checkOut = parseIsoDate(dto.checkOut, 'checkOut');
+    validateStayDates(checkIn, checkOut);
+    return this.buildStayQuote(property, checkIn, checkOut, dto.promoCode);
+  }
 
   private async safeCoverPhotoUrl(key: string | undefined | null): Promise<string | null> {
     if (!key || !this.storage.isConfigured) return null;
@@ -102,34 +122,48 @@ export class BookingsService {
     if (!available) {
       throw new ConflictException('Selected dates are not available');
     }
-    const pricing = await this.calculateStayPricing(property, checkIn, checkOut);
+    const quote = await this.buildStayQuote(property, checkIn, checkOut, dto.promoCode);
+    if (dto.promoCode?.trim() && quote.promoCodeError) {
+      throw new BadRequestException(quote.promoCodeError);
+    }
+    const promotionId = quote.appliedPromotion?.id ?? null;
     const booking = await this.prisma.$transaction(async (tx) => {
+      if (promotionId) {
+        await this.promotionsService.assertPromotionSlotAvailable(promotionId);
+        await this.promotionsService.incrementAppliedCount(promotionId, tx);
+      }
       const created = await tx.booking.create({
         data: {
           propertyId: dto.propertyId,
           guestId,
-          status: 'PENDING',
+          status: 'CONFIRMED',
           checkIn,
           checkOut,
           guestCount: dto.guestCount,
           specialRequests: dto.specialRequests,
           currency: property.currency,
-          nightlyRate: pricing.nightlyRate,
+          nightlyRate: quote.nightlyRate,
           nightsCount,
-          cleaningFee: property.cleaningFee,
-          securityDeposit: property.securityDeposit,
-          totalAmount: pricing.totalAmount,
+          cleaningFee: quote.cleaningFee,
+          securityDeposit: quote.securityDeposit,
+          discountAmount: quote.discountAmount,
+          promotionId,
+          totalAmount: quote.totalAmount,
         },
       });
       await tx.conversation.create({ data: { bookingId: created.id } });
       return created;
     });
-    await this.notificationsService.notify(
-      property.host.userId,
-      'BOOKING_REQUEST',
-      booking.id,
-      'booking',
-    );
+    await this.availabilityService.blockDatesForBooking(dto.propertyId, checkIn, checkOut);
+    await Promise.all([
+      this.notificationsService.notify(
+        property.host.userId,
+        'BOOKING_REQUEST',
+        booking.id,
+        'booking',
+      ),
+      this.notificationsService.notify(guestId, 'BOOKING_CONFIRMED', booking.id, 'booking'),
+    ]);
     return this.findById(booking.id, guestId, 'GUEST');
   }
 
@@ -148,9 +182,15 @@ export class BookingsService {
     if (!available) {
       throw new ConflictException('Selected dates are no longer available');
     }
-    await this.prisma.booking.update({
-      where: { id: bookingId },
-      data: { status: 'CONFIRMED' },
+    await this.prisma.$transaction(async (tx) => {
+      if (booking.promotionId) {
+        await this.promotionsService.assertPromotionSlotAvailable(booking.promotionId);
+        await this.promotionsService.incrementAppliedCount(booking.promotionId, tx);
+      }
+      await tx.booking.update({
+        where: { id: bookingId },
+        data: { status: 'CONFIRMED' },
+      });
     });
     await this.availabilityService.blockDatesForBooking(
       booking.propertyId,
@@ -182,13 +222,18 @@ export class BookingsService {
     }
     const wasConfirmed = booking.status === 'CONFIRMED';
     const nextStatus: BookingStatus = access.asHost ? 'CANCELLED_BY_HOST' : 'CANCELLED_BY_GUEST';
-    await this.prisma.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: nextStatus,
-        cancellationReason: dto.reason,
-        cancelledAt: new Date(),
-      },
+    await this.prisma.$transaction(async (tx) => {
+      await tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: nextStatus,
+          cancellationReason: dto.reason,
+          cancelledAt: new Date(),
+        },
+      });
+      if (wasConfirmed && booking.promotionId) {
+        await this.promotionsService.decrementAppliedCount(booking.promotionId, tx);
+      }
     });
     if (wasConfirmed) {
       await this.availabilityService.unblockDatesForBooking(
@@ -373,12 +418,14 @@ export class BookingsService {
     return { canView: false, canCancel: false, asHost: false };
   }
 
-  private async calculateStayPricing(
+  private async buildStayQuote(
     property: Property,
     checkIn: Date,
     checkOut: Date,
-  ): Promise<{ nightlyRate: number; totalAmount: number }> {
+    promoCode?: string,
+  ): Promise<BookingQuoteResult> {
     const nights = eachNightBetween(checkIn, checkOut);
+    const nightsCount = nights.length;
     const availabilityRows = await this.prisma.availability.findMany({
       where: {
         propertyId: property.id,
@@ -386,20 +433,46 @@ export class BookingsService {
       },
     });
     const rowByDate = new Map(availabilityRows.map((row) => [formatIsoDate(row.date), row]));
-    let accommodationTotal = 0;
+    let accommodationSubtotal = 0;
     for (const night of nights) {
       const row = rowByDate.get(formatIsoDate(night));
-      accommodationTotal += row?.priceOverride ?? property.pricePerNight;
+      accommodationSubtotal += row?.priceOverride ?? property.pricePerNight;
     }
-    const totalAmount = accommodationTotal + property.cleaningFee + property.securityDeposit;
+    const nightlyRate = nightsCount > 0 ? Math.round(accommodationSubtotal / nightsCount) : 0;
+    const resolved = await this.promotionsService.resolveBestPromotion({
+      propertyId: property.id,
+      checkIn,
+      checkOut,
+      promoCode,
+      accommodationSubtotal,
+    });
+    const discountAmount = resolved.discountAmount;
+    const discountedAccommodation = accommodationSubtotal - discountAmount;
+    const cleaningFee = property.cleaningFee;
+    const securityDeposit = property.securityDeposit;
+    const totalAmount = discountedAccommodation + cleaningFee + securityDeposit;
     return {
-      nightlyRate: Math.round(accommodationTotal / nights.length),
+      propertyId: property.id,
+      checkIn: formatIsoDate(checkIn),
+      checkOut: formatIsoDate(checkOut),
+      currency: property.currency,
+      nightsCount,
+      nightlyRate,
+      accommodationSubtotal,
+      discountAmount,
+      discountedAccommodation,
+      cleaningFee,
+      securityDeposit,
       totalAmount,
+      appliedPromotion: resolved.promotion
+        ? this.promotionsService.toAppliedPromotionSummary(resolved.promotion)
+        : null,
+      ...(resolved.promoCodeError ? { promoCodeError: resolved.promoCodeError } : {}),
     };
   }
 
   private async toBookingDetail(booking: Booking): Promise<BookingDetail> {
-    const [property, guest, conversation] = await Promise.all([
+    const [property, guest, conversation, promotion] = await Promise.all([
       this.prisma.property.findUnique({
         where: { id: booking.propertyId },
         include: {
@@ -411,6 +484,9 @@ export class BookingsService {
         include: { profile: true },
       }),
       this.prisma.conversation.findUnique({ where: { bookingId: booking.id } }),
+      booking.promotionId
+        ? this.prisma.propertyPromotion.findUnique({ where: { id: booking.promotionId } })
+        : Promise.resolve(null),
     ]);
     if (!property || !guest) {
       throw new NotFoundException('Booking related data not found');
@@ -436,6 +512,9 @@ export class BookingsService {
         avatarUrl: guest.profile?.avatarKey ?? null,
       },
       conversationId: conversation?.id ?? null,
+      promotionSummary: promotion
+        ? this.promotionsService.toAppliedPromotionSummary(promotion)
+        : null,
     };
   }
 }

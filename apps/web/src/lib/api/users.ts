@@ -5,6 +5,7 @@ export interface MyProfile {
   id: string;
   email: string;
   role: string;
+  avatarUrl: string | null;
   profile: {
     firstName: string;
     lastName: string;
@@ -35,6 +36,10 @@ export async function changePassword(data: {
   newPassword: string;
 }): Promise<{ success: true }> {
   return api.patch<{ success: true }>('/users/me/password', data);
+}
+
+export async function deleteAvatar(): Promise<{ success: true }> {
+  return api.delete<{ success: true }>('/users/me/avatar');
 }
 
 export async function uploadAvatar(file: File): Promise<{ avatarKey: string; avatarUrl: string }> {

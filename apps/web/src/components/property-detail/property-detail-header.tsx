@@ -2,15 +2,20 @@
 
 import type { PropertyDetail } from '@repo/shared';
 import { getLocalizedAddress, getLocalizedTitle, propertyTypeLabelKey } from '@repo/shared';
-import { ArrowLeft, MapPin, Star } from 'lucide-react';
+import { ArrowLeft, Check, Copy, MapPin, Star } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
+import { PropertyComparePopover } from '@/components/property-detail/property-compare-popover';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 
 interface PropertyDetailHeaderProps {
   property: Pick<
     PropertyDetail,
+    | 'id'
     | 'title'
     | 'titleLabels'
     | 'propertyType'
@@ -28,7 +33,19 @@ interface PropertyDetailHeaderProps {
 
 export function PropertyDetailHeader({ property }: PropertyDetailHeaderProps): React.JSX.Element {
   const locale = useLocale();
+  const tProperty = useTranslations('property');
   const t = useTranslations('property_card.categories');
+  const [copied, setCopied] = useState(false);
+  async function handleCopyPropertyId(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(property.id);
+      setCopied(true);
+      toast.success(tProperty('copy_id_success'));
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error(tProperty('copy_id_error'));
+    }
+  }
   const address = getLocalizedAddress(property.addressLabels, locale, {
     city: property.city,
     region: property.region,
@@ -46,6 +63,24 @@ export function PropertyDetailHeader({ property }: PropertyDetailHeaderProps): R
         <Badge variant="secondary" className="text-xs">
           {t(propertyTypeLabelKey(property.propertyType))}
         </Badge>
+        <div className="ml-auto flex items-center gap-2">
+          <PropertyComparePopover propertyId={property.id} />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5 font-normal"
+            onClick={() => void handleCopyPropertyId()}
+            aria-label={tProperty('copy_id')}
+          >
+            {copied ? (
+              <Check className="h-3.5 w-3.5 text-emerald-600" aria-hidden />
+            ) : (
+              <Copy className="h-3.5 w-3.5" aria-hidden />
+            )}
+            <span className="text-xs">{tProperty('copy_id')}</span>
+          </Button>
+        </div>
       </div>
       <h1 className="text-2xl font-bold leading-tight md:text-3xl">{localizedTitle}</h1>
       <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">

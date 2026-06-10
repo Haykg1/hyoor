@@ -70,15 +70,18 @@ model Property {
   additionalRules    String?
   externalBookingUrl String?
   featured           Boolean            @default(false)
+  featuredPoiIds     String[]           @default([])
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
-  host           HostProfile       @relation(fields: [hostId], references: [id], onDelete: Restrict)
+  host           HostProfile         @relation(fields: [hostId], references: [id], onDelete: Restrict)
   photos         PropertyPhoto[]
   amenities      PropertyAmenity[]
   availabilities Availability[]
   bookings       Booking[]
-  reviews        Review[]          @relation("PropertyReviews")
+  reviews        Review[]            @relation("PropertyReviews")
+  favorites      PropertyFavorite[]
+  promotions     PropertyPromotion[]
 
   @@index([hostId])
   @@index([city])
@@ -132,4 +135,19 @@ model Availability {
   @@index([propertyId])
   @@index([date])
   @@map("availabilities")
+}
+
+model PropertyFavorite {
+  id         String   @id @default(cuid())
+  userId     String
+  propertyId String
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, propertyId])
+  @@index([userId])
+  @@index([propertyId])
+  @@map("property_favorites")
 }

@@ -3,9 +3,9 @@ import request from 'supertest';
 
 import { PrismaService } from '../../src/database/prisma.service';
 import { createTestApp, type TestAppContext } from '../helpers/create-test-app';
-import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
 import { createActiveHostProperty, registerHostUser } from '../helpers/property-test.helper';
 import { resetE2eDatabase } from '../helpers/reset-database';
+import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
 
 describe('Notifications (e2e)', () => {
   let app: INestApplication;
@@ -175,7 +175,63 @@ describe('Notifications (e2e)', () => {
     expect(response.body.success).toBe(false);
   });
 
+  it('marks a notification as unread', async () => {
+    const host = await registerHostUser(app);
+    const prisma = app.get(PrismaService);
+    const notification = await prisma.notification.create({
+      data: {
+        userId: host.userId,
+        type: 'NEW_MESSAGE',
+        title: 'Msg',
+        isRead: true,
+        readAt: new Date(),
+      },
+    });
+    const markUnread = await request(app.getHttpServer())
+      .patch(`/api/v1/notifications/${notification.id}/unread`)
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    expect(markUnread.body.data.isRead).toBe(false);
+  });
+
+  it('deletes a single notification', async () => {
+    const host = await registerHostUser(app);
+    const prisma = app.get(PrismaService);
+    const notification = await prisma.notification.create({
+      data: { userId: host.userId, type: 'NEW_MESSAGE', title: 'Msg', isRead: false },
+    });
+    await request(app.getHttpServer())
+      .delete(`/api/v1/notifications/${notification.id}`)
+      .set(authHeader(host.accessToken))
+      .expect(204);
+    const list = await request(app.getHttpServer())
+      .get('/api/v1/notifications')
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    expect(list.body.data.total).toBe(0);
+  });
+
+  it('deletes all notifications for the user', async () => {
+    const host = await registerHostUser(app);
+    const prisma = app.get(PrismaService);
+    await prisma.notification.createMany({
+      data: [
+        { userId: host.userId, type: 'NEW_MESSAGE', title: 'Msg 1', isRead: false },
+        { userId: host.userId, type: 'NEW_REVIEW', title: 'Review 1', isRead: false },
+      ],
+    });
+    const cleared = await request(app.getHttpServer())
+      .delete('/api/v1/notifications')
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    expect(cleared.body.data.deletedCount).toBe(2);
+  });
+
   it('requires authentication', async () => {
     await request(app.getHttpServer()).get('/api/v1/notifications').expect(401);
+  });
+
+  it('requires authentication for the notification SSE stream', async () => {
+    await request(app.getHttpServer()).get('/api/v1/notifications/stream').expect(401);
   });
 });

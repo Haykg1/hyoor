@@ -15,7 +15,7 @@ import { formatAmd } from '@/lib/format/price';
 
 type BookingTab = 'upcoming' | 'past' | 'cancelled';
 
-const STATUS_UPCOMING = new Set(['PENDING', 'CONFIRMED']);
+const STATUS_UPCOMING = new Set(['CONFIRMED']);
 const STATUS_CANCELLED = new Set(['CANCELLED_BY_GUEST', 'CANCELLED_BY_HOST']);
 
 function formatDate(iso: string): string {

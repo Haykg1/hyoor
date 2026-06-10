@@ -5,9 +5,11 @@ import type { PropertyDetail } from '@repo/shared';
 import { useBlockedDates } from '@/hooks/use-blocked-dates';
 import { useBookingForm } from '@/hooks/use-booking-form';
 
+import { BookingConfirmDialog } from './booking-confirm-dialog';
 import { BookingDateFields } from './booking-date-fields';
 import { BookingGuestField } from './booking-guest-field';
 import { BookingPriceHeader } from './booking-price-header';
+import { BookingPromoCodeField } from './booking-promo-code-field';
 import { BookingSubmitButton } from './booking-submit-button';
 import { BookingSummary } from './booking-summary';
 
@@ -15,8 +17,9 @@ interface BookingWidgetProps {
   property: Pick<
     PropertyDetail,
     | 'id'
+    | 'title'
+    | 'titleLabels'
     | 'pricePerNight'
-    | 'cleaningFee'
     | 'currency'
     | 'maxGuests'
     | 'minNights'
@@ -29,8 +32,6 @@ interface BookingWidgetProps {
 export function BookingWidget({ property }: BookingWidgetProps): React.JSX.Element {
   const form = useBookingForm({
     propertyId: property.id,
-    pricePerNight: property.pricePerNight,
-    cleaningFee: property.cleaningFee,
     maxGuests: property.maxGuests,
     minNights: property.minNights,
     maxNights: property.maxNights,
@@ -61,13 +62,15 @@ export function BookingWidget({ property }: BookingWidgetProps): React.JSX.Eleme
         error={form.errors.guests}
         onChange={(v) => form.setField('guests', v)}
       />
+      <BookingPromoCodeField
+        promoCode={form.values.promoCode}
+        error={form.errors.promoCode}
+        onChange={(v) => form.setField('promoCode', v)}
+      />
       <BookingSummary
-        pricePerNight={property.pricePerNight}
-        currency={property.currency}
+        quote={form.quote}
+        isQuoteLoading={form.isQuoteLoading}
         nights={form.nights}
-        subtotal={form.subtotal}
-        cleaningFee={form.cleaningFee}
-        total={form.total}
       />
       {form.errors.submit && (
         <p className="text-center text-sm text-destructive">{form.errors.submit}</p>
@@ -75,7 +78,20 @@ export function BookingWidget({ property }: BookingWidgetProps): React.JSX.Eleme
       <BookingSubmitButton
         canSubmit={form.canSubmit}
         isSubmitting={form.isSubmitting}
-        onClick={form.submit}
+        onClick={form.openConfirmDialog}
+      />
+      <BookingConfirmDialog
+        open={form.isConfirmOpen}
+        onOpenChange={form.setConfirmOpen}
+        propertyTitle={property.title}
+        propertyTitleLabels={property.titleLabels}
+        checkIn={form.values.checkIn}
+        checkOut={form.values.checkOut}
+        guests={form.values.guests}
+        nights={form.nights ?? 0}
+        quote={form.quote}
+        isSubmitting={form.isSubmitting}
+        onConfirm={form.confirmBooking}
       />
     </div>
   );

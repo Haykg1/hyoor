@@ -37,6 +37,8 @@ model Booking {
   nightsCount        Int
   cleaningFee        Int              @default(0)
   securityDeposit    Int              @default(0)
+  discountAmount     Int              @default(0)
+  promotionId        String?
   totalAmount        Int
   paymentProvider    PaymentProvider?
   paymentStatus      PaymentStatus    @default(UNPAID)
@@ -48,12 +50,14 @@ model Booking {
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 
-  property     Property      @relation(fields: [propertyId], references: [id], onDelete: Restrict)
-  guest        User          @relation("GuestBookings", fields: [guestId], references: [id], onDelete: Restrict)
+  property     Property           @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  guest        User               @relation("GuestBookings", fields: [guestId], references: [id], onDelete: Restrict)
+  promotion    PropertyPromotion? @relation(fields: [promotionId], references: [id], onDelete: SetNull)
   conversation Conversation?
   reviews      Review[]
 
   @@index([propertyId])
+  @@index([promotionId])
   @@index([guestId])
   @@index([checkIn])
   @@index([checkOut])

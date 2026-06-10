@@ -204,6 +204,8 @@ export class AdminService {
       totalListings,
       activeListings,
       pendingRequests: pendingReview + pendingBookings,
+      upcomingReservations: 0,
+      pastReservations: 0,
       totalEarnings: revenueAgg._sum.totalAmount ?? 0,
     };
   }

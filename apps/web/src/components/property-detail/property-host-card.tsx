@@ -24,10 +24,12 @@ export function PropertyHostCard({ host }: PropertyHostCardProps): React.JSX.Ele
       <h2 className="text-lg font-semibold">{t('title')}</h2>
       <div className="flex items-center gap-4">
         <Avatar className="h-14 w-14">
-          {host.logoUrl && <AvatarImage src={host.logoUrl} alt={host.displayName} />}
+          {(host.avatarUrl ?? host.logoUrl) && (
+            <AvatarImage src={host.avatarUrl ?? host.logoUrl ?? ''} alt={host.displayName} />
+          )}
           <AvatarFallback className="text-lg">{initials(host.displayName)}</AvatarFallback>
         </Avatar>
-        <div className="space-y-0.5">
+        <div className="min-w-0 flex-1 space-y-0.5">
           <p className="font-medium">{host.displayName}</p>
           <p className="text-sm text-muted-foreground">
             {host.hostType === 'COMPANY' ? t('company') : t('individual')}
@@ -40,6 +42,9 @@ export function PropertyHostCard({ host }: PropertyHostCardProps): React.JSX.Ele
           )}
         </div>
       </div>
+      {host.description ? (
+        <p className="text-sm leading-relaxed text-muted-foreground">{host.description}</p>
+      ) : null}
     </section>
   );
 }

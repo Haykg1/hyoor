@@ -5,7 +5,9 @@ import { Info } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { UseFormReturn } from 'react-hook-form';
 
+import { NearestMetroHint } from '@/components/listing-wizard/nearest-metro-hint';
 import { PropertyAddressAutocomplete } from '@/components/listing-wizard/property-address-autocomplete';
+import { PropertyPoiSelector } from '@/components/listing-wizard/property-poi-selector';
 import {
   Form,
   FormControl,
@@ -26,6 +28,10 @@ interface StepBasicsProps {
 
 export function StepBasics({ form }: StepBasicsProps): React.JSX.Element {
   const t = useTranslations('listing_wizard.basics');
+  const latitude = form.watch('latitude');
+  const longitude = form.watch('longitude');
+  const city = form.watch('city');
+  const region = form.watch('region');
 
   function handlePlaceSelect(place: PlaceResult): void {
     const addressLine =
@@ -183,6 +189,26 @@ export function StepBasics({ form }: StepBasicsProps): React.JSX.Element {
               <FormLabel>{t('apartment_number')}</FormLabel>
               <FormControl>
                 <Input placeholder={t('apartment_number_placeholder')} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <NearestMetroHint latitude={latitude} longitude={longitude} city={city} region={region} />
+        <FormField
+          control={form.control}
+          name="featuredPoiIds"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <PropertyPoiSelector
+                  latitude={latitude}
+                  longitude={longitude}
+                  city={city}
+                  region={region}
+                  selectedIds={field.value ?? []}
+                  onChange={field.onChange}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

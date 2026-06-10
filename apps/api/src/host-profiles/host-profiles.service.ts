@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { HostProfile, HostType, UserProfile } from '@repo/database/client';
+import type { PublicHostProfile } from '@repo/shared';
 import { MAX_UPLOAD_BYTES, S3_PRESIGNED_URL_EXPIRES } from '@repo/shared/constants';
 
 import { PrismaService } from '../database/prisma.service';
@@ -21,17 +22,7 @@ export type HostProfileWithUser = HostProfile & {
   user: { profile: UserProfile | null };
 };
 
-export interface PublicHostProfile {
-  id: string;
-  hostType: HostType;
-  displayName: string;
-  companyName: string | null;
-  logoUrl: string | null;
-  isVerified: boolean;
-  responseRatePercent: number | null;
-  responseTimeHours: number | null;
-  avgRating: number | null;
-}
+export type { PublicHostProfile } from '@repo/shared';
 
 @Injectable()
 export class HostProfilesService {
@@ -60,6 +51,7 @@ export class HostProfilesService {
           companyName: dto.companyName,
           companyRegNumber: dto.companyRegNumber,
           vatNumber: dto.vatNumber,
+          description: dto.description,
         },
         include: {
           user: { include: { profile: true } },
@@ -133,9 +125,16 @@ export class HostProfilesService {
       throw new NotFoundException('Host profile not found');
     }
     let logoUrl: string | null = null;
+    let avatarUrl: string | null = null;
     if (hostProfile.companyLogoKey) {
       logoUrl = await this.storage.getPresignedUrl(
         hostProfile.companyLogoKey,
+        S3_PRESIGNED_URL_EXPIRES,
+      );
+    }
+    if (hostProfile.user.profile?.avatarKey) {
+      avatarUrl = await this.storage.getPresignedUrl(
+        hostProfile.user.profile.avatarKey,
         S3_PRESIGNED_URL_EXPIRES,
       );
     }
@@ -156,7 +155,9 @@ export class HostProfilesService {
       hostType: hostProfile.hostType,
       displayName,
       companyName: hostProfile.companyName,
+      description: hostProfile.description,
       logoUrl,
+      avatarUrl,
       isVerified: hostProfile.isVerified,
       responseRatePercent: hostProfile.responseRatePercent,
       responseTimeHours: hostProfile.responseTimeHours,

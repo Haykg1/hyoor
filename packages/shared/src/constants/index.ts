@@ -1,3 +1,5 @@
+export * from './armenia-locations';
+export * from './notifications';
 export const DEFAULT_PAGE_SIZE = 20;
 export const MAX_PAGE_SIZE = 100;
 export const S3_PRESIGNED_URL_EXPIRES = 3600;

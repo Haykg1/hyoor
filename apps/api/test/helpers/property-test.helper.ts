@@ -2,6 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 
 import { PrismaService } from '../../src/database/prisma.service';
+
 import { authHeader, registerUser, type RegisteredUser } from './test-data.helper';
 
 export interface RegisteredHostUser extends RegisteredUser {
@@ -64,6 +65,35 @@ export async function createActiveHostProperty(
     data: { status: 'ACTIVE' },
   });
   return property;
+}
+
+/** Bypasses API geocoding validation — use when POST /properties returns 400 in e2e. */
+export async function createActivePropertyDirect(
+  app: INestApplication,
+  host: RegisteredHostUser,
+): Promise<{ id: string }> {
+  const prisma = app.get(PrismaService);
+  const suffix = Date.now().toString(36);
+  const property = await prisma.property.create({
+    data: {
+      hostId: host.hostProfileId,
+      title: 'E2E Favorites Apartment',
+      slug: `e2e-favorites-${suffix}`,
+      description: 'E2E property for favorites tests.',
+      propertyType: 'APARTMENT',
+      city: 'Yerevan',
+      country: 'AM',
+      maxGuests: 2,
+      bedrooms: 1,
+      beds: 1,
+      bathrooms: 1,
+      pricePerNight: 25000,
+      currency: 'AMD',
+      cancellationPolicy: 'MODERATE',
+      status: 'ACTIVE',
+    },
+  });
+  return { id: property.id };
 }
 
 export async function createGuestBooking(

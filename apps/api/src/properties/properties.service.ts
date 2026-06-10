@@ -21,16 +21,24 @@ import type {
   PaginatedResponse,
   PresignedPhotoUrlResponse,
   PropertyAddressLabels,
+  PropertyFeaturedPoiView,
   PropertySummary,
   PropertyTitleLabels,
 } from '@repo/shared';
-import { AddressLocales } from '@repo/shared';
+import { AddressLocales, MAX_FEATURED_POIS } from '@repo/shared';
 import {
   DEFAULT_PAGE_SIZE,
+  expandCityFilterValues,
   MAX_UPLOAD_BYTES,
   S3_PRESIGNED_URL_EXPIRES,
 } from '@repo/shared/constants';
-import { slugify } from '@repo/shared/utils';
+import { findPoiById, getDestinationDataset } from '@repo/shared/data/poi-datasets';
+import {
+  computeDistanceKm,
+  computeDistanceMeters,
+  resolveDestinationCitySlug,
+  slugify,
+} from '@repo/shared/utils';
 
 import { PrismaService } from '../database/prisma.service';
 import { GeocodingService } from '../geocoding/geocoding.service';
@@ -75,6 +83,7 @@ export interface PropertyDetail extends Omit<Property, 'addressLabels' | 'titleL
   reviewCount: number;
   addressLabels: PropertyAddressLabels | null;
   titleLabels: PropertyTitleLabels | null;
+  featuredPois: PropertyFeaturedPoiView[];
 }
 
 @Injectable()
@@ -102,6 +111,7 @@ export class PropertiesService {
 
   async create(hostUserId: string, dto: CreatePropertyDto): Promise<Property> {
     this.validateHouseAddress(dto);
+    this.validateFeaturedPoiIds(dto.featuredPoiIds, dto.city, dto.region);
     const hostProfile = await this.hostProfilesService.findByUserId(hostUserId);
     const slug = await this.generateUniqueSlug(dto.title);
     const addressLabels = await this.geocoding.resolveAddressLabels(dto.latitude!, dto.longitude!);
@@ -149,8 +159,70 @@ export class PropertiesService {
         quietHoursEnd: dto.quietHoursEnd,
         additionalRules: dto.additionalRules,
         externalBookingUrl: dto.externalBookingUrl,
+        featuredPoiIds: dto.featuredPoiIds ?? [],
       },
     });
+  }
+
+  private validateFeaturedPoiIds(
+    poiIds: string[] | undefined,
+    city: string,
+    region?: string | null,
+  ): void {
+    if (!poiIds || poiIds.length === 0) return;
+    if (poiIds.length > MAX_FEATURED_POIS) {
+      throw new BadRequestException(`At most ${MAX_FEATURED_POIS} featured POIs are allowed`);
+    }
+    const uniqueIds = new Set(poiIds);
+    if (uniqueIds.size !== poiIds.length) {
+      throw new BadRequestException('Featured POI ids must be unique');
+    }
+    const citySlug = resolveDestinationCitySlug(city, region);
+    if (!citySlug) {
+      throw new BadRequestException('No destination POI catalog is available for this city');
+    }
+    const dataset = getDestinationDataset(citySlug);
+    if (!dataset) {
+      throw new BadRequestException('No destination POI catalog is available for this city');
+    }
+    const catalogIds = new Set(dataset.destinations.map((destination) => destination.id));
+    for (const poiId of poiIds) {
+      if (!catalogIds.has(poiId) && !findPoiById(poiId)) {
+        throw new BadRequestException(`Unknown featured POI id: ${poiId}`);
+      }
+    }
+  }
+
+  private buildFeaturedPois(
+    poiIds: string[],
+    latitude: number | null,
+    longitude: number | null,
+  ): PropertyFeaturedPoiView[] {
+    if (!poiIds.length) return [];
+    const results: PropertyFeaturedPoiView[] = [];
+    poiIds.forEach((poiId, index) => {
+      const poi = findPoiById(poiId);
+      if (!poi) return;
+      const distanceMeters =
+        latitude !== null && longitude !== null
+          ? computeDistanceMeters(latitude, longitude, poi.latitude, poi.longitude)
+          : 0;
+      const distanceKm =
+        latitude !== null && longitude !== null
+          ? computeDistanceKm(latitude, longitude, poi.latitude, poi.longitude)
+          : 0;
+      results.push({
+        id: poi.id,
+        sortOrder: index + 1,
+        category: poi.category,
+        nameLabels: poi.nameLabels,
+        latitude: poi.latitude,
+        longitude: poi.longitude,
+        distanceMeters,
+        distanceKm,
+      });
+    });
+    return results;
   }
 
   private buildBaseWhere(): Prisma.PropertyWhereInput {
@@ -502,6 +574,8 @@ export class PropertiesService {
       titleLabels: rawTitleLabels,
       ...propertyRest
     } = property;
+    const latitude = property.latitude !== null ? Number(property.latitude) : null;
+    const longitude = property.longitude !== null ? Number(property.longitude) : null;
     return {
       ...propertyRest,
       photos,
@@ -510,6 +584,7 @@ export class PropertiesService {
       reviewCount,
       addressLabels: this.parseAddressLabels(rawAddressLabels),
       titleLabels: this.parseTitleLabels(rawTitleLabels),
+      featuredPois: this.buildFeaturedPois(property.featuredPoiIds, latitude, longitude),
     };
   }
 
@@ -554,7 +629,15 @@ export class PropertiesService {
       ...typeWhere,
       ...searchWhere,
     };
-    const [properties, total, totalListings, activeListings] = await Promise.all([
+    const todayUtc = startOfTodayUtc();
+    const [
+      properties,
+      total,
+      totalListings,
+      activeListings,
+      upcomingReservations,
+      pastReservations,
+    ] = await Promise.all([
       this.prisma.property.findMany({
         where,
         orderBy: { createdAt: 'desc' },
@@ -567,12 +650,27 @@ export class PropertiesService {
         where: { hostId: hostProfile.id, status: { not: 'INACTIVE' } },
       }),
       this.prisma.property.count({ where: { hostId: hostProfile.id, status: 'ACTIVE' } }),
+      this.prisma.booking.count({
+        where: {
+          property: { hostId: hostProfile.id },
+          status: 'CONFIRMED',
+          checkOut: { gte: todayUtc },
+        },
+      }),
+      this.prisma.booking.count({
+        where: {
+          property: { hostId: hostProfile.id },
+          OR: [{ status: 'COMPLETED' }, { status: 'CONFIRMED', checkOut: { lt: todayUtc } }],
+        },
+      }),
     ]);
     const data = await Promise.all(properties.map((p) => this.toHostListingSummary(p)));
     const stats: HostDashboardStats = {
       totalListings,
       activeListings,
       pendingRequests: 0,
+      upcomingReservations,
+      pastReservations,
       totalEarnings: 0,
     };
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) || 1, stats };
@@ -580,6 +678,13 @@ export class PropertiesService {
 
   async update(id: string, hostUserId: string, dto: UpdatePropertyDto): Promise<Property> {
     const property = await this.getOwnedProperty(id, hostUserId);
+    if (dto.featuredPoiIds !== undefined) {
+      this.validateFeaturedPoiIds(
+        dto.featuredPoiIds,
+        dto.city ?? property.city,
+        dto.region ?? property.region,
+      );
+    }
     const hasAddressUpdate =
       dto.placeKind !== undefined ||
       dto.buildingNumber !== undefined ||
@@ -890,7 +995,66 @@ export class PropertiesService {
     return [...new Set([...bookings, ...blockedAvailability].map((row) => row.propertyId))];
   }
 
-  private async toPropertySummary(
+  private resolveFavoriteCityFilter(dto: { city?: string; cities?: string[] }): string[] {
+    if (dto.cities && dto.cities.length > 0) {
+      return expandCityFilterValues(dto.cities);
+    }
+    if (dto.city) {
+      return expandCityFilterValues([dto.city]);
+    }
+    return [];
+  }
+
+  private resolveFavoriteRegionFilter(dto: { region?: string; regions?: string[] }): string[] {
+    if (dto.regions && dto.regions.length > 0) {
+      return [...dto.regions];
+    }
+    if (dto.region) {
+      return [dto.region];
+    }
+    return [];
+  }
+
+  buildFavoritesPropertyWhere(dto: {
+    q?: string;
+    city?: string;
+    cities?: string[];
+    country?: string;
+    region?: string;
+    regions?: string[];
+    propertyType?: SearchPropertiesDto['propertyType'];
+    minPrice?: number;
+    maxPrice?: number;
+    maxGuests?: number;
+    minBedrooms?: number;
+    minBeds?: number;
+    minBathrooms?: number;
+  }): Prisma.PropertyWhereInput {
+    const titleSearchOr = this.buildTitleSearchOr(dto.q);
+    const searchSlice = dto as SearchPropertiesDto;
+    const cityValues = this.resolveFavoriteCityFilter(dto);
+    const regionValues = this.resolveFavoriteRegionFilter(dto);
+    const andClauses: Prisma.PropertyWhereInput[] = [
+      this.buildBaseWhere(),
+      {
+        ...(cityValues.length > 0
+          ? { city: { in: cityValues, mode: 'insensitive' as const } }
+          : {}),
+        ...(dto.country ? { country: { equals: dto.country, mode: 'insensitive' as const } } : {}),
+        ...(regionValues.length > 0
+          ? { region: { in: regionValues, mode: 'insensitive' as const } }
+          : {}),
+      },
+      this.buildTypeWhere(searchSlice),
+      this.buildPriceWhere(searchSlice),
+      this.buildCapacityWhere(searchSlice),
+      this.buildRoomsWhere(searchSlice),
+      ...(titleSearchOr.length > 0 ? [{ OR: titleSearchOr }] : []),
+    ].filter((w) => Object.keys(w).length > 0);
+    return { AND: andClauses };
+  }
+
+  async toPropertySummary(
     property: Property & {
       photos: PropertyPhoto[];
       reviews: { rating: number }[];
@@ -953,4 +1117,9 @@ export class PropertiesService {
       coverPhotoUrl,
     };
   }
+}
+
+function startOfTodayUtc(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 }

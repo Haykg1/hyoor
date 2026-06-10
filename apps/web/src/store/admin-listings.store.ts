@@ -45,6 +45,8 @@ const DEFAULT_STATS: HostDashboardStats = {
   totalListings: 0,
   activeListings: 0,
   pendingRequests: 0,
+  upcomingReservations: 0,
+  pastReservations: 0,
   totalEarnings: 0,
 };
 

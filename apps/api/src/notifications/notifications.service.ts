@@ -6,6 +6,7 @@ import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 import { PrismaService } from '../database/prisma.service';
 
 import { QueryNotificationsDto } from './dto/query-notifications.dto';
+import { NotificationRealtimeService } from './notification-realtime.service';
 
 interface NotificationContent {
   title: string;
@@ -15,7 +16,10 @@ interface NotificationContent {
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly realtime: NotificationRealtimeService,
+  ) {}
 
   async notify(
     userId: string,
@@ -24,16 +28,36 @@ export class NotificationsService {
     refType?: string,
   ): Promise<Notification> {
     const content = this.buildContent(type);
-    return this.prisma.notification.create({
+    return this.notifyCustom(
+      userId,
+      type,
+      content.title,
+      content.body,
+      refId,
+      refType ?? content.refType,
+    );
+  }
+
+  async notifyCustom(
+    userId: string,
+    type: NotificationType,
+    title: string,
+    body?: string,
+    refId?: string,
+    refType?: string,
+  ): Promise<Notification> {
+    const notification = await this.prisma.notification.create({
       data: {
         userId,
         type,
-        title: content.title,
-        body: content.body,
+        title,
+        body,
         refId,
-        refType: refType ?? content.refType,
+        refType,
       },
     });
+    await this.realtime.publishCreated(notification);
+    return notification;
   }
 
   async findByUser(
@@ -91,18 +115,48 @@ export class NotificationsService {
     return { updatedCount: result.count };
   }
 
+  async markUnread(id: string, userId: string): Promise<Notification> {
+    const notification = await this.prisma.notification.findUnique({ where: { id } });
+    if (!notification) {
+      throw new NotFoundException('Notification not found');
+    }
+    if (notification.userId !== userId) {
+      throw new ForbiddenException('You do not own this notification');
+    }
+    return this.prisma.notification.update({
+      where: { id },
+      data: { isRead: false, readAt: null },
+    });
+  }
+
+  async remove(id: string, userId: string): Promise<void> {
+    const notification = await this.prisma.notification.findUnique({ where: { id } });
+    if (!notification) {
+      throw new NotFoundException('Notification not found');
+    }
+    if (notification.userId !== userId) {
+      throw new ForbiddenException('You do not own this notification');
+    }
+    await this.prisma.notification.delete({ where: { id } });
+  }
+
+  async removeAll(userId: string): Promise<{ deletedCount: number }> {
+    const result = await this.prisma.notification.deleteMany({ where: { userId } });
+    return { deletedCount: result.count };
+  }
+
   private buildContent(type: NotificationType): NotificationContent {
     switch (type) {
       case 'BOOKING_REQUEST':
         return {
-          title: 'New booking request',
-          body: 'You have a new booking request for your property.',
+          title: 'New reservation',
+          body: 'A guest has booked your property.',
           refType: 'booking',
         };
       case 'BOOKING_CONFIRMED':
         return {
-          title: 'Booking confirmed',
-          body: 'Your booking request has been confirmed by the host.',
+          title: 'Reservation confirmed',
+          body: 'Your reservation is confirmed.',
           refType: 'booking',
         };
       case 'BOOKING_CANCELLED':
@@ -128,6 +182,12 @@ export class NotificationsService {
           title: 'Payout sent',
           body: 'Your payout has been processed.',
           refType: 'payout',
+        };
+      case 'PROPERTY_PROMOTION':
+        return {
+          title: 'New deal on a saved property',
+          body: 'A host posted a limited-time promotion on a property you saved.',
+          refType: 'promotion',
         };
       default:
         return { title: 'Notification' };

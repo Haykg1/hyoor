@@ -3,9 +3,9 @@ import request from 'supertest';
 
 import { PrismaService } from '../../src/database/prisma.service';
 import { createTestApp, type TestAppContext } from '../helpers/create-test-app';
-import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
-import { createActiveHostProperty, registerHostUser } from '../helpers/property-test.helper';
+import { createActivePropertyDirect, registerHostUser } from '../helpers/property-test.helper';
 import { resetE2eDatabase } from '../helpers/reset-database';
+import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
 
 describe('Bookings (e2e)', () => {
   let app: INestApplication;
@@ -24,10 +24,10 @@ describe('Bookings (e2e)', () => {
     await app.close();
   });
 
-  it('creates a PENDING booking as guest', async () => {
+  it('creates a CONFIRMED booking as guest', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const property = await createActiveHostProperty(app, host);
+    const property = await createActivePropertyDirect(app, host);
     const response = await request(app.getHttpServer())
       .post('/api/v1/bookings')
       .set(authHeader(guest.accessToken))
@@ -39,16 +39,16 @@ describe('Bookings (e2e)', () => {
         specialRequests: 'Late check-in please',
       })
       .expect(201);
-    expect(response.body.data.status).toBe('PENDING');
+    expect(response.body.data.status).toBe('CONFIRMED');
     expect(response.body.data.nightsCount).toBe(3);
     expect(response.body.data.conversationId).toBeTruthy();
     expect(response.body.data.property.id).toBe(property.id);
   });
 
-  it('confirms booking and blocks dates on calendar', async () => {
+  it('blocks dates on calendar when booking is created', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const property = await createActiveHostProperty(app, host);
+    const property = await createActivePropertyDirect(app, host);
     const create = await request(app.getHttpServer())
       .post('/api/v1/bookings')
       .set(authHeader(guest.accessToken))
@@ -59,12 +59,7 @@ describe('Bookings (e2e)', () => {
         guestCount: 2,
       })
       .expect(201);
-    const bookingId = create.body.data.id as string;
-    const confirm = await request(app.getHttpServer())
-      .patch(`/api/v1/bookings/${bookingId}/confirm`)
-      .set(authHeader(host.accessToken))
-      .expect(200);
-    expect(confirm.body.data.status).toBe('CONFIRMED');
+    expect(create.body.data.status).toBe('CONFIRMED');
     const blocked = await request(app.getHttpServer())
       .get(`/api/v1/availability/${property.id}/blocked`)
       .query({ from: '2025-07-01', to: '2025-07-31' })
@@ -75,7 +70,7 @@ describe('Bookings (e2e)', () => {
   it('cancels confirmed booking and unblocks dates', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const property = await createActiveHostProperty(app, host);
+    const property = await createActivePropertyDirect(app, host);
     const create = await request(app.getHttpServer())
       .post('/api/v1/bookings')
       .set(authHeader(guest.accessToken))
@@ -87,10 +82,7 @@ describe('Bookings (e2e)', () => {
       })
       .expect(201);
     const bookingId = create.body.data.id as string;
-    await request(app.getHttpServer())
-      .patch(`/api/v1/bookings/${bookingId}/confirm`)
-      .set(authHeader(host.accessToken))
-      .expect(200);
+    expect(create.body.data.status).toBe('CONFIRMED');
     const cancel = await request(app.getHttpServer())
       .patch(`/api/v1/bookings/${bookingId}/cancel`)
       .set(authHeader(guest.accessToken))
@@ -107,7 +99,7 @@ describe('Bookings (e2e)', () => {
   it('rejects booking on inactive property', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const property = await createActiveHostProperty(app, host);
+    const property = await createActivePropertyDirect(app, host);
     const prisma = app.get(PrismaService);
     await prisma.property.update({
       where: { id: property.id },
@@ -126,11 +118,11 @@ describe('Bookings (e2e)', () => {
     expect(response.body.success).toBe(false);
   });
 
-  it('rejects overlapping booking requests', async () => {
+  it('rejects overlapping confirmed bookings', async () => {
     const host = await registerHostUser(app);
     const guestA = await registerUser(app, { email: uniqueEmail('guest-a') });
     const guestB = await registerUser(app, { email: uniqueEmail('guest-b') });
-    const property = await createActiveHostProperty(app, host);
+    const property = await createActivePropertyDirect(app, host);
     await request(app.getHttpServer())
       .post('/api/v1/bookings')
       .set(authHeader(guestA.accessToken))
@@ -157,7 +149,7 @@ describe('Bookings (e2e)', () => {
   it('allows guest to attach payment reference', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const property = await createActiveHostProperty(app, host);
+    const property = await createActivePropertyDirect(app, host);
     const create = await request(app.getHttpServer())
       .post('/api/v1/bookings')
       .set(authHeader(guest.accessToken))
@@ -180,7 +172,7 @@ describe('Bookings (e2e)', () => {
   it('lists bookings for admin and my bookings for host/guest', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const property = await createActiveHostProperty(app, host);
+    const property = await createActivePropertyDirect(app, host);
     await request(app.getHttpServer())
       .post('/api/v1/bookings')
       .set(authHeader(guest.accessToken))
@@ -218,7 +210,7 @@ describe('Bookings (e2e)', () => {
   it('initiates a CASH checkout and marks booking as PENDING payment', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const property = await createActiveHostProperty(app, host);
+    const property = await createActivePropertyDirect(app, host);
     const create = await request(app.getHttpServer())
       .post('/api/v1/bookings')
       .set(authHeader(guest.accessToken))
@@ -247,7 +239,7 @@ describe('Bookings (e2e)', () => {
   it('returns 501 NotImplemented for IDRAM checkout', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const property = await createActiveHostProperty(app, host);
+    const property = await createActivePropertyDirect(app, host);
     const create = await request(app.getHttpServer())
       .post('/api/v1/bookings')
       .set(authHeader(guest.accessToken))
@@ -269,7 +261,7 @@ describe('Bookings (e2e)', () => {
   it('marks booking PAID via webhook after CASH checkout', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const property = await createActiveHostProperty(app, host);
+    const property = await createActivePropertyDirect(app, host);
     const create = await request(app.getHttpServer())
       .post('/api/v1/bookings')
       .set(authHeader(guest.accessToken))
@@ -299,5 +291,247 @@ describe('Bookings (e2e)', () => {
     const updated = await prisma.booking.findUnique({ where: { id: bookingId } });
     expect(updated?.paymentStatus).toBe('PAID');
     expect(updated?.status).toBe('CONFIRMED');
+  });
+
+  it('quotes and applies a date-range promotion to a booking', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const promo = await request(app.getHttpServer())
+      .post('/api/v1/promotions')
+      .set(authHeader(host.accessToken))
+      .send({
+        propertyId: property.id,
+        type: 'DATE_RANGE',
+        discountType: 'PERCENT',
+        discountPercent: 20,
+        description: 'Summer deal: 20% off eligible stays in July.',
+        bookingStartDate: '2026-07-01',
+        bookingEndDate: '2026-07-31',
+        maxApplications: 5,
+        notifyGuests: false,
+      })
+      .expect(201);
+    const promotionId = promo.body.data.promotion.id as string;
+    const quote = await request(app.getHttpServer())
+      .get('/api/v1/bookings/quote')
+      .query({
+        propertyId: property.id,
+        checkIn: '2026-07-10',
+        checkOut: '2026-07-13',
+      })
+      .expect(200);
+    expect(quote.body.data.accommodationSubtotal).toBe(75000);
+    expect(quote.body.data.discountAmount).toBe(15000);
+    expect(quote.body.data.appliedPromotion.id).toBe(promotionId);
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2026-07-10',
+        checkOut: '2026-07-13',
+        guestCount: 2,
+      })
+      .expect(201);
+    expect(create.body.data.discountAmount).toBe(15000);
+    expect(create.body.data.promotionId).toBe(promotionId);
+    expect(create.body.data.totalAmount).toBe(60000);
+    const prisma = app.get(PrismaService);
+    const promotion = await prisma.propertyPromotion.findUnique({ where: { id: promotionId } });
+    expect(promotion?.appliedCount).toBe(1);
+  });
+
+  it('returns promo code error in quote for invalid code', async () => {
+    const host = await registerHostUser(app);
+    const property = await createActivePropertyDirect(app, host);
+    const quote = await request(app.getHttpServer())
+      .get('/api/v1/bookings/quote')
+      .query({
+        propertyId: property.id,
+        checkIn: '2026-07-10',
+        checkOut: '2026-07-13',
+        promoCode: 'NOTREAL',
+      })
+      .expect(200);
+    expect(quote.body.data.promoCodeError).toBe('Invalid or expired promo code');
+    expect(quote.body.data.discountAmount).toBe(0);
+  });
+
+  it('applies the best discount between date-range and promo code', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    await request(app.getHttpServer())
+      .post('/api/v1/promotions')
+      .set(authHeader(host.accessToken))
+      .send({
+        propertyId: property.id,
+        type: 'DATE_RANGE',
+        discountType: 'PERCENT',
+        discountPercent: 10,
+        description: 'Small date-range deal for best-discount comparison test.',
+        bookingStartDate: '2026-07-01',
+        bookingEndDate: '2026-07-31',
+        maxApplications: 5,
+        notifyGuests: false,
+      })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post('/api/v1/promotions')
+      .set(authHeader(host.accessToken))
+      .send({
+        propertyId: property.id,
+        type: 'PROMO_CODE',
+        discountType: 'PERCENT',
+        discountPercent: 25,
+        description: 'Better promo code for best-discount comparison test.',
+        bookingStartDate: '2026-07-01',
+        bookingEndDate: '2026-07-31',
+        promoCode: 'BEST25',
+        maxApplications: 5,
+        notifyGuests: false,
+      })
+      .expect(201);
+    const quote = await request(app.getHttpServer())
+      .get('/api/v1/bookings/quote')
+      .query({
+        propertyId: property.id,
+        checkIn: '2026-07-10',
+        checkOut: '2026-07-13',
+        promoCode: 'BEST25',
+      })
+      .expect(200);
+    expect(quote.body.data.discountAmount).toBe(18750);
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2026-07-10',
+        checkOut: '2026-07-13',
+        guestCount: 2,
+        promoCode: 'BEST25',
+      })
+      .expect(201);
+    expect(create.body.data.discountAmount).toBe(18750);
+  });
+
+  it('increments appliedCount on create and decrements on cancel', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const promo = await request(app.getHttpServer())
+      .post('/api/v1/promotions')
+      .set(authHeader(host.accessToken))
+      .send({
+        propertyId: property.id,
+        type: 'DATE_RANGE',
+        discountType: 'PERCENT',
+        discountPercent: 15,
+        description: 'Create and cancel flow test promotion.',
+        bookingStartDate: '2026-08-01',
+        bookingEndDate: '2026-08-31',
+        maxApplications: 3,
+        notifyGuests: false,
+      })
+      .expect(201);
+    const promotionId = promo.body.data.promotion.id as string;
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2026-08-05',
+        checkOut: '2026-08-08',
+        guestCount: 2,
+      })
+      .expect(201);
+    const bookingId = create.body.data.id as string;
+    const prisma = app.get(PrismaService);
+    let promotion = await prisma.propertyPromotion.findUnique({ where: { id: promotionId } });
+    expect(promotion?.appliedCount).toBe(1);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${bookingId}/cancel`)
+      .set(authHeader(guest.accessToken))
+      .send({ reason: 'Plans changed' })
+      .expect(200);
+    promotion = await prisma.propertyPromotion.findUnique({ where: { id: promotionId } });
+    expect(promotion?.appliedCount).toBe(0);
+  });
+
+  it('rejects create with exhausted promo code', async () => {
+    const host = await registerHostUser(app);
+    const guestA = await registerUser(app, { email: uniqueEmail('guest-a') });
+    const guestB = await registerUser(app, { email: uniqueEmail('guest-b') });
+    const property = await createActivePropertyDirect(app, host);
+    await request(app.getHttpServer())
+      .post('/api/v1/promotions')
+      .set(authHeader(host.accessToken))
+      .send({
+        propertyId: property.id,
+        type: 'PROMO_CODE',
+        discountType: 'FIXED_AMOUNT',
+        discountAmount: 5000,
+        description: 'Single-slot promo code for create conflict test.',
+        bookingStartDate: '2026-09-01',
+        bookingEndDate: '2026-09-30',
+        promoCode: 'ONCELOT',
+        maxApplications: 1,
+        notifyGuests: false,
+      })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guestA.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2026-09-05',
+        checkOut: '2026-09-08',
+        guestCount: 2,
+        promoCode: 'ONCELOT',
+      })
+      .expect(201);
+    const createB = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guestB.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2026-09-10',
+        checkOut: '2026-09-13',
+        guestCount: 2,
+        promoCode: 'ONCELOT',
+      })
+      .expect(400);
+    expect(createB.body.success).toBe(false);
+  });
+
+  it('confirms legacy PENDING booking via PATCH confirm', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    const booking = await prisma.booking.create({
+      data: {
+        propertyId: property.id,
+        guestId: guest.userId,
+        checkIn: new Date('2026-10-01'),
+        checkOut: new Date('2026-10-04'),
+        guestCount: 2,
+        nightsCount: 3,
+        currency: 'AMD',
+        nightlyRate: 25000,
+        cleaningFee: 0,
+        securityDeposit: 0,
+        totalAmount: 75000,
+        discountAmount: 0,
+        status: 'PENDING',
+      },
+    });
+    const confirm = await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${booking.id}/confirm`)
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    expect(confirm.body.data.status).toBe('CONFIRMED');
   });
 });

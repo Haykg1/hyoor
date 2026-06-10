@@ -30,6 +30,7 @@ export const validationSchema = Joi.object({
   THROTTLE_MESSAGING_LIMIT: Joi.number().integer().min(1).optional(),
   THROTTLE_GEOCODING_LIMIT: Joi.number().integer().min(1).optional(),
   YANDEX_MAPS_API_KEY: Joi.string().allow('').optional(),
+  REDIS_URL: Joi.string().allow('').optional(),
   TRUST_PROXY: Joi.string().valid('true', 'false').optional(),
   JSON_BODY_LIMIT: Joi.string().optional(),
   MAX_UPLOAD_BYTES: Joi.number().integer().min(1).optional(),

@@ -1,6 +1,6 @@
 'use client';
 
-import { Camera, CheckCircle2, Globe, Lock, LogOut, Mail, Phone, User } from 'lucide-react';
+import { Camera, CheckCircle2, Globe, Home, Lock, LogOut, Mail, Phone, User } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 
@@ -121,19 +121,28 @@ export default function AccountSettingsPage(): React.JSX.Element {
     loading,
     avatarUrl,
     avatarUploading,
+    avatarError,
     profileForm,
     profileSaving,
     profileError,
     profileSuccess,
+    isHost,
+    hostDescription,
+    hostDescriptionSaving,
+    hostDescriptionError,
+    hostDescriptionSuccess,
     passwordForm,
     passwordSaving,
     passwordError,
     passwordSuccess,
     setProfileForm,
     setPasswordForm,
+    setHostDescription,
     handleSaveProfile,
+    handleSaveHostDescription,
     handleChangePassword,
     handleAvatarChange,
+    handleRemoveAvatar,
     handleSignOut,
   } = useAccountSettings();
 
@@ -201,13 +210,38 @@ export default function AccountSettingsPage(): React.JSX.Element {
                 }}
               />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="font-semibold">{displayName}</p>
               <p className="text-sm text-muted-foreground">{profile?.email}</p>
               <span className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
                 <User className="h-3 w-3" />
                 {profile?.role ? profile.role.charAt(0) + profile.role.slice(1).toLowerCase() : ''}
               </span>
+              {avatarError ? <p className="mt-2 text-sm text-destructive">{avatarError}</p> : null}
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={avatarUploading}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-xl"
+                >
+                  {avatarUploading ? t('photo.uploading') : t('photo.upload')}
+                </Button>
+                {avatarUrl ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={avatarUploading}
+                    onClick={() => void handleRemoveAvatar()}
+                    className="rounded-xl"
+                  >
+                    {t('photo.remove')}
+                  </Button>
+                ) : null}
+              </div>
             </div>
           </div>
         </SectionCard>
@@ -291,6 +325,48 @@ export default function AccountSettingsPage(): React.JSX.Element {
             </Button>
           </div>
         </SectionCard>
+
+        {isHost ? (
+          <SectionCard>
+            <SectionHeader
+              icon={<Home className="h-4 w-4" />}
+              title={t('host.title')}
+              iconColor="text-emerald-600"
+            />
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">{t('host.subtitle')}</p>
+              <div className="space-y-1.5">
+                <Label htmlFor="hostDescription">{t('host.description')}</Label>
+                <Textarea
+                  id="hostDescription"
+                  placeholder={t('host.description_placeholder')}
+                  value={hostDescription}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    setHostDescription(e.target.value)
+                  }
+                  rows={5}
+                  className="rounded-xl resize-none"
+                />
+              </div>
+              {hostDescriptionError ? (
+                <p className="text-sm text-destructive">{hostDescriptionError}</p>
+              ) : null}
+              {hostDescriptionSuccess ? (
+                <div className="flex items-center gap-2 text-sm text-green-600">
+                  <CheckCircle2 className="h-4 w-4" />
+                  {t('host.save_success')}
+                </div>
+              ) : null}
+              <Button
+                onClick={() => void handleSaveHostDescription()}
+                disabled={hostDescriptionSaving}
+                className="rounded-xl"
+              >
+                {hostDescriptionSaving ? t('host.saving') : t('host.save')}
+              </Button>
+            </div>
+          </SectionCard>
+        ) : null}
 
         {/* Language */}
         <SectionCard>

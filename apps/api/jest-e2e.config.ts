@@ -10,6 +10,7 @@ const config: Config = {
     '^@repo/shared/constants$': '<rootDir>/../../packages/shared/src/constants/index.ts',
     '^@repo/shared/utils$': '<rootDir>/../../packages/shared/src/utils/index.ts',
     '^@repo/shared$': '<rootDir>/../../packages/shared/src/index.ts',
+    '^@repo/shared/data/poi-datasets$': '<rootDir>/../../packages/shared/src/data/poi-datasets.ts',
   },
   transform: {
     '^.+\\.(t|j)s$': [

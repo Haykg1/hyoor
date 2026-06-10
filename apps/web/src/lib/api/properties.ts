@@ -17,7 +17,7 @@ import type {
 } from '@repo/shared';
 import type { PhotoMimeType } from '@repo/shared';
 
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1';
 
@@ -168,6 +168,15 @@ export async function updateProperty(
 
 export async function getMyPropertyDetail(id: string): Promise<PropertyDetail> {
   return api.get<PropertyDetail>(`/properties/${id}`);
+}
+
+export async function fetchPropertyDetailClient(id: string): Promise<PropertyDetail | null> {
+  try {
+    return await api.get<PropertyDetail>(`/properties/${id}`);
+  } catch (err: unknown) {
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
+  }
 }
 
 export async function createProperty(payload: CreatePropertyInput): Promise<{ id: string }> {
