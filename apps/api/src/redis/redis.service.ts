@@ -114,6 +114,32 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return this.getClient().get(key);
   }
 
+  async incrWithTtl(key: string, ttlSeconds: number): Promise<number> {
+    const client = this.getClient();
+    const count = await client.incr(key);
+    if (count === 1) {
+      await client.expire(key, ttlSeconds);
+    }
+    return count;
+  }
+
+  async incrByWithTtl(key: string, amount: number, ttlSeconds: number): Promise<number> {
+    const client = this.getClient();
+    const count = await client.incrby(key, amount);
+    if (count === amount) {
+      await client.expire(key, ttlSeconds);
+    }
+    return count;
+  }
+
+  async decr(key: string): Promise<number> {
+    return this.getClient().decr(key);
+  }
+
+  async ttl(key: string): Promise<number> {
+    return this.getClient().ttl(key);
+  }
+
   async geoSearchNearest(
     key: string,
     longitude: number,

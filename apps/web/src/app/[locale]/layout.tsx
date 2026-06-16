@@ -50,7 +50,7 @@ export default async function LocaleLayout({
           <AuthProvider>
             <FavoritesHydrator />
             <NotificationsHydrator />
-            <NextIntlClientProvider messages={messages}>
+            <NextIntlClientProvider locale={locale} messages={messages}>
               {children}
               <Toaster richColors closeButton />
             </NextIntlClientProvider>

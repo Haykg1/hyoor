@@ -19,3 +19,4 @@ export const WRITE_THROTTLE = buildThrottle('THROTTLE_WRITE_LIMIT', 30);
 export const PAYMENTS_THROTTLE = buildThrottle('THROTTLE_PAYMENTS_LIMIT', 10);
 export const MESSAGING_THROTTLE = buildThrottle('THROTTLE_MESSAGING_LIMIT', 60);
 export const GEOCODING_THROTTLE = buildThrottle('THROTTLE_GEOCODING_LIMIT', 30);
+export const AI_SEARCH_THROTTLE = buildThrottle('THROTTLE_AI_SEARCH_LIMIT', 20);

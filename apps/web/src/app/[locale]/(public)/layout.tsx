@@ -1,3 +1,4 @@
+import { AiSearchWidget } from '@/components/ai-search';
 import { PublicFooter } from '@/components/public/footer';
 import { PublicNavbar } from '@/components/public/navbar';
 
@@ -11,6 +12,7 @@ export default function PublicLayout({
       <PublicNavbar />
       <main className="flex-1">{children}</main>
       <PublicFooter />
+      <AiSearchWidget />
     </div>
   );
 }

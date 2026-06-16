@@ -13,6 +13,7 @@ interface HttpExceptionBody {
   message?: string | string[];
   error?: string;
   statusCode?: number;
+  code?: string;
 }
 
 type ErrorResponse = ApiResponse & { statusCode: number };
@@ -71,6 +72,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       statusCode: status,
       message,
       errors,
+      ...(payload.code ? { code: payload.code } : {}),
     };
   }
 }

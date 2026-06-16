@@ -8,3 +8,5 @@ export * from './booking-quote';
 export * from './notifications';
 export * from './poi';
 export * from './compare-share';
+export * from './ai-search';
+export * from './host-calendar';

@@ -70,6 +70,7 @@
     "messages": "Messages",
     "dashboard": "Dashboard",
     "explore": "Explore",
+    "ai_search": "AI Search",
     "become_host": "Become a Host",
     "sign_in": "Log in",
     "sign_up": "Sign up",
@@ -541,6 +542,43 @@
         "saved": "{count, plural, one {# day updated} other {# days updated}}",
         "save_failed": "Failed to save changes",
         "invalid_price": "Enter a valid price"
+      },
+      "ai_info": {
+        "loading": "Loading AI quota…",
+        "quota_label": "You can send up to {limit} AI messages per day ({remaining} remaining).",
+        "capabilities_title": "This chat can help you:",
+        "capability_open_close": "Open or close dates on the calendar",
+        "capability_set_rate": "Set a custom nightly rate for specific dates",
+        "capability_revert_base": "Revert dates to the base rate",
+        "capability_undo": "Undo changes by asking to reopen dates or reset rates",
+        "current_property_only": "Changes apply only to {propertyTitle} on this page. Open another listing's calendar to edit it."
+      },
+      "ai": {
+        "title": "AI Calendar Assistant",
+        "welcome_message": "I can only help you manage availability and nightly rates for this property. Try: \"Close June 10–15\" or \"Set 55,000 AMD for next weekend.\"",
+        "placeholder_hint": "Try: \"Close June 10–15\" or \"Set 55,000 AMD for next weekend.\"",
+        "input_placeholder": "Describe availability or rate changes for this property…",
+        "send": "Send",
+        "thinking": "Thinking…",
+        "clear": "Clear chat",
+        "confirm": "Confirm changes",
+        "cancel": "Cancel",
+        "confirming": "Applying…",
+        "confirm_failed": "Failed to apply changes. Try again.",
+        "applied_success": "Calendar updated.",
+        "applied_title": "Changes applied",
+        "preview_title": "Preview: {count} day(s) from {from} to {to}",
+        "preview_date": "Date",
+        "preview_status": "Status",
+        "preview_rate": "Rate",
+        "preview_open": "Open",
+        "preview_closed": "Closed",
+        "preview_base_rate": "Base ({base})",
+        "preview_more": "+{count} more days",
+        "preview_cancelled": "Changes discarded.",
+        "limit_reached": "You have used all AI messages for today.",
+        "message_too_long": "Keep your message under {max} characters.",
+        "error_generic": "Something went wrong. Please try again."
       }
     },
     "overview": "Dashboard",
@@ -939,6 +977,42 @@
       "title": "Sign Out",
       "description": "Sign out of your account on this device.",
       "button": "Sign Out"
+    }
+  },
+  "ai_search": {
+    "title": "AI Property Search",
+    "page_subtitle": "Describe your ideal stay in natural language — location, dates, guests, amenities — and get matching properties instantly.",
+    "widget_label": "AI Search",
+    "open_widget": "Open AI property search",
+    "placeholder_hint": "Try: \"Pet-friendly apartment in Yerevan for 2 guests, June 20–25, with WiFi and parking.\"",
+    "input_placeholder": "Where do you want to stay? Include dates and preferences…",
+    "send": "Search",
+    "thinking": "Searching…",
+    "clear": "Clear chat",
+    "searching_for": "Searching for",
+    "view_all_results": "View all results",
+    "guest_limit_reached": "You have used all free guest searches for today. Create an account for more.",
+    "token_limit_reached": "You have used today's AI usage budget. Try again tomorrow with shorter, focused searches.",
+    "message_too_long": "Keep your message under {max} characters so we can search efficiently.",
+    "rate_limit_reached": "Too many requests. Please slow down and try again shortly.",
+    "error_generic": "Something went wrong. Please try again.",
+    "capabilities": {
+      "title": "This chat helps you find short-term rentals in Armenia.",
+      "bullet_location": "Describe where you want to stay",
+      "bullet_dates": "Include check-in and check-out dates",
+      "bullet_guests": "Mention guests, budget, and preferences",
+      "bullet_amenities": "Add amenities like WiFi, parking, or pets",
+      "off_topic_hint": "Only property search questions are answered here — not coding, general knowledge, or host calendar changes."
+    },
+    "quota": {
+      "remaining": "Guests can use AI search {remaining} of {limit} times per day.",
+      "remaining_verified": "You can use AI search {remaining} of {limit} times per day.",
+      "exhausted": "You have used all {limit} free guest searches for today.",
+      "exhausted_verified": "You have used all {limit} AI searches for today.",
+      "register_hint": "Create a free account for more AI searches.",
+      "register_link": "Sign up",
+      "complete_profile_hint": "Verify your email and add a phone number in settings to unlock 10 daily AI searches.",
+      "complete_profile_link": "Account settings"
     }
   }
 }

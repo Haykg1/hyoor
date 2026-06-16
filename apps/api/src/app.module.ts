@@ -4,6 +4,7 @@ import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { AdminModule } from './admin/admin.module';
+import { AiSearchModule } from './ai-search/ai-search.module';
 import { AuthModule } from './auth/auth.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { BookingsModule } from './bookings/bookings.module';
@@ -64,6 +65,7 @@ const isTestEnv = process.env.NODE_ENV === 'test';
     HostProfilesModule,
     PropertiesModule,
     GeocodingModule,
+    AiSearchModule,
     PoiModule,
     AvailabilityModule,
     PaymentsModule,

@@ -14,6 +14,7 @@ import { usePropertyCalendarStore } from '@/store';
 import { AvailabilityMonth } from './availability-month';
 import { CalendarLegend } from './calendar-legend';
 import { CalendarToolbar } from './calendar-toolbar';
+import { HostCalendarAiPanel } from './host-calendar-ai-panel';
 import { OpenYearDialog } from './open-year-dialog';
 import { RangeRateDialog } from './range-rate-dialog';
 import { SelectionEditor } from './selection-editor';
@@ -126,6 +127,8 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
       </div>
 
       <SelectionEditor basePricePerNight={basePricePerNight} />
+
+      <HostCalendarAiPanel propertyId={property.id} propertyTitle={localizedTitle} />
 
       <OpenYearDialog open={openYearOpen} onOpenChange={setOpenYearOpen} />
       <RangeRateDialog open={rangeRateOpen} onOpenChange={setRangeRateOpen} />

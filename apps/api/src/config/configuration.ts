@@ -26,6 +26,20 @@ export interface AppConfig {
   };
   yandex: { mapsApiKey: string };
   redis: { url: string };
+  openai: { apiKey: string; model: string };
+  aiSearch: {
+    guestLimit: number;
+    verifiedUserLimit: number;
+    guestTtlSeconds: number;
+    maxContextMessages: number;
+    maxMessageChars: number;
+    maxCompletionTokens: number;
+    guestDailyTokenLimit: number;
+    verifiedDailyTokenLimit: number;
+    hostCalendarLimit: number;
+    hostCalendarDailyTokenLimit: number;
+    hostCalendarTtlSeconds: number;
+  };
   security: {
     throttle: {
       ttlMs: number;
@@ -35,6 +49,7 @@ export interface AppConfig {
       paymentsLimit: number;
       messagingLimit: number;
       geocodingLimit: number;
+      aiSearchLimit: number;
     };
     trustProxy: boolean;
     jsonBodyLimit: string;
@@ -88,6 +103,32 @@ export default (): AppConfig => ({
   redis: {
     url: process.env.REDIS_URL ?? '',
   },
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY ?? '',
+    model: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
+  },
+  aiSearch: {
+    guestLimit: parseInt(process.env.AI_SEARCH_GUEST_LIMIT ?? '5', 10),
+    verifiedUserLimit: parseInt(process.env.AI_SEARCH_VERIFIED_USER_LIMIT ?? '10', 10),
+    guestTtlSeconds: parseInt(process.env.AI_SEARCH_GUEST_TTL_SECONDS ?? '86400', 10),
+    maxContextMessages: parseInt(process.env.AI_SEARCH_MAX_CONTEXT_MESSAGES ?? '6', 10),
+    maxMessageChars: parseInt(process.env.AI_SEARCH_MAX_MESSAGE_CHARS ?? '500', 10),
+    maxCompletionTokens: parseInt(process.env.AI_SEARCH_MAX_COMPLETION_TOKENS ?? '280', 10),
+    guestDailyTokenLimit: parseInt(process.env.AI_SEARCH_GUEST_DAILY_TOKEN_LIMIT ?? '12000', 10),
+    verifiedDailyTokenLimit: parseInt(
+      process.env.AI_SEARCH_VERIFIED_DAILY_TOKEN_LIMIT ?? '28000',
+      10,
+    ),
+    hostCalendarLimit: parseInt(process.env.AI_SEARCH_HOST_CALENDAR_LIMIT ?? '20', 10),
+    hostCalendarDailyTokenLimit: parseInt(
+      process.env.AI_SEARCH_HOST_CALENDAR_DAILY_TOKEN_LIMIT ?? '40000',
+      10,
+    ),
+    hostCalendarTtlSeconds: parseInt(
+      process.env.AI_SEARCH_HOST_CALENDAR_TTL_SECONDS ?? '86400',
+      10,
+    ),
+  },
   security: {
     throttle: {
       ttlMs: parseInt(process.env.THROTTLE_TTL_MS ?? '60000', 10),
@@ -97,6 +138,7 @@ export default (): AppConfig => ({
       paymentsLimit: parseInt(process.env.THROTTLE_PAYMENTS_LIMIT ?? '10', 10),
       messagingLimit: parseInt(process.env.THROTTLE_MESSAGING_LIMIT ?? '60', 10),
       geocodingLimit: parseInt(process.env.THROTTLE_GEOCODING_LIMIT ?? '30', 10),
+      aiSearchLimit: parseInt(process.env.THROTTLE_AI_SEARCH_LIMIT ?? '20', 10),
     },
     trustProxy: process.env.TRUST_PROXY === 'true',
     jsonBodyLimit: process.env.JSON_BODY_LIMIT ?? '10mb',

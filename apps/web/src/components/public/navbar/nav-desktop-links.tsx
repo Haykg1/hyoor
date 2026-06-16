@@ -9,11 +9,12 @@ import { useAuthStore } from '@/store';
 
 interface NavLink {
   href: string;
-  labelKey: 'explore' | 'become_host';
+  labelKey: 'explore' | 'ai_search' | 'become_host';
 }
 
 const NAV_LINKS: NavLink[] = [
   { href: '/search', labelKey: 'explore' },
+  { href: '/ai-search', labelKey: 'ai_search' },
   { href: '/host/onboarding', labelKey: 'become_host' },
 ];
 

@@ -77,6 +77,55 @@ export class MockRedisService {
     return entry.value;
   }
 
+  async incrWithTtl(key: string, ttlSeconds: number): Promise<number> {
+    const entry = this.kvEntries.get(key);
+    const now = Date.now();
+    if (!entry || entry.expiresAt <= now) {
+      this.kvEntries.set(key, { value: '1', expiresAt: now + ttlSeconds * 1000 });
+      return 1;
+    }
+    const next = Number.parseInt(entry.value, 10) + 1;
+    entry.value = String(next);
+    return next;
+  }
+
+  async incrByWithTtl(key: string, amount: number, ttlSeconds: number): Promise<number> {
+    const entry = this.kvEntries.get(key);
+    const now = Date.now();
+    if (!entry || entry.expiresAt <= now) {
+      this.kvEntries.set(key, { value: String(amount), expiresAt: now + ttlSeconds * 1000 });
+      return amount;
+    }
+    const next = Number.parseInt(entry.value, 10) + amount;
+    entry.value = String(next);
+    return next;
+  }
+
+  async decr(key: string): Promise<number> {
+    const entry = this.kvEntries.get(key);
+    if (!entry || entry.expiresAt <= Date.now()) {
+      return 0;
+    }
+    const next = Math.max(0, Number.parseInt(entry.value, 10) - 1);
+    entry.value = String(next);
+    return next;
+  }
+
+  async ttl(key: string): Promise<number> {
+    const entry = this.kvEntries.get(key);
+    if (!entry) return -2;
+    const remainingMs = entry.expiresAt - Date.now();
+    if (remainingMs <= 0) {
+      this.kvEntries.delete(key);
+      return -2;
+    }
+    return Math.ceil(remainingMs / 1000);
+  }
+
+  clearKv(): void {
+    this.kvEntries.clear();
+  }
+
   async geoSearchNearest(
     key: string,
     longitude: number,
