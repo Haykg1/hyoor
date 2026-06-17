@@ -1,7 +1,11 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import type { AiSearchQuota, HostCalendarChatResponse } from '@repo/shared';
+import type {
+  AiSearchQuota,
+  HostCalendarChatResponse,
+  HostCalendarSuggestionsResponse,
+} from '@repo/shared';
 
 import { CurrentUser, type RequestUser } from '../../auth/decorators/current-user.decorator';
 import { Roles } from '../../auth/decorators/roles.decorator';
@@ -32,6 +36,18 @@ export class HostCalendarController {
   @ApiStandardErrors({ auth: true, throttle: true })
   getQuota(@CurrentUser() user: RequestUser): Promise<AiSearchQuota> {
     return this.quotaService.getHostCalendarQuota(user.userId);
+  }
+
+  @Get(':propertyId/suggestions')
+  @ApiOperation({ summary: 'Get AI-generated calendar chat suggestions for a property' })
+  @ApiOkResponse({ description: 'Short actionable calendar chat prompts' })
+  @ApiStandardErrors({ auth: true, throttle: true })
+  getSuggestions(
+    @Param('propertyId') propertyId: string,
+    @Query('locale') locale: string | undefined,
+    @CurrentUser() user: RequestUser,
+  ): Promise<HostCalendarSuggestionsResponse> {
+    return this.hostCalendarService.getSuggestions(propertyId, user, locale ?? 'en');
   }
 
   @Post(':propertyId/chat')

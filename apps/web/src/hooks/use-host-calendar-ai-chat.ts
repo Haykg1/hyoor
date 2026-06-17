@@ -8,7 +8,8 @@ import { toast } from 'sonner';
 import { ApiError } from '@/lib/api';
 import { confirmHostCalendarChanges, postHostCalendarChat } from '@/lib/api/host-calendar-ai';
 
-const MAX_STORED_MESSAGES = 30;
+const MAX_STORED_MESSAGES = 20;
+const MAX_API_MESSAGES = 20;
 const MAX_USER_MESSAGE_CHARS = 500;
 
 export interface HostCalendarUiMessage {
@@ -114,7 +115,9 @@ export function useHostCalendarAiChat(
       setIsLoading(true);
       try {
         const response = await postHostCalendarChat(propertyId, {
-          messages: nextMessages.map((m) => ({ role: m.role, content: m.content })),
+          messages: nextMessages
+            .slice(-MAX_API_MESSAGES)
+            .map((m) => ({ role: m.role, content: m.content })),
           locale,
         });
         const assistantMessage: HostCalendarUiMessage = {

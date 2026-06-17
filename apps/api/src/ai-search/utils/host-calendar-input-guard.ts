@@ -30,10 +30,14 @@ const OTHER_PROPERTY_PATTERNS: RegExp[] = [
 
 const CALENDAR_SIGNAL_PATTERNS: RegExp[] = [
   /\b(open|close|block|unblock|available|unavailable)\b/i,
-  /\b(rate|price|amd|dram)\b/i,
+  /\b(rate|pric(e|y|es|ing)|amd|dram)\b/i,
+  /\b(expensive|pricey|cheaper|increase|decrease|raise|lower)\b/i,
+  /\b(summer|winter|spring|fall|autumn)\b/i,
   /\b(check[\s-]?in|check[\s-]?out|night|nights)\b/i,
   /\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/i,
-  /\b(weekend|tonight|tomorrow|\s+week|this\s+week)\b/i,
+  /\b(weekend|tonight|tomorrow|next\s+week|this\s+week)\b/i,
+  /\bnext\s*\d+\s*days?\b/i,
+  /\b\d+\s*days?\b/i,
   /\b\d{4}-\d{2}-\d{2}\b/,
   /\b\d{1,2}[./-]\d{1,2}([./-]\d{2,4})?\b/,
   /\b(revert|undo|change\s+back|base\s+rate)\b/i,
@@ -83,7 +87,6 @@ export function evaluateHostCalendarMessage(
   const lastUser = [...messages].reverse().find((m) => m.role === 'user');
   if (!lastUser) return { allowed: true };
   const content = lastUser.content.trim();
-  console.log(content, '=====');
   if (!content) return { allowed: false, message: offTopicMessage };
   if (mentionsOtherProperty(content, context)) {
     return {

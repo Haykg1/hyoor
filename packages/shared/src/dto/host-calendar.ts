@@ -49,3 +49,7 @@ export interface HostCalendarConfirmRequest {
   entries: HostCalendarChangeEntry[];
   locale?: string;
 }
+
+export interface HostCalendarSuggestionsResponse {
+  suggestions: string[];
+}

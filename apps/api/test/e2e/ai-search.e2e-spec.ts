@@ -25,6 +25,7 @@ describe('AI search (e2e)', () => {
   const mockLlm = {
     complete: jest.fn(),
     completeHostCalendar: jest.fn(),
+    generateHostCalendarSuggestions: jest.fn(),
   };
 
   const mockPropertiesSearch = jest.fn();

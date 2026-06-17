@@ -1,16 +1,20 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { Property } from '@repo/database/client';
 import type {
   AiSearchMessage,
   HostCalendarChangeEntry,
   HostCalendarChatResponse,
+  HostCalendarSuggestionsResponse,
   ProposeCalendarChangesToolArgs,
 } from '@repo/shared';
 
 import type { RequestUser } from '../../auth/decorators/current-user.decorator';
 import { AvailabilityService } from '../../availability/availability.service';
+import type { AppConfig } from '../../config/configuration';
 import { PrismaService } from '../../database/prisma.service';
 import { HostProfilesService } from '../../host-profiles/host-profiles.service';
+import { RedisService } from '../../redis/redis.service';
 import { AiSearchQuotaService } from '../ai-search-quota.service';
 import type { HostCalendarLlmContext } from '../llm/llm.service';
 import { LlmService } from '../llm/llm.service';
@@ -31,15 +35,27 @@ import {
   evaluateHostCalendarMessage,
   type HostCalendarGuardContext,
 } from '../utils/host-calendar-input-guard';
+import {
+  addDaysIso,
+  buildHostCalendarSnapshot,
+  type HostCalendarPropertySnapshot,
+} from '../utils/host-calendar-snapshot';
+import { finalizeHostCalendarSuggestions } from '../utils/host-calendar-suggestion-validator';
+
+const HOST_CALENDAR_SUGGESTIONS_CACHE_PREFIX = 'ai-search:host-calendar:suggestions:';
 
 @Injectable()
 export class HostCalendarService {
+  private readonly logger = new Logger(HostCalendarService.name);
+
   constructor(
     private readonly llmService: LlmService,
     private readonly availabilityService: AvailabilityService,
     private readonly hostProfilesService: HostProfilesService,
     private readonly prisma: PrismaService,
     private readonly quotaService: AiSearchQuotaService,
+    private readonly redis: RedisService,
+    private readonly config: ConfigService<AppConfig, true>,
   ) {}
 
   async chat(
@@ -78,6 +94,84 @@ export class HostCalendarService {
       quota,
       locale,
     );
+  }
+
+  async getSuggestions(
+    propertyId: string,
+    user: RequestUser,
+    locale = 'en',
+  ): Promise<HostCalendarSuggestionsResponse> {
+    const property = await this.assertHostOwnsProperty(propertyId, user.userId);
+    const chatLocale = normalizeChatLocale(locale);
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const cacheKey = `${HOST_CALENDAR_SUGGESTIONS_CACHE_PREFIX}${propertyId}:${chatLocale}:${todayIso}`;
+    if (this.redis.isConfigured) {
+      const cached = await this.redis.get(cacheKey);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached) as HostCalendarSuggestionsResponse;
+          if (Array.isArray(parsed.suggestions) && parsed.suggestions.length > 0) {
+            return parsed;
+          }
+        } catch {
+          this.logger.warn(`Invalid host calendar suggestions cache for ${propertyId}`);
+        }
+      }
+    }
+    const guardContext = await this.buildGuardContext(propertyId, user.userId, property);
+    const suggestionCount = this.config.get('aiSearch.hostCalendarSuggestionsCount', {
+      infer: true,
+    });
+    const rangeDays = this.config.get('aiSearch.hostCalendarSuggestionsRangeDays', {
+      infer: true,
+    });
+    const rangeTo = addDaysIso(todayIso, rangeDays);
+    const range = await this.availabilityService.getForRange(propertyId, todayIso, rangeTo);
+    const propertySnapshot: HostCalendarPropertySnapshot = {
+      title: property.title,
+      city: property.city,
+      propertyType: property.propertyType,
+      minNights: property.minNights,
+      basePricePerNight: property.pricePerNight,
+      currency: property.currency,
+    };
+    const snapshot = buildHostCalendarSnapshot(
+      propertySnapshot,
+      range.entries,
+      todayIso,
+      rangeDays,
+    );
+    let llmSuggestions: string[] = [];
+    try {
+      await this.quotaService.assertHostCalendarTokenBudget(user.userId);
+      const llmResult = await this.llmService.generateHostCalendarSuggestions({
+        locale: chatLocale,
+        snapshot,
+        suggestionCount,
+      });
+      await this.quotaService.recordHostCalendarTokenUsage(
+        user.userId,
+        llmResult.usage.totalTokens,
+      );
+      llmSuggestions = llmResult.suggestions;
+    } catch (error) {
+      this.logger.warn(
+        `Host calendar suggestions LLM failed for ${propertyId}: ${error instanceof Error ? error.message : 'unknown'}`,
+      );
+    }
+    const suggestions = finalizeHostCalendarSuggestions(
+      llmSuggestions,
+      snapshot,
+      guardContext,
+      chatLocale,
+      suggestionCount,
+    );
+    const response: HostCalendarSuggestionsResponse = { suggestions };
+    if (this.redis.isConfigured) {
+      const ttl = this.config.get('aiSearch.hostCalendarTtlSeconds', { infer: true });
+      await this.redis.setWithTtl(cacheKey, JSON.stringify(response), ttl);
+    }
+    return response;
   }
 
   async confirm(

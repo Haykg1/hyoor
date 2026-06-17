@@ -2,6 +2,7 @@ import type {
   HostCalendarChatRequest,
   HostCalendarChatResponse,
   HostCalendarConfirmRequest,
+  HostCalendarSuggestionsResponse,
   AiSearchQuota,
 } from '@repo/shared';
 
@@ -9,6 +10,16 @@ import { api } from '@/lib/api';
 
 export async function getHostCalendarAiQuota(): Promise<AiSearchQuota> {
   return api.get<AiSearchQuota>('/ai-search/host-calendar/quota');
+}
+
+export async function getHostCalendarAiSuggestions(
+  propertyId: string,
+  locale: string,
+): Promise<HostCalendarSuggestionsResponse> {
+  const params = new URLSearchParams({ locale });
+  return api.get<HostCalendarSuggestionsResponse>(
+    `/ai-search/host-calendar/${propertyId}/suggestions?${params.toString()}`,
+  );
 }
 
 export async function postHostCalendarChat(

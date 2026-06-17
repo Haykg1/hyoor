@@ -11,10 +11,13 @@ import OpenAI from 'openai';
 import type { AppConfig } from '../../config/configuration';
 import { truncateAiSearchMessages } from '../utils/message-limits';
 
+import { buildHostCalendarSuggestionsPrompt } from './host-calendar-suggestions-prompt';
 import { buildHostCalendarSystemPrompt } from './host-calendar-system-prompt';
 import type {
   HostCalendarLlmContext,
   HostCalendarLlmResult,
+  HostCalendarSuggestionsLlmContext,
+  HostCalendarSuggestionsLlmResult,
   LlmCompletionResult,
   LlmTokenUsage,
 } from './llm.service';
@@ -102,7 +105,9 @@ export class OpenAiLlmService extends LlmService {
       throw new ServiceUnavailableException('AI search is not configured');
     }
     const model = this.config.get('openai.model', { infer: true });
-    const maxContextMessages = this.config.get('aiSearch.maxContextMessages', { infer: true });
+    const maxContextMessages = this.config.get('aiSearch.hostCalendarMaxContextMessages', {
+      infer: true,
+    });
     const maxMessageChars = this.config.get('aiSearch.maxMessageChars', { infer: true });
     const maxCompletionTokens = this.config.get('aiSearch.maxCompletionTokens', { infer: true });
     const todayIso = new Date().toISOString().slice(0, 10);
@@ -149,6 +154,60 @@ export class OpenAiLlmService extends LlmService {
       throw new ServiceUnavailableException('AI provider returned an empty message');
     }
     return { kind: 'clarify', message: clarifyMessage, usage: emptyUsage };
+  }
+
+  async generateHostCalendarSuggestions(
+    context: HostCalendarSuggestionsLlmContext,
+  ): Promise<HostCalendarSuggestionsLlmResult> {
+    if (!this.client) {
+      throw new ServiceUnavailableException('AI search is not configured');
+    }
+    const model = this.config.get('openai.model', { infer: true });
+    const maxCompletionTokens = this.config.get('aiSearch.maxCompletionTokens', { infer: true });
+    const completion = await this.client.chat.completions.create({
+      model,
+      messages: [
+        {
+          role: 'system',
+          content: buildHostCalendarSuggestionsPrompt(context),
+        },
+        {
+          role: 'user',
+          content: `Generate ${context.suggestionCount} calendar chat suggestions for this property.`,
+        },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.4,
+      max_tokens: maxCompletionTokens,
+    });
+    const choice = completion.choices[0];
+    if (!choice?.message.content?.trim()) {
+      throw new ServiceUnavailableException('AI provider returned an empty response');
+    }
+    const usage = this.toTokenUsage(completion.usage);
+    const emptyUsage = usage ?? { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+    const suggestions = this.parseSuggestionsJson(choice.message.content);
+    return { suggestions, usage: emptyUsage };
+  }
+
+  private parseSuggestionsJson(raw: string): string[] {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw) as unknown;
+    } catch {
+      throw new ServiceUnavailableException('AI provider returned invalid suggestions');
+    }
+    if (!parsed || typeof parsed !== 'object') {
+      throw new ServiceUnavailableException('AI provider returned invalid suggestions');
+    }
+    const record = parsed as Record<string, unknown>;
+    if (!Array.isArray(record.suggestions)) {
+      throw new ServiceUnavailableException('AI provider returned invalid suggestions');
+    }
+    return record.suggestions
+      .filter((item): item is string => typeof item === 'string')
+      .map((item) => item.trim())
+      .filter(Boolean);
   }
 
   private parseCalendarToolArgs(raw: string): ProposeCalendarChangesToolArgs {

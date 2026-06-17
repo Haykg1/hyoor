@@ -5,6 +5,8 @@ import type {
   SearchPropertiesToolArgs,
 } from '@repo/shared';
 
+import type { HostCalendarSnapshot } from '../utils/host-calendar-snapshot';
+
 export interface LlmTokenUsage {
   promptTokens: number;
   completionTokens: number;
@@ -18,6 +20,17 @@ export interface HostCalendarLlmContext {
   currency: string;
   locale: string;
 }
+
+export interface HostCalendarSuggestionsLlmContext {
+  locale: string;
+  snapshot: HostCalendarSnapshot;
+  suggestionCount: number;
+}
+
+export type HostCalendarSuggestionsLlmResult = {
+  suggestions: string[];
+  usage: LlmTokenUsage;
+};
 
 export type LlmCompletionResult =
   | { kind: 'clarify'; message: string; usage: LlmTokenUsage }
@@ -38,6 +51,9 @@ export abstract class LlmService {
     messages: AiSearchMessage[],
     context: HostCalendarLlmContext,
   ): Promise<HostCalendarLlmResult>;
+  abstract generateHostCalendarSuggestions(
+    context: HostCalendarSuggestionsLlmContext,
+  ): Promise<HostCalendarSuggestionsLlmResult>;
 }
 
 export type { HostCalendarChangeEntry };

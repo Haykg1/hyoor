@@ -556,6 +556,7 @@
       "ai": {
         "title": "AI Calendar Assistant",
         "welcome_message": "I can only help you manage availability and nightly rates for this property. Try: \"Close June 10–15\" or \"Set 55,000 AMD for next weekend.\"",
+        "suggestions_title": "Try these",
         "placeholder_hint": "Try: \"Close June 10–15\" or \"Set 55,000 AMD for next weekend.\"",
         "input_placeholder": "Describe availability or rate changes for this property…",
         "send": "Send",

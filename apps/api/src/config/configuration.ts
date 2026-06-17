@@ -39,6 +39,9 @@ export interface AppConfig {
     hostCalendarLimit: number;
     hostCalendarDailyTokenLimit: number;
     hostCalendarTtlSeconds: number;
+    hostCalendarMaxContextMessages: number;
+    hostCalendarSuggestionsCount: number;
+    hostCalendarSuggestionsRangeDays: number;
   };
   security: {
     throttle: {
@@ -126,6 +129,18 @@ export default (): AppConfig => ({
     ),
     hostCalendarTtlSeconds: parseInt(
       process.env.AI_SEARCH_HOST_CALENDAR_TTL_SECONDS ?? '86400',
+      10,
+    ),
+    hostCalendarMaxContextMessages: parseInt(
+      process.env.AI_SEARCH_HOST_CALENDAR_MAX_CONTEXT_MESSAGES ?? '12',
+      10,
+    ),
+    hostCalendarSuggestionsCount: parseInt(
+      process.env.AI_SEARCH_HOST_CALENDAR_SUGGESTIONS_COUNT ?? '4',
+      10,
+    ),
+    hostCalendarSuggestionsRangeDays: parseInt(
+      process.env.AI_SEARCH_HOST_CALENDAR_SUGGESTIONS_RANGE_DAYS ?? '90',
       10,
     ),
   },

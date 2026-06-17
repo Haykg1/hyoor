@@ -9,10 +9,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { useHostCalendarAiChat } from '@/hooks/use-host-calendar-ai-chat';
 import { useHostCalendarAiQuota } from '@/hooks/use-host-calendar-ai-quota';
+import { useHostCalendarAiSuggestions } from '@/hooks/use-host-calendar-ai-suggestions';
 import { usePropertyCalendarStore } from '@/store';
 
 import { HostCalendarAiInfoBanner } from './host-calendar-ai-info-banner';
 import { HostCalendarAiMessage } from './host-calendar-ai-message';
+import { HostCalendarAiSuggestionChips } from './host-calendar-ai-suggestion-chips';
 
 interface HostCalendarAiPanelProps {
   propertyId: string;
@@ -43,6 +45,7 @@ export function HostCalendarAiPanel({
     cancelProposal,
     clearMessages,
   } = useHostCalendarAiChat(propertyId, refreshQuota, refreshCalendar);
+  const { suggestions, isLoading: isSuggestionsLoading } = useHostCalendarAiSuggestions(propertyId);
   const basePricePerNight = usePropertyCalendarStore((s) => s.basePricePerNight);
   const [input, setInput] = useState('');
   const exhausted = quota !== null && quota.remaining <= 0;
@@ -85,6 +88,14 @@ export function HostCalendarAiPanel({
         isLoading={isQuotaLoading}
         propertyTitle={propertyTitle}
       />
+      {!isLoading ? (
+        <HostCalendarAiSuggestionChips
+          suggestions={suggestions}
+          isLoading={isSuggestionsLoading}
+          disabled={isLoading || exhausted || isConfirming}
+          onSelect={(value) => void sendMessage(value)}
+        />
+      ) : null}
       <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
         <div className="space-y-3 pb-3">
           {messages.length === 0 ? (

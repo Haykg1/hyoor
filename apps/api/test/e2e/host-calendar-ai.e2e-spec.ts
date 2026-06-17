@@ -31,6 +31,7 @@ describe('Host calendar AI (e2e)', () => {
   const mockLlm = {
     complete: jest.fn(),
     completeHostCalendar: jest.fn(),
+    generateHostCalendarSuggestions: jest.fn(),
   };
 
   beforeAll(async () => {
@@ -254,5 +255,41 @@ describe('Host calendar AI (e2e)', () => {
     expect(byDate['2026-07-10'].isBlockedByBooking).toBe(true);
     expect(byDate['2026-07-11'].isBlockedByBooking).toBe(true);
     expect(byDate['2026-07-12'].isBlockedByBooking).toBe(true);
+  });
+
+  it('returns calendar suggestions for property owner', async () => {
+    mockLlm.generateHostCalendarSuggestions.mockResolvedValue({
+      suggestions: [
+        'Set 60000 AMD per night for June 1–August 31',
+        'Set 55000 AMD for next weekend',
+        'Close this property for the next 7 days',
+      ],
+      usage: mockUsage,
+    });
+    const response = await request(app.getHttpServer())
+      .get(`/api/v1/ai-search/host-calendar/${propertyId}/suggestions`)
+      .query({ locale: 'en' })
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    expect(response.body.data.suggestions.length).toBeGreaterThanOrEqual(3);
+    expect(mockLlm.generateHostCalendarSuggestions).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns fallback suggestions when LLM fails', async () => {
+    mockLlm.generateHostCalendarSuggestions.mockRejectedValue(new Error('LLM unavailable'));
+    const response = await request(app.getHttpServer())
+      .get(`/api/v1/ai-search/host-calendar/${propertyId}/suggestions`)
+      .query({ locale: 'en' })
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    expect(response.body.data.suggestions.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('returns 403 for suggestions when user is not host', async () => {
+    const guest = await registerUser(app);
+    await request(app.getHttpServer())
+      .get(`/api/v1/ai-search/host-calendar/${propertyId}/suggestions`)
+      .set(authHeader(guest.accessToken))
+      .expect(403);
   });
 });
