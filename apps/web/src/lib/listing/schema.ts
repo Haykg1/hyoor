@@ -91,6 +91,7 @@ export const stepPricingRulesSchema = z.object({
   quietHoursStart: z.string().max(5).optional().or(z.literal('')),
   quietHoursEnd: z.string().max(5).optional().or(z.literal('')),
   additionalRules: z.string().max(2000).optional().or(z.literal('')),
+  guestInstructions: z.string().max(10000).optional().or(z.literal('')),
 });
 
 export const stepPricingSchema = stepPricingRulesSchema;
@@ -161,6 +162,7 @@ export const DEFAULT_LISTING_VALUES: ListingFormValues = {
   quietHoursStart: '',
   quietHoursEnd: '',
   additionalRules: '',
+  guestInstructions: '',
 };
 
 function optionalTime(value: string | undefined): string | undefined {
@@ -222,6 +224,7 @@ export function toCreatePropertyInput(values: ListingFormValues): CreateProperty
     quietHoursStart: optionalTime(values.quietHoursStart),
     quietHoursEnd: optionalTime(values.quietHoursEnd),
     additionalRules: optionalText(values.additionalRules),
+    guestInstructions: optionalText(values.guestInstructions),
     featuredPoiIds: values.featuredPoiIds,
   };
 }

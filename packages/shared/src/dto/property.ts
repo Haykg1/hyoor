@@ -50,6 +50,7 @@ export interface CreatePropertyInput {
   quietHoursStart?: string;
   quietHoursEnd?: string;
   additionalRules?: string;
+  guestInstructions?: string;
   externalBookingUrl?: string;
   featuredPoiIds?: string[];
 }
@@ -82,4 +83,69 @@ export interface ConfirmPhotoUploadInput {
   caption?: string;
   sortOrder?: number;
   isCover?: boolean;
+}
+
+// ─── Bulk import ─────────────────────────────────────────────────────────────
+
+export const BULK_IMPORT_MAX_ROWS = 100;
+export const BULK_IMPORT_FILE_MAX_BYTES = 2 * 1024 * 1024; // 2 MB
+export const BULK_IMPORT_PREVIEW_TTL_SECONDS = 30 * 60; // 30 min
+export const BULK_IMPORT_JOB_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
+
+export type BulkImportRowStatus = 'valid' | 'fixed' | 'error';
+export type BulkImportJobStatus =
+  | 'processing'
+  | 'completed'
+  | 'failed'
+  | 'completed_with_email_error';
+
+export interface BulkImportFix {
+  field: string;
+  from: string | number | boolean | null | undefined;
+  to: string | number | boolean | null | undefined;
+}
+
+export interface BulkImportPreviewRow {
+  rowIndex: number;
+  status: BulkImportRowStatus;
+  original: Record<string, string>;
+  normalized: Record<string, unknown>;
+  fixes: BulkImportFix[];
+  errors: string[];
+}
+
+export interface BulkImportPreviewResponse {
+  previewId: string;
+  summary: {
+    total: number;
+    valid: number;
+    fixed: number;
+    error: number;
+  };
+  rows: BulkImportPreviewRow[];
+}
+
+export interface BulkImportConfirmResponse {
+  jobId: string;
+  status: BulkImportJobStatus;
+}
+
+export interface BulkImportJobRow {
+  rowIndex: number;
+  title: string;
+  propertyId?: string;
+  error?: string;
+}
+
+export interface BulkImportJobResponse {
+  jobId: string;
+  status: BulkImportJobStatus;
+  summary?: {
+    total: number;
+    created: number;
+    failed: number;
+  };
+  rows?: BulkImportJobRow[];
+  startedAt: string;
+  completedAt?: string;
 }

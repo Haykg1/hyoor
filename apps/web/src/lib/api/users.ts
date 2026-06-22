@@ -1,5 +1,6 @@
 import { api } from '@/lib/api';
 import { getAccessTokenFromCookie } from '@/lib/auth-cookies';
+import { compressImage } from '@/lib/compress-image';
 
 export interface MyProfile {
   id: string;
@@ -12,6 +13,7 @@ export interface MyProfile {
     phone: string | null;
     avatarKey: string | null;
     bio: string | null;
+    spokenLanguages: string[];
   } | null;
 }
 
@@ -27,6 +29,7 @@ export async function updateMyProfile(data: {
   phone?: string;
   bio?: string;
   preferredLang?: string;
+  spokenLanguages?: string[];
 }): Promise<MyProfile> {
   return api.patch<MyProfile>('/users/me', data);
 }
@@ -44,8 +47,9 @@ export async function deleteAvatar(): Promise<{ success: true }> {
 
 export async function uploadAvatar(file: File): Promise<{ avatarKey: string; avatarUrl: string }> {
   const token = getAccessTokenFromCookie();
+  const compressed = await compressImage(file, 1, 512);
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append('file', compressed, file.name);
   const res = await fetch(`${BASE_URL}/users/me/avatar`, {
     method: 'POST',
     headers: token ? { Authorization: `Bearer ${token}` } : {},

@@ -162,6 +162,7 @@ export class HostProfilesService {
       responseRatePercent: hostProfile.responseRatePercent,
       responseTimeHours: hostProfile.responseTimeHours,
       avgRating: aggregate._avg.rating,
+      spokenLanguages: hostProfile.user.profile?.spokenLanguages ?? [],
     };
   }
 

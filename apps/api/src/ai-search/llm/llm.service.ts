@@ -5,6 +5,7 @@ import type {
   SearchPropertiesToolArgs,
 } from '@repo/shared';
 
+import type { NormalizedRow } from '../../properties/bulk-import/row-normalizer';
 import type { HostCalendarSnapshot } from '../utils/host-calendar-snapshot';
 
 export interface LlmTokenUsage {
@@ -54,6 +55,15 @@ export abstract class LlmService {
   abstract generateHostCalendarSuggestions(
     context: HostCalendarSuggestionsLlmContext,
   ): Promise<HostCalendarSuggestionsLlmResult>;
+  /**
+   * Normalize raw spreadsheet rows to canonical property fields.
+   * Headers and raw rows come from a parsed CSV/XLSX file.
+   * Returns one normalized row per input row; may throw if LLM unavailable.
+   */
+  abstract normalizeBulkPropertyRows(
+    headers: string[],
+    rows: Record<string, string>[],
+  ): Promise<NormalizedRow[]>;
 }
 
 export type { HostCalendarChangeEntry };

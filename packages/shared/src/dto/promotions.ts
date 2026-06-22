@@ -44,6 +44,34 @@ export interface CreatePromotionResult {
   guestsNotified: number;
 }
 
+/** A property with an active time-limited discount expiring within 72 hours. */
+export interface HotDealProperty {
+  id: string;
+  title: string;
+  titleLabels?: import('../dto/geocoding').PropertyTitleLabels | null;
+  slug: string;
+  propertyType: string;
+  city: string;
+  region: string | null;
+  country: string;
+  pricePerNight: number;
+  currency: string;
+  coverPhotoUrl?: string;
+  maxGuests: number;
+  bedrooms: number;
+  avgRating?: number;
+  reviewCount: number;
+  featured: boolean;
+  addressLabels?: import('../dto/geocoding').PropertyAddressLabels | null;
+  /** Promotion details */
+  promotionId: string;
+  discountType: PromotionDiscountType;
+  discountPercent: number | null;
+  discountAmount: number | null;
+  promotionDescription: string;
+  bookingEndDate: string;
+}
+
 export interface ListPromotionsQuery {
   propertyId?: string;
   page?: number;

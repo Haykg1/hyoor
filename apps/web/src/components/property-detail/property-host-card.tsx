@@ -1,5 +1,6 @@
 import type { PublicHostProfile } from '@repo/shared';
-import { ShieldCheck } from 'lucide-react';
+import { SPOKEN_LANGUAGES } from '@repo/shared';
+import { Languages, ShieldCheck } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -45,6 +46,27 @@ export function PropertyHostCard({ host }: PropertyHostCardProps): React.JSX.Ele
       {host.description ? (
         <p className="text-sm leading-relaxed text-muted-foreground">{host.description}</p>
       ) : null}
+      {host.spokenLanguages && host.spokenLanguages.length > 0 && (
+        <div className="flex items-start gap-2 pt-1">
+          <Languages className="h-4 w-4 shrink-0 text-muted-foreground mt-0.5" />
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">{t('speaks')}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {host.spokenLanguages.map((code) => {
+                const lang = SPOKEN_LANGUAGES.find((l) => l.code === code);
+                return (
+                  <span
+                    key={code}
+                    className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium"
+                  >
+                    {lang?.label ?? code}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

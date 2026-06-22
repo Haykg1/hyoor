@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -40,6 +41,7 @@ import {
   slugify,
 } from '@repo/shared/utils';
 
+import { sanitizeGuestInstructionsHtml } from '../common/utils/sanitize-html';
 import { PrismaService } from '../database/prisma.service';
 import { GeocodingService } from '../geocoding/geocoding.service';
 import {
@@ -110,15 +112,28 @@ export class PropertiesService {
   }
 
   async create(hostUserId: string, dto: CreatePropertyDto): Promise<Property> {
+    return this.createForHost(hostUserId, dto, { status: 'PENDING_REVIEW' });
+  }
+
+  /**
+   * Create a property with an explicit initial status. Used by the listing
+   * wizard (PENDING_REVIEW) and the bulk import pipeline (DRAFT).
+   */
+  async createForHost(
+    hostUserId: string,
+    dto: CreatePropertyDto,
+    options: { status: 'DRAFT' | 'PENDING_REVIEW' } = { status: 'PENDING_REVIEW' },
+  ): Promise<Property> {
     this.validateHouseAddress(dto);
     this.validateFeaturedPoiIds(dto.featuredPoiIds, dto.city, dto.region);
     const hostProfile = await this.hostProfilesService.findByUserId(hostUserId);
+    await this.assertNotDuplicateAddress(hostProfile.id, dto);
     const slug = await this.generateUniqueSlug(dto.title);
     const addressLabels = await this.geocoding.resolveAddressLabels(dto.latitude!, dto.longitude!);
     return this.prisma.property.create({
       data: {
         hostId: hostProfile.id,
-        status: 'PENDING_REVIEW',
+        status: options.status,
         title: dto.title,
         slug,
         description: dto.description,
@@ -158,6 +173,7 @@ export class PropertiesService {
         quietHoursStart: dto.quietHoursStart,
         quietHoursEnd: dto.quietHoursEnd,
         additionalRules: dto.additionalRules,
+        guestInstructions: sanitizeGuestInstructionsHtml(dto.guestInstructions),
         externalBookingUrl: dto.externalBookingUrl,
         featuredPoiIds: dto.featuredPoiIds ?? [],
       },
@@ -246,6 +262,63 @@ export class PropertiesService {
     }
     if (dto.latitude === undefined || dto.longitude === undefined) {
       throw new BadRequestException('Property coordinates are required');
+    }
+  }
+
+  /**
+   * Throws 409 if the host already has a property at the same building
+   * (same street + buildingNumber + coords rounded to 5 decimal places).
+   */
+  async assertNotDuplicateAddress(
+    hostId: string,
+    dto: {
+      street?: string;
+      buildingNumber?: string;
+      latitude?: number;
+      longitude?: number;
+    },
+    excludePropertyId?: string,
+  ): Promise<void> {
+    if (
+      !dto.street ||
+      !dto.buildingNumber ||
+      dto.latitude === undefined ||
+      dto.longitude === undefined
+    ) {
+      return;
+    }
+    const streetNorm = dto.street.trim().toLowerCase();
+    const buildingNorm = dto.buildingNumber.trim().toLowerCase();
+    const latRound = Number(dto.latitude.toFixed(5));
+    const lngRound = Number(dto.longitude.toFixed(5));
+    const properties = await this.prisma.property.findMany({
+      where: {
+        hostId,
+        status: { not: 'INACTIVE' },
+        ...(excludePropertyId ? { id: { not: excludePropertyId } } : {}),
+      },
+      select: {
+        id: true,
+        title: true,
+        street: true,
+        buildingNumber: true,
+        latitude: true,
+        longitude: true,
+      },
+    });
+    for (const prop of properties) {
+      if (
+        prop.street?.trim().toLowerCase() === streetNorm &&
+        prop.buildingNumber?.trim().toLowerCase() === buildingNorm &&
+        prop.latitude !== null &&
+        prop.longitude !== null &&
+        Number(Number(prop.latitude).toFixed(5)) === latRound &&
+        Number(Number(prop.longitude).toFixed(5)) === lngRound
+      ) {
+        throw new ConflictException(
+          `A property at this address already exists: "${prop.title}" (id: ${prop.id})`,
+        );
+      }
     }
   }
 
@@ -721,6 +794,9 @@ export class PropertiesService {
       data.titleLabels = this.sanitizeTitleLabels(
         dto.titleLabels,
       ) as unknown as Prisma.InputJsonValue;
+    }
+    if (dto.guestInstructions !== undefined) {
+      data.guestInstructions = sanitizeGuestInstructionsHtml(dto.guestInstructions) ?? null;
     }
     if (dto.title && dto.title !== property.title) {
       data.slug = await this.generateUniqueSlug(dto.title, property.id);

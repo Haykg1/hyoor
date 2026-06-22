@@ -1,6 +1,6 @@
 'use client';
 
-import { CirclePlus } from 'lucide-react';
+import { CirclePlus, Upload } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
@@ -80,12 +80,20 @@ export function HostDashboardClient({ welcomeName }: HostDashboardClientProps): 
             {t('welcome', { name: welcomeName })}
           </p>
         </div>
-        <Button className="gap-2 self-start sm:self-auto" asChild>
-          <Link href="/dashboard/listings/new">
-            <CirclePlus className="h-4 w-4" />
-            {t('add_listing')}
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Button variant="outline" className="gap-2" asChild>
+            <Link href="/dashboard/listings/bulk-upload">
+              <Upload className="h-4 w-4" />
+              {t('upload_bulk')}
+            </Link>
+          </Button>
+          <Button className="gap-2" asChild>
+            <Link href="/dashboard/listings/new">
+              <CirclePlus className="h-4 w-4" />
+              {t('add_listing')}
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="mb-8">

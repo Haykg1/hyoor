@@ -26,6 +26,9 @@ interface AccountSettingsState {
   hostDescriptionSaving: boolean;
   hostDescriptionError: string | null;
   hostDescriptionSuccess: boolean;
+  spokenLanguages: string[];
+  spokenLanguagesSaving: boolean;
+  spokenLanguagesSuccess: boolean;
   passwordForm: PasswordForm;
   passwordSaving: boolean;
   passwordError: string | null;
@@ -33,8 +36,10 @@ interface AccountSettingsState {
   setProfileForm: (form: Partial<ProfileForm>) => void;
   setPasswordForm: (form: Partial<PasswordForm>) => void;
   setHostDescription: (description: string) => void;
+  setSpokenLanguages: (langs: string[]) => void;
   handleSaveProfile: () => Promise<void>;
   handleSaveHostDescription: () => Promise<void>;
+  handleSaveSpokenLanguages: () => Promise<void>;
   handleChangePassword: () => Promise<void>;
   handleAvatarChange: (file: File) => Promise<void>;
   handleRemoveAvatar: () => Promise<void>;
@@ -57,6 +62,9 @@ export function useAccountSettings(): AccountSettingsState {
     hostDescriptionSaving,
     hostDescriptionError,
     hostDescriptionSuccess,
+    spokenLanguages,
+    spokenLanguagesSaving,
+    spokenLanguagesSuccess,
     passwordForm,
     passwordSaving,
     passwordError,
@@ -65,8 +73,10 @@ export function useAccountSettings(): AccountSettingsState {
     setProfileForm,
     setPasswordForm,
     setHostDescription,
+    setSpokenLanguages,
     saveProfile,
     saveHostDescription,
+    saveSpokenLanguages,
     saveNewPassword,
     uploadAvatarFile,
     removeAvatar,
@@ -99,6 +109,9 @@ export function useAccountSettings(): AccountSettingsState {
     hostDescriptionSaving,
     hostDescriptionError,
     hostDescriptionSuccess,
+    spokenLanguages,
+    spokenLanguagesSaving,
+    spokenLanguagesSuccess,
     passwordForm,
     passwordSaving,
     passwordError,
@@ -106,8 +119,10 @@ export function useAccountSettings(): AccountSettingsState {
     setProfileForm,
     setPasswordForm,
     setHostDescription,
+    setSpokenLanguages,
     handleSaveProfile: saveProfile,
     handleSaveHostDescription: saveHostDescription,
+    handleSaveSpokenLanguages: saveSpokenLanguages,
     handleChangePassword: saveNewPassword,
     handleAvatarChange: uploadAvatarFile,
     handleRemoveAvatar: removeAvatar,

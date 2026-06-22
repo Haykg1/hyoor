@@ -42,6 +42,8 @@ export interface AppConfig {
     hostCalendarMaxContextMessages: number;
     hostCalendarSuggestionsCount: number;
     hostCalendarSuggestionsRangeDays: number;
+    bulkImportLimit: number;
+    bulkImportTtlSeconds: number;
   };
   security: {
     throttle: {
@@ -143,6 +145,8 @@ export default (): AppConfig => ({
       process.env.AI_SEARCH_HOST_CALENDAR_SUGGESTIONS_RANGE_DAYS ?? '90',
       10,
     ),
+    bulkImportLimit: parseInt(process.env.AI_SEARCH_BULK_IMPORT_LIMIT ?? '5', 10),
+    bulkImportTtlSeconds: parseInt(process.env.AI_SEARCH_BULK_IMPORT_TTL_SECONDS ?? '86400', 10),
   },
   security: {
     throttle: {

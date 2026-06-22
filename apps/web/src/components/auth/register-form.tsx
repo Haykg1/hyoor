@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { SPOKEN_LANGUAGES } from '@repo/shared';
 import { AlertCircle, Eye, EyeOff, House, Loader2, Lock, Mail, User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -20,6 +21,7 @@ interface RegisterFormValues {
   password: string;
   confirmPassword: string;
   wantsToHost: boolean;
+  spokenLanguages: string[];
 }
 
 export function RegisterForm(): React.JSX.Element {
@@ -30,6 +32,7 @@ export function RegisterForm(): React.JSX.Element {
   const [apiError, setApiError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [wantsToHost, setWantsToHost] = useState(false);
+  const [selectedLangs, setSelectedLangs] = useState<string[]>([]);
 
   const schema = z
     .object({
@@ -39,6 +42,7 @@ export function RegisterForm(): React.JSX.Element {
       password: z.string().min(6, te('password_min')),
       confirmPassword: z.string().min(1, te('required')),
       wantsToHost: z.boolean(),
+      spokenLanguages: z.array(z.string()),
     })
     .refine((d) => d.password === d.confirmPassword, {
       message: te('passwords_match'),
@@ -54,6 +58,7 @@ export function RegisterForm(): React.JSX.Element {
       password: '',
       confirmPassword: '',
       wantsToHost: false,
+      spokenLanguages: [],
     },
   });
 
@@ -70,6 +75,14 @@ export function RegisterForm(): React.JSX.Element {
     setValue('wantsToHost', isHost);
   }
 
+  function toggleLanguage(code: string): void {
+    const next = selectedLangs.includes(code)
+      ? selectedLangs.filter((c) => c !== code)
+      : [...selectedLangs, code];
+    setSelectedLangs(next);
+    setValue('spokenLanguages', next);
+  }
+
   async function onSubmit(values: RegisterFormValues): Promise<void> {
     setApiError(null);
     try {
@@ -79,6 +92,7 @@ export function RegisterForm(): React.JSX.Element {
         firstName: values.firstName,
         lastName: values.lastName,
         wantsToHost: values.wantsToHost,
+        spokenLanguages: values.spokenLanguages.length > 0 ? values.spokenLanguages : undefined,
       });
       router.push(values.wantsToHost ? '/dashboard' : '/trips');
     } catch (err) {
@@ -228,6 +242,35 @@ export function RegisterForm(): React.JSX.Element {
         {errors.confirmPassword && (
           <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
         )}
+      </div>
+
+      {/* Spoken languages */}
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">
+          {t('spoken_languages', { defaultValue: 'Languages you speak' })}
+          <span className="ml-1 font-normal text-muted-foreground text-xs">
+            {t('spoken_languages_hint', { defaultValue: '(optional)' })}
+          </span>
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {SPOKEN_LANGUAGES.map((lang) => {
+            const selected = selectedLangs.includes(lang.code);
+            return (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => toggleLanguage(lang.code)}
+                className={`rounded-full px-3 py-1 text-xs font-medium border transition-all ${
+                  selected
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border bg-background hover:border-primary/60 hover:bg-accent'
+                }`}
+              >
+                {lang.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <Button

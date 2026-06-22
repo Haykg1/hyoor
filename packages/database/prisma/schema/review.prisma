@@ -18,10 +18,11 @@ model Review {
   updatedAt   DateTime     @updatedAt
   propertyId  String?
 
-  booking  Booking   @relation(fields: [bookingId], references: [id], onDelete: Restrict)
-  author   User      @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Restrict)
-  subject  User      @relation("ReviewSubject", fields: [subjectId], references: [id], onDelete: Restrict)
-  property Property? @relation("PropertyReviews", fields: [propertyId], references: [id], onDelete: SetNull)
+  booking  Booking       @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  author   User          @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  subject  User          @relation("ReviewSubject", fields: [subjectId], references: [id], onDelete: Restrict)
+  property Property?     @relation("PropertyReviews", fields: [propertyId], references: [id], onDelete: SetNull)
+  photos   ReviewPhoto[]
 
   @@unique([bookingId, authorId, target])
   @@index([bookingId])
@@ -29,4 +30,16 @@ model Review {
   @@index([subjectId])
   @@index([propertyId])
   @@map("reviews")
+}
+
+model ReviewPhoto {
+  id        String   @id @default(cuid())
+  reviewId  String
+  key       String   @unique
+  createdAt DateTime @default(now())
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@map("review_photos")
 }

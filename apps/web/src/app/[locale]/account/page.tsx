@@ -1,6 +1,18 @@
 'use client';
 
-import { Camera, CheckCircle2, Globe, Home, Lock, LogOut, Mail, Phone, User } from 'lucide-react';
+import { SPOKEN_LANGUAGES } from '@repo/shared';
+import {
+  Camera,
+  CheckCircle2,
+  Globe,
+  Home,
+  Languages,
+  Lock,
+  LogOut,
+  Mail,
+  Phone,
+  User,
+} from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 
@@ -12,6 +24,7 @@ import { useAccountSettings } from '@/hooks/use-account-settings';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import type { Locale } from '@/i18n/routing';
 import { routing } from '@/i18n/routing';
+import { updateMyProfile } from '@/lib/api/users';
 import { cn } from '@/lib/utils';
 
 const LOCALE_LABELS: Record<Locale, string> = {
@@ -131,6 +144,9 @@ export default function AccountSettingsPage(): React.JSX.Element {
     hostDescriptionSaving,
     hostDescriptionError,
     hostDescriptionSuccess,
+    spokenLanguages,
+    spokenLanguagesSaving,
+    spokenLanguagesSuccess,
     passwordForm,
     passwordSaving,
     passwordError,
@@ -138,8 +154,10 @@ export default function AccountSettingsPage(): React.JSX.Element {
     setProfileForm,
     setPasswordForm,
     setHostDescription,
+    setSpokenLanguages,
     handleSaveProfile,
     handleSaveHostDescription,
+    handleSaveSpokenLanguages,
     handleChangePassword,
     handleAvatarChange,
     handleRemoveAvatar,
@@ -376,7 +394,10 @@ export default function AccountSettingsPage(): React.JSX.Element {
               <button
                 key={code}
                 type="button"
-                onClick={() => router.replace(pathname, { locale: code })}
+                onClick={() => {
+                  void updateMyProfile({ preferredLang: code }).catch(() => undefined);
+                  router.replace(pathname, { locale: code });
+                }}
                 className={cn(
                   'rounded-full px-4 py-1.5 text-sm font-medium border transition-colors',
                   code === locale
@@ -388,6 +409,60 @@ export default function AccountSettingsPage(): React.JSX.Element {
               </button>
             ))}
           </div>
+        </SectionCard>
+
+        {/* Spoken Languages */}
+        <SectionCard>
+          <SectionHeader
+            icon={<Languages className="h-4 w-4" />}
+            title={t('languages.title', { defaultValue: 'Languages I speak' })}
+          />
+          <p className="text-sm text-muted-foreground mb-3">
+            {t('languages.subtitle', {
+              defaultValue: 'Select all languages you can communicate in.',
+            })}
+          </p>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {SPOKEN_LANGUAGES.map((lang) => {
+              const selected = spokenLanguages.includes(lang.code);
+              return (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() =>
+                    setSpokenLanguages(
+                      selected
+                        ? spokenLanguages.filter((c) => c !== lang.code)
+                        : [...spokenLanguages, lang.code],
+                    )
+                  }
+                  className={cn(
+                    'rounded-full px-3 py-1 text-sm font-medium border transition-all',
+                    selected
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border bg-background hover:border-primary/60 hover:bg-accent',
+                  )}
+                >
+                  {lang.label}
+                </button>
+              );
+            })}
+          </div>
+          {spokenLanguagesSuccess && (
+            <div className="flex items-center gap-2 text-sm text-green-600 mb-3">
+              <CheckCircle2 className="h-4 w-4" />
+              {t('languages.save_success', { defaultValue: 'Languages saved.' })}
+            </div>
+          )}
+          <Button
+            onClick={() => void handleSaveSpokenLanguages()}
+            disabled={spokenLanguagesSaving}
+            className="rounded-xl"
+          >
+            {spokenLanguagesSaving
+              ? t('languages.saving', { defaultValue: 'Saving…' })
+              : t('languages.save', { defaultValue: 'Save languages' })}
+          </Button>
         </SectionCard>
 
         {/* Change Password */}

@@ -1,5 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { SPOKEN_LANGUAGES } from '@repo/shared';
+import {
+  IsArray,
+  IsBoolean,
+  IsEmail,
+  IsIn,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class RegisterDto {
   @ApiProperty({ example: 'guest@example.com' })
@@ -23,4 +32,14 @@ export class RegisterDto {
   @IsBoolean()
   @IsOptional()
   wantsToHost?: boolean;
+
+  @ApiPropertyOptional({
+    example: ['en', 'ru'],
+    description: 'ISO 639-1 language codes the user speaks',
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsIn(SPOKEN_LANGUAGES.map((l) => l.code), { each: true })
+  spokenLanguages?: string[];
 }

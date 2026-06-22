@@ -67,6 +67,7 @@ export class UsersService {
     firstName: string;
     lastName: string;
     role?: 'GUEST' | 'HOST';
+    spokenLanguages?: string[];
   }): Promise<UserWithProfile> {
     const existing = await this.findByEmail(data.email);
     if (existing) {
@@ -81,6 +82,7 @@ export class UsersService {
           create: {
             firstName: data.firstName,
             lastName: data.lastName,
+            spokenLanguages: data.spokenLanguages ?? [],
           },
         },
       },

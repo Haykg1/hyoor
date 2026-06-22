@@ -43,6 +43,24 @@ describe('Properties (e2e)', () => {
     expect(response.body.data.hostId).toBe(host.hostProfileId);
   });
 
+  it('accepts optional guestInstructions on create and update', async () => {
+    const host = await registerHostUser(app);
+    const instructions = '<p>Lockbox code: <strong>1234</strong></p>';
+    const property = await createActivePropertyDirect(app, host);
+    const update = await request(app.getHttpServer())
+      .patch(`/api/v1/properties/${property.id}`)
+      .set(authHeader(host.accessToken))
+      .send({ guestInstructions: instructions })
+      .expect(200);
+    expect(update.body.data.guestInstructions).toBe(instructions);
+    const cleared = await request(app.getHttpServer())
+      .patch(`/api/v1/properties/${property.id}`)
+      .set(authHeader(host.accessToken))
+      .send({ guestInstructions: '' })
+      .expect(200);
+    expect(cleared.body.data.guestInstructions).toBeNull();
+  });
+
   it('rejects property creation for non-host users', async () => {
     const guest = await registerUser(app);
     const response = await request(app.getHttpServer())

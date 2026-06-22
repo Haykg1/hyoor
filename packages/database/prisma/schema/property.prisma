@@ -68,6 +68,7 @@ model Property {
   quietHoursStart    String?
   quietHoursEnd      String?
   additionalRules    String?
+  guestInstructions  String?            @db.Text
   externalBookingUrl String?
   featured           Boolean            @default(false)
   featuredPoiIds     String[]           @default([])

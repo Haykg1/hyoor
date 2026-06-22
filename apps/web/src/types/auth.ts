@@ -10,6 +10,7 @@ export interface RegisterInput {
   firstName: string;
   lastName: string;
   wantsToHost?: boolean;
+  spokenLanguages?: string[];
 }
 
 export interface LoginInput {
