@@ -82,6 +82,30 @@ export interface PropertySummary {
 export const HostTypes = ['INDIVIDUAL', 'COMPANY'] as const;
 export type HostType = (typeof HostTypes)[number];
 
+/** ISO 639-1 codes + display names for the most widely spoken languages. */
+export const SPOKEN_LANGUAGES = [
+  { code: 'en', label: 'English' },
+  { code: 'ru', label: 'Russian' },
+  { code: 'hy', label: 'Armenian' },
+  { code: 'ar', label: 'Arabic' },
+  { code: 'zh', label: 'Chinese' },
+  { code: 'fr', label: 'French' },
+  { code: 'de', label: 'German' },
+  { code: 'es', label: 'Spanish' },
+  { code: 'pt', label: 'Portuguese' },
+  { code: 'it', label: 'Italian' },
+  { code: 'ja', label: 'Japanese' },
+  { code: 'ko', label: 'Korean' },
+  { code: 'tr', label: 'Turkish' },
+  { code: 'fa', label: 'Persian' },
+  { code: 'hi', label: 'Hindi' },
+  { code: 'uk', label: 'Ukrainian' },
+  { code: 'pl', label: 'Polish' },
+  { code: 'nl', label: 'Dutch' },
+] as const;
+
+export type SpokenLanguageCode = (typeof SPOKEN_LANGUAGES)[number]['code'];
+
 export interface PublicHostProfile {
   id: string;
   hostType: HostType;
@@ -94,6 +118,7 @@ export interface PublicHostProfile {
   responseRatePercent: number | null;
   responseTimeHours: number | null;
   avgRating: number | null;
+  spokenLanguages: string[];
 }
 
 export interface PropertyPhotoView {
@@ -156,6 +181,7 @@ export interface PropertyDetail {
   quietHoursStart: string | null;
   quietHoursEnd: string | null;
   additionalRules: string | null;
+  guestInstructions: string | null;
   featured: boolean;
   createdAt: string;
   updatedAt: string;
@@ -176,6 +202,12 @@ export interface ReviewAuthorProfile {
   avatarUrl: string | null;
 }
 
+export interface ReviewPhotoView {
+  id: string;
+  reviewId: string;
+  url: string;
+}
+
 export interface ReviewView {
   id: string;
   bookingId: string;
@@ -188,6 +220,7 @@ export interface ReviewView {
   propertyId: string | null;
   createdAt: string;
   author: ReviewAuthorProfile;
+  photos?: ReviewPhotoView[];
 }
 
 export interface CreateBookingInput {

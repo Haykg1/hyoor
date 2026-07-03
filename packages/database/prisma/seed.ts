@@ -1,3 +1,8 @@
+import { config } from 'dotenv';
+import { resolve } from 'node:path';
+
+config({ path: resolve(__dirname, '../.env') });
+
 import { hashSync } from 'bcryptjs';
 import { Decimal } from '@prisma/client/runtime/library';
 
@@ -396,6 +401,8 @@ async function main(): Promise<void> {
       petsAllowed: false,
       quietHoursStart: '22:00',
       quietHoursEnd: '08:00',
+      guestInstructions:
+        '<p>Enter through the main gate and use the intercom code <strong>4521</strong>.</p><p>The lockbox is on the door handle — code: <strong>8824</strong>.</p><p>Wi-Fi network: <strong>CascadeGuest</strong>, password: <strong>welcome2024</strong>.</p>',
     },
   });
 

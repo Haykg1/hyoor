@@ -101,6 +101,10 @@ export class MockRedisService {
     return next;
   }
 
+  async del(key: string): Promise<void> {
+    this.kvEntries.delete(key);
+  }
+
   async decr(key: string): Promise<number> {
     const entry = this.kvEntries.get(key);
     if (!entry || entry.expiresAt <= Date.now()) {

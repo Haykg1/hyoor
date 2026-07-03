@@ -9,14 +9,16 @@ import type { Prisma, PropertyPromotion } from '@repo/database/client';
 import type {
   AppliedPromotionSummary,
   CreatePromotionResult,
+  HotDealProperty,
   PaginatedResponse,
   PromotionSummary,
 } from '@repo/shared';
-import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
+import { DEFAULT_PAGE_SIZE, S3_PRESIGNED_URL_EXPIRES } from '@repo/shared/constants';
 
 import { PrismaService } from '../database/prisma.service';
 import { HostProfilesService } from '../host-profiles/host-profiles.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { StorageService } from '../storage/storage.service';
 
 import type { CreatePromotionDto } from './dto/create-promotion.dto';
 import type { QueryPromotionsDto } from './dto/query-promotions.dto';
@@ -46,12 +48,16 @@ type PromotionWithProperty = PropertyPromotion & {
   };
 };
 
+const HOT_DEAL_WINDOW_HOURS = 72;
+const HOT_DEAL_LIMIT = 10;
+
 @Injectable()
 export class PromotionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly hostProfilesService: HostProfilesService,
     private readonly notificationsService: NotificationsService,
+    private readonly storage: StorageService,
   ) {}
 
   async create(hostUserId: string, dto: CreatePromotionDto): Promise<CreatePromotionResult> {
@@ -363,6 +369,82 @@ export class PromotionsService {
       ),
     );
     return favorites.length;
+  }
+
+  async getHotDeals(): Promise<HotDealProperty[]> {
+    const now = new Date();
+    const windowEnd = new Date(now.getTime() + HOT_DEAL_WINDOW_HOURS * 60 * 60 * 1000);
+    const promotions = await this.prisma.propertyPromotion.findMany({
+      where: {
+        isActive: true,
+        type: 'DATE_RANGE',
+        bookingStartDate: { lte: windowEnd },
+        bookingEndDate: { gte: now, lte: windowEnd },
+        property: { status: 'ACTIVE' },
+      },
+      orderBy: { bookingEndDate: 'asc' },
+      take: HOT_DEAL_LIMIT,
+      include: {
+        property: {
+          include: {
+            photos: { where: { isCover: true }, take: 1 },
+            reviews: {
+              where: { isPublished: true, target: 'PROPERTY' },
+              select: { rating: true },
+            },
+            _count: {
+              select: { reviews: { where: { isPublished: true, target: 'PROPERTY' } } },
+            },
+          },
+        },
+      },
+    });
+    return Promise.all(
+      promotions.map(async (promo) => {
+        const p = promo.property;
+        const coverPhoto = p.photos[0];
+        let coverPhotoUrl: string | undefined;
+        if (coverPhoto) {
+          try {
+            coverPhotoUrl = await this.storage.getPresignedUrl(
+              coverPhoto.key,
+              S3_PRESIGNED_URL_EXPIRES,
+            );
+          } catch {
+            coverPhotoUrl = undefined;
+          }
+        }
+        const avgRating =
+          p.reviews.length > 0
+            ? p.reviews.reduce((s, r) => s + r.rating, 0) / p.reviews.length
+            : undefined;
+        return {
+          id: p.id,
+          title: p.title,
+          titleLabels: p.titleLabels as HotDealProperty['titleLabels'],
+          slug: p.slug,
+          propertyType: p.propertyType,
+          city: p.city,
+          region: p.region,
+          country: p.country,
+          pricePerNight: p.pricePerNight,
+          currency: p.currency,
+          coverPhotoUrl,
+          maxGuests: p.maxGuests,
+          bedrooms: p.bedrooms,
+          avgRating,
+          reviewCount: p._count.reviews,
+          featured: p.featured,
+          addressLabels: p.addressLabels as HotDealProperty['addressLabels'],
+          promotionId: promo.id,
+          discountType: promo.discountType,
+          discountPercent: promo.discountPercent,
+          discountAmount: promo.discountAmount,
+          promotionDescription: promo.description,
+          bookingEndDate: promo.bookingEndDate.toISOString().slice(0, 10),
+        } satisfies HotDealProperty;
+      }),
+    );
   }
 
   private validateDiscount(dto: CreatePromotionDto): void {

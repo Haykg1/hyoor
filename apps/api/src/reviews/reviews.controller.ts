@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -18,7 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import type { PaginatedResponse } from '@repo/shared';
+import type { PaginatedResponse, ReviewPhotoView } from '@repo/shared';
 
 import type { RequestUser } from '../auth/decorators/current-user.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -28,6 +29,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
 import { WRITE_THROTTLE } from '../common/throttle/throttle.constants';
 
+import { ConfirmReviewPhotoUploadDto } from './dto/confirm-review-photo-upload.dto';
+import { CreateReviewPhotoPresignedUrlDto } from './dto/create-review-photo-presigned-url.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { QueryReviewsDto } from './dto/query-reviews.dto';
 import { ReviewsService, type ReviewView } from './reviews.service';
@@ -91,5 +94,47 @@ export class ReviewsController {
   @ApiStandardErrors({ notFound: true })
   unpublish(@Param('id') id: string): Promise<ReviewView> {
     return this.reviewsService.unpublish(id);
+  }
+
+  @Post(':id/photos/presigned-url')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get presigned S3 URL to upload a review photo' })
+  @ApiCreatedResponse({ description: '{ uploadUrl, key }' })
+  @ApiStandardErrors({ notFound: true })
+  createPhotoUploadUrl(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() dto: CreateReviewPhotoPresignedUrlDto,
+  ): Promise<{ uploadUrl: string; key: string }> {
+    return this.reviewsService.createPhotoUploadUrl(id, user.userId, dto.mimeType);
+  }
+
+  @Post(':id/photos/confirm')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Confirm a review photo upload and create DB record' })
+  @ApiCreatedResponse({ description: 'ReviewPhotoView' })
+  @ApiStandardErrors({ notFound: true })
+  confirmPhotoUpload(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() dto: ConfirmReviewPhotoUploadDto,
+  ): Promise<ReviewPhotoView> {
+    return this.reviewsService.confirmPhotoUpload(id, user.userId, dto.key);
+  }
+
+  @Delete(':id/photos/:photoId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a review photo' })
+  @ApiStandardErrors({ notFound: true })
+  deletePhoto(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Param('photoId') photoId: string,
+  ): Promise<void> {
+    return this.reviewsService.deletePhoto(id, photoId, user.userId);
   }
 }

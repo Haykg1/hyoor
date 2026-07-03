@@ -43,6 +43,7 @@ export class AuthService {
       firstName: dto.firstName,
       lastName: dto.lastName,
       role: dto.wantsToHost ? 'HOST' : 'GUEST',
+      spokenLanguages: dto.spokenLanguages,
     });
     try {
       await this.verification.sendOtp(user.id);

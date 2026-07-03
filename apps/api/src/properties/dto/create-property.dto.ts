@@ -274,6 +274,15 @@ export class CreatePropertyDto implements CreatePropertyInput {
   @MaxLength(2000)
   additionalRules?: string;
 
+  @ApiPropertyOptional({
+    description: 'HTML guest check-in instructions emailed on check-in day',
+    maxLength: 10000,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(10000)
+  guestInstructions?: string;
+
   @ApiPropertyOptional({ example: 'https://booking.example.com/listing/123' })
   @IsOptional()
   @IsUrl()

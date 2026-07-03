@@ -5,10 +5,12 @@ import type {
   ProposeCalendarChangesToolArgs,
   SearchPropertiesToolArgs,
 } from '@repo/shared';
-import { PropertyTypes } from '@repo/shared';
+import { AMENITIES_CATALOG, CancellationPolicies, PropertyTypes } from '@repo/shared';
 import OpenAI from 'openai';
 
 import type { AppConfig } from '../../config/configuration';
+import type { NormalizedRow } from '../../properties/bulk-import/row-normalizer';
+import { normalizeRow } from '../../properties/bulk-import/row-normalizer';
 import { truncateAiSearchMessages } from '../utils/message-limits';
 
 import { buildHostCalendarSuggestionsPrompt } from './host-calendar-suggestions-prompt';
@@ -283,5 +285,111 @@ export class OpenAiLlmService extends LlmService {
     if (typeof record.minAvgRating === 'number') args.minAvgRating = record.minAvgRating;
     if (typeof record.q === 'string') args.q = record.q.trim();
     return args;
+  }
+
+  async normalizeBulkPropertyRows(
+    headers: string[],
+    rows: Record<string, string>[],
+  ): Promise<NormalizedRow[]> {
+    if (!this.client) throw new ServiceUnavailableException('AI service not configured');
+    if (rows.length === 0) return [];
+
+    const model = this.config.get('openai.model', { infer: true });
+    const sampleRows = rows.slice(0, 5);
+
+    const validAmenityNames = AMENITIES_CATALOG.map((a) => a.name);
+    const systemPrompt = `You are a data normalization assistant for a property rental platform.
+Given spreadsheet headers and rows, map each row to the canonical property schema.
+Return a JSON array with one object per input row containing these fields:
+title, description, propertyType (${PropertyTypes.join('|')}), city, address (free-text if no lat/lng), 
+maxGuests (int), bedrooms (int), beds (int), bathrooms (float), pricePerNight (int), 
+cancellationPolicy (${CancellationPolicies.join('|')}), region, country, 
+maxAdults, maxChildren, maxInfants, cleaningFee, securityDeposit, minNights, maxNights,
+checkInTime, checkOutTime, smokingAllowed (bool), petsAllowed (bool), partiesAllowed (bool),
+additionalRules, amenities (array — see rules below), titleEn, titleRu, titleHy.
+Omit unknown fields. Normalize enums to the exact values listed (e.g. "apartment" → "APARTMENT").
+Parse numbers (strip currency symbols). Infer maxGuests from bedrooms*2 if missing.
+Default country to "AM" if not specified.
+
+AMENITY MAPPING RULES:
+The only valid amenity names are: ${validAmenityNames.join(', ')}.
+Input may contain amenity descriptions in any language or free-text (e.g. "baxniq" means bath/bathtub in Armenian, "zugaran" means toilet, "balkon" means balcony, "televizr" means TV).
+For each input amenity string, map it to the closest matching name from the valid list above using semantic understanding across languages. If no reasonable match exists, omit it.
+Return amenities as an array of exact names from the valid list only. Return [] if none match.`;
+
+    const userContent = JSON.stringify({ headers, rows: sampleRows });
+
+    const completion = await this.client.chat.completions.create({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0,
+      max_tokens: 4000,
+    });
+
+    const content = completion.choices[0]?.message?.content ?? '';
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(content) as unknown;
+    } catch {
+      throw new ServiceUnavailableException('LLM returned invalid JSON for bulk normalization');
+    }
+
+    const rawArray: unknown[] = Array.isArray(parsed)
+      ? parsed
+      : Array.isArray((parsed as Record<string, unknown>).rows)
+        ? ((parsed as Record<string, unknown>).rows as unknown[])
+        : [];
+
+    const normalized: NormalizedRow[] = [];
+
+    // For rows beyond the LLM sample, fall back to deterministic normalizer
+    for (let i = 0; i < rows.length; i++) {
+      if (i < sampleRows.length && rawArray[i] && typeof rawArray[i] === 'object') {
+        const r = rawArray[i] as Record<string, unknown>;
+        const row: NormalizedRow = {};
+        if (typeof r.title === 'string') row.title = r.title;
+        if (typeof r.description === 'string') row.description = r.description;
+        if (typeof r.propertyType === 'string') row.propertyType = r.propertyType;
+        if (typeof r.city === 'string') row.city = r.city;
+        if (typeof r.address === 'string') row.address = r.address;
+        if (typeof r.maxGuests === 'number') row.maxGuests = r.maxGuests;
+        if (typeof r.bedrooms === 'number') row.bedrooms = r.bedrooms;
+        if (typeof r.beds === 'number') row.beds = r.beds;
+        if (typeof r.bathrooms === 'number') row.bathrooms = r.bathrooms;
+        if (typeof r.pricePerNight === 'number') row.pricePerNight = r.pricePerNight;
+        if (typeof r.cancellationPolicy === 'string') row.cancellationPolicy = r.cancellationPolicy;
+        if (typeof r.region === 'string') row.region = r.region;
+        if (typeof r.country === 'string') row.country = r.country;
+        if (typeof r.maxAdults === 'number') row.maxAdults = r.maxAdults;
+        if (typeof r.maxChildren === 'number') row.maxChildren = r.maxChildren;
+        if (typeof r.maxInfants === 'number') row.maxInfants = r.maxInfants;
+        if (typeof r.cleaningFee === 'number') row.cleaningFee = r.cleaningFee;
+        if (typeof r.securityDeposit === 'number') row.securityDeposit = r.securityDeposit;
+        if (typeof r.minNights === 'number') row.minNights = r.minNights;
+        if (typeof r.maxNights === 'number') row.maxNights = r.maxNights;
+        if (typeof r.checkInTime === 'string') row.checkInTime = r.checkInTime;
+        if (typeof r.checkOutTime === 'string') row.checkOutTime = r.checkOutTime;
+        if (typeof r.smokingAllowed === 'boolean') row.smokingAllowed = r.smokingAllowed;
+        if (typeof r.petsAllowed === 'boolean') row.petsAllowed = r.petsAllowed;
+        if (typeof r.partiesAllowed === 'boolean') row.partiesAllowed = r.partiesAllowed;
+        if (typeof r.additionalRules === 'string') row.additionalRules = r.additionalRules;
+        if (typeof r.titleEn === 'string') row.titleEn = r.titleEn;
+        if (typeof r.titleRu === 'string') row.titleRu = r.titleRu;
+        if (typeof r.titleHy === 'string') row.titleHy = r.titleHy;
+        if (Array.isArray(r.amenities)) {
+          row.amenities = r.amenities.filter((a): a is string => typeof a === 'string');
+        }
+        normalized.push(row);
+      } else {
+        const { normalized: det } = normalizeRow(rows[i]!);
+        normalized.push(det);
+      }
+    }
+
+    return normalized;
   }
 }

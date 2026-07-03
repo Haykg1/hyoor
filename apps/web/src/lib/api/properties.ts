@@ -1,6 +1,9 @@
 import { PropertyFilterCategories, propertyTypeToFilterCategory } from '@repo/shared';
 import type {
   AmenityInput,
+  BulkImportConfirmResponse,
+  BulkImportJobResponse,
+  BulkImportPreviewResponse,
   ConfirmPhotoUploadInput,
   CreatePresignedPhotoUrlInput,
   CreatePropertyInput,
@@ -18,6 +21,7 @@ import type {
 import type { PhotoMimeType } from '@repo/shared';
 
 import { api, ApiError } from '@/lib/api';
+import { compressImage } from '@/lib/compress-image';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1';
 
@@ -247,10 +251,11 @@ export async function uploadPropertyPhotoFile(
   const mimeType = (
     ALLOWED_PHOTO_MIME_TYPES.includes(file.type as PhotoMimeType) ? file.type : 'image/jpeg'
   ) as PhotoMimeType;
+  const compressed = await compressImage(file);
   const { uploadUrl, key } = await getPresignedPhotoUploadUrl(propertyId, { mimeType });
   const putRes = await fetch(uploadUrl, {
     method: 'PUT',
-    body: file,
+    body: compressed,
     headers: { 'Content-Type': mimeType },
   });
   if (!putRes.ok) {
@@ -309,4 +314,26 @@ export async function searchFeaturedProperties(
     }
     return EMPTY_RESULT;
   }
+}
+
+// ─── Bulk import ─────────────────────────────────────────────────────────────
+
+export function analyzeBulkImport(file: File): Promise<BulkImportPreviewResponse> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.upload<BulkImportPreviewResponse>('/properties/bulk-import/analyze', formData);
+}
+
+export async function confirmBulkImport(
+  previewId: string,
+  locale?: string,
+): Promise<BulkImportConfirmResponse> {
+  return api.post<BulkImportConfirmResponse>('/properties/bulk-import/confirm', {
+    previewId,
+    locale,
+  });
+}
+
+export async function getBulkImportJob(jobId: string): Promise<BulkImportJobResponse> {
+  return api.get<BulkImportJobResponse>(`/properties/bulk-import/jobs/${jobId}`);
 }

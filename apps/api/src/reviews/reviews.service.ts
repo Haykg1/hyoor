@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+
 import {
   BadRequestException,
   ConflictException,
@@ -7,14 +9,19 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@repo/database/client';
 import type { Review, ReviewTarget } from '@repo/database/client';
-import type { PaginatedResponse } from '@repo/shared';
-import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
+import type { PaginatedResponse, ReviewPhotoView } from '@repo/shared';
+import type { PhotoMimeType } from '@repo/shared';
+import { DEFAULT_PAGE_SIZE, S3_PRESIGNED_URL_EXPIRES } from '@repo/shared/constants';
 
 import { PrismaService } from '../database/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { StorageService } from '../storage/storage.service';
 
 import { CreateReviewDto } from './dto/create-review.dto';
 import { QueryReviewsDto } from './dto/query-reviews.dto';
+
+const MAX_REVIEW_PHOTOS = 5;
+const ALLOWED_REVIEW_PHOTO_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 export interface ReviewAuthorProfile {
   id: string;
@@ -35,6 +42,7 @@ export interface ReviewView {
   propertyId: string | null;
   createdAt: Date;
   author: ReviewAuthorProfile;
+  photos: ReviewPhotoView[];
 }
 
 type BookingWithRelations = {
@@ -53,6 +61,7 @@ export class ReviewsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
+    private readonly storage: StorageService,
   ) {}
 
   async create(authorId: string, dto: CreateReviewDto): Promise<ReviewView> {
@@ -185,6 +194,60 @@ export class ReviewsService {
     }
   }
 
+  async createPhotoUploadUrl(
+    reviewId: string,
+    userId: string,
+    mimeType: PhotoMimeType,
+  ): Promise<{ uploadUrl: string; key: string }> {
+    if (!ALLOWED_REVIEW_PHOTO_MIME_TYPES.has(mimeType)) {
+      throw new BadRequestException('Photo must be a JPEG, PNG, or WebP image');
+    }
+    const review = await this.prisma.review.findUnique({
+      where: { id: reviewId },
+      include: { _count: { select: { photos: true } } },
+    });
+    if (!review) throw new NotFoundException('Review not found');
+    if (review.authorId !== userId) throw new ForbiddenException('Not your review');
+    if (review._count.photos >= MAX_REVIEW_PHOTOS) {
+      throw new BadRequestException(`Maximum ${MAX_REVIEW_PHOTOS} photos per review`);
+    }
+    const ext = mimeType === 'image/jpeg' ? 'jpg' : mimeType === 'image/png' ? 'png' : 'webp';
+    const key = `reviews/${reviewId}/${randomUUID() as string}.${ext}`;
+    const uploadUrl = await this.storage.getPresignedUploadUrl(
+      key,
+      mimeType,
+      S3_PRESIGNED_URL_EXPIRES,
+    );
+    return { uploadUrl, key };
+  }
+
+  async confirmPhotoUpload(
+    reviewId: string,
+    userId: string,
+    key: string,
+  ): Promise<ReviewPhotoView> {
+    const review = await this.prisma.review.findUnique({ where: { id: reviewId } });
+    if (!review) throw new NotFoundException('Review not found');
+    if (review.authorId !== userId) throw new ForbiddenException('Not your review');
+    if (!key.startsWith(`reviews/${reviewId}/`)) {
+      throw new BadRequestException('Invalid photo key');
+    }
+    const photo = await this.prisma.reviewPhoto.create({ data: { reviewId, key } });
+    const url = await this.storage.getPresignedUrl(photo.key, S3_PRESIGNED_URL_EXPIRES);
+    return { id: photo.id, reviewId: photo.reviewId, url };
+  }
+
+  async deletePhoto(reviewId: string, photoId: string, userId: string): Promise<void> {
+    const photo = await this.prisma.reviewPhoto.findUnique({
+      where: { id: photoId },
+      include: { review: true },
+    });
+    if (!photo || photo.reviewId !== reviewId) throw new NotFoundException('Photo not found');
+    if (photo.review.authorId !== userId) throw new ForbiddenException('Not your review');
+    await this.storage.deleteFile(photo.key);
+    await this.prisma.reviewPhoto.delete({ where: { id: photoId } });
+  }
+
   private async findPublishedReviews(
     where: Prisma.ReviewWhereInput,
     dto: QueryReviewsDto,
@@ -200,6 +263,7 @@ export class ReviewsService {
         orderBy: { createdAt: dto.sortOrder ?? 'desc' },
         skip,
         take: limit,
+        include: { photos: true },
       }),
       this.prisma.review.count({ where: effectiveWhere }),
     ]);
@@ -213,7 +277,9 @@ export class ReviewsService {
     };
   }
 
-  private async toReviewView(review: Review): Promise<ReviewView> {
+  private async toReviewView(
+    review: Review & { photos?: { id: string; reviewId: string; key: string }[] },
+  ): Promise<ReviewView> {
     const author = await this.prisma.user.findUnique({
       where: { id: review.authorId },
       include: { profile: true },
@@ -221,6 +287,13 @@ export class ReviewsService {
     if (!author) {
       throw new NotFoundException('Review author not found');
     }
+    const photos: ReviewPhotoView[] = await Promise.all(
+      (review.photos ?? []).map(async (p) => ({
+        id: p.id,
+        reviewId: p.reviewId,
+        url: await this.storage.getPresignedUrl(p.key, S3_PRESIGNED_URL_EXPIRES),
+      })),
+    );
     return {
       id: review.id,
       bookingId: review.bookingId,
@@ -238,6 +311,7 @@ export class ReviewsService {
         lastName: author.profile?.lastName ?? null,
         avatarUrl: author.profile?.avatarKey ?? null,
       },
+      photos,
     };
   }
 }

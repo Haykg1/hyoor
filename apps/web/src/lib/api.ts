@@ -143,6 +143,26 @@ class ApiClient {
     return this.parseResponse<T>(res);
   }
 
+  async upload<T>(path: string, formData: FormData): Promise<T> {
+    this.hydrateAccessTokenFromCookie();
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      credentials: 'include',
+      body: formData,
+    });
+    if (res.status === 401) {
+      const refreshed = await this.handleUnauthorized();
+      if (refreshed) return this.upload<T>(path, formData);
+      throw new ApiError('Unauthorized', 401);
+    }
+    if (!res.ok) {
+      const body = await res.text();
+      throw new ApiError(`API error ${res.status}: ${body}`, res.status, body);
+    }
+    return this.parseResponse<T>(res);
+  }
+
   get<T>(path: string, init?: RequestInit): Promise<T> {
     return this.request<T>(path, { ...init, method: 'GET' });
   }

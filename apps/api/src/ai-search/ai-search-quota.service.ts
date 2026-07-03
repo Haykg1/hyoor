@@ -257,4 +257,22 @@ export class AiSearchQuotaService {
     if (ttl <= 0) return undefined;
     return ttl;
   }
+
+  async assertBulkImportLimit(userId: string): Promise<void> {
+    if (!this.redis.isConfigured) return;
+    const limit = this.config.get('aiSearch.bulkImportLimit', { infer: true });
+    const ttl = this.config.get('aiSearch.bulkImportTtlSeconds', { infer: true });
+    const key = `ai-search:bulk-import:${userId}`;
+    const count = await this.redis.incrWithTtl(key, ttl);
+    if (count > limit) {
+      await this.redis.decr(key);
+      throw new HttpException(
+        {
+          message: `Bulk import analyze limit (${limit}/day) reached. Try again tomorrow.`,
+          code: 'BULK_IMPORT_LIMIT',
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+  }
 }

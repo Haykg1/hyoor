@@ -222,6 +222,26 @@ export function PropertyReviewsList({
                 ) : (
                   <p className="text-xs italic text-muted-foreground">{t('no_comment')}</p>
                 )}
+                {review.photos && review.photos.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {review.photos.map((photo) => (
+                      <a
+                        key={photo.id}
+                        href={photo.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block h-16 w-16 shrink-0 overflow-hidden rounded-md border border-border"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={photo.url}
+                          alt=""
+                          className="h-full w-full object-cover transition-opacity hover:opacity-80"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             </li>
           ))}

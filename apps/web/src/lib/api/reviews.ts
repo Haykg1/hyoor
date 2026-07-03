@@ -1,6 +1,9 @@
-import type { PaginatedResponse, ReviewView } from '@repo/shared';
+import type { PaginatedResponse, ReviewPhotoView, ReviewView } from '@repo/shared';
+import type { PhotoMimeType } from '@repo/shared';
+import { PhotoMimeTypes } from '@repo/shared';
 
 import { api } from '@/lib/api';
+import { compressImage } from '@/lib/compress-image';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1';
 
@@ -47,4 +50,26 @@ export interface CreateReviewInput {
 
 export async function createReview(input: CreateReviewInput): Promise<ReviewView> {
   return api.post<ReviewView>('/reviews', { ...input, target: 'PROPERTY' });
+}
+
+export async function uploadReviewPhoto(reviewId: string, file: File): Promise<ReviewPhotoView> {
+  const mimeType = (
+    PhotoMimeTypes.includes(file.type as PhotoMimeType) ? file.type : 'image/jpeg'
+  ) as PhotoMimeType;
+  const compressed = await compressImage(file);
+  const { uploadUrl, key } = await api.post<{ uploadUrl: string; key: string }>(
+    `/reviews/${reviewId}/photos/presigned-url`,
+    { mimeType },
+  );
+  const putRes = await fetch(uploadUrl, {
+    method: 'PUT',
+    body: compressed,
+    headers: { 'Content-Type': mimeType },
+  });
+  if (!putRes.ok) throw new Error(`Photo upload failed: ${putRes.status}`);
+  return api.post<ReviewPhotoView>(`/reviews/${reviewId}/photos/confirm`, { key });
+}
+
+export async function deleteReviewPhoto(reviewId: string, photoId: string): Promise<void> {
+  await api.delete<void>(`/reviews/${reviewId}/photos/${photoId}`);
 }

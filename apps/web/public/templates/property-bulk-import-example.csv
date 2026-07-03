@@ -1,0 +1,4 @@
+title,description,propertyType,city,address,maxGuests,bedrooms,beds,bathrooms,pricePerNight,cancellationPolicy,cleaningFee,securityDeposit,amenities
+Cascade View Apartment,Bright 2-bedroom apartment with stunning views of Mount Ararat. Fully equipped kitchen and high-speed Wi-Fi.,APARTMENT,Yerevan,"10 Tamanyan St, Yerevan",4,2,2,1,28000,MODERATE,3000,5000,WiFi|Kitchen|Air conditioning|Washer
+Dilijan Forest House,Cozy 3-bedroom house in the heart of Dilijan National Park. Perfect for family getaways.,HOUSE,Dilijan,"5 Mkhitar Gosh St, Dilijan",6,3,4,2,45000,FLEXIBLE,5000,10000,WiFi|Kitchen|Parking|Fireplace|Garden
+,,,Yerevan,"22 Abovyan St, Yerevan",2,1,1,1,15000,FLEXIBLE,,,WiFi|Kitchen

@@ -41,6 +41,9 @@ interface AccountSettingsState {
   hostDescriptionError: string | null;
   hostDescriptionSuccess: boolean;
   isHost: boolean;
+  spokenLanguages: string[];
+  spokenLanguagesSaving: boolean;
+  spokenLanguagesSuccess: boolean;
   passwordForm: PasswordForm;
   passwordSaving: boolean;
   passwordError: string | null;
@@ -52,8 +55,10 @@ interface AccountSettingsActions {
   setProfileForm: (partial: Partial<ProfileForm>) => void;
   setPasswordForm: (partial: Partial<PasswordForm>) => void;
   setHostDescription: (description: string) => void;
+  setSpokenLanguages: (langs: string[]) => void;
   saveProfile: () => Promise<void>;
   saveHostDescription: () => Promise<void>;
+  saveSpokenLanguages: () => Promise<void>;
   saveNewPassword: () => Promise<void>;
   uploadAvatarFile: (file: File) => Promise<void>;
   removeAvatar: () => Promise<void>;
@@ -72,6 +77,7 @@ const SUCCESS_FLAG_TIMEOUT_MS = 3000;
 let profileSuccessTimer: ReturnType<typeof setTimeout> | null = null;
 let passwordSuccessTimer: ReturnType<typeof setTimeout> | null = null;
 let hostDescriptionSuccessTimer: ReturnType<typeof setTimeout> | null = null;
+let spokenLanguagesSuccessTimer: ReturnType<typeof setTimeout> | null = null;
 
 function profileFormFromApi(profile: MyProfile): ProfileForm {
   const first = profile.profile?.firstName ?? '';
@@ -105,6 +111,9 @@ export const useAccountSettingsStore = create<AccountSettingsState & AccountSett
       hostDescriptionError: null,
       hostDescriptionSuccess: false,
       isHost: false,
+      spokenLanguages: [],
+      spokenLanguagesSaving: false,
+      spokenLanguagesSuccess: false,
       passwordForm: EMPTY_PASSWORD_FORM,
       passwordSaving: false,
       passwordError: null,
@@ -130,6 +139,7 @@ export const useAccountSettingsStore = create<AccountSettingsState & AccountSett
             avatarUrl: profile.avatarUrl,
             isHost: hostRole,
             hostDescription,
+            spokenLanguages: profile.profile?.spokenLanguages ?? [],
             loading: false,
             initialized: true,
           });
@@ -159,6 +169,8 @@ export const useAccountSettingsStore = create<AccountSettingsState & AccountSett
           hostDescriptionSuccess: false,
         }),
 
+      setSpokenLanguages: (langs) => set({ spokenLanguages: langs, spokenLanguagesSuccess: false }),
+
       saveProfile: async () => {
         const { profileForm } = get();
         set({ profileSaving: true, profileError: null, profileSuccess: false });
@@ -186,6 +198,22 @@ export const useAccountSettingsStore = create<AccountSettingsState & AccountSett
           set({ profileError: 'Failed to save profile. Please try again.' });
         } finally {
           set({ profileSaving: false });
+        }
+      },
+
+      saveSpokenLanguages: async () => {
+        const { spokenLanguages } = get();
+        set({ spokenLanguagesSaving: true, spokenLanguagesSuccess: false });
+        try {
+          await updateMyProfile({ spokenLanguages });
+          set({ spokenLanguagesSuccess: true });
+          if (spokenLanguagesSuccessTimer) clearTimeout(spokenLanguagesSuccessTimer);
+          spokenLanguagesSuccessTimer = setTimeout(
+            () => set({ spokenLanguagesSuccess: false }),
+            SUCCESS_FLAG_TIMEOUT_MS,
+          );
+        } finally {
+          set({ spokenLanguagesSaving: false });
         }
       },
 
@@ -279,9 +307,11 @@ export const useAccountSettingsStore = create<AccountSettingsState & AccountSett
         if (profileSuccessTimer) clearTimeout(profileSuccessTimer);
         if (passwordSuccessTimer) clearTimeout(passwordSuccessTimer);
         if (hostDescriptionSuccessTimer) clearTimeout(hostDescriptionSuccessTimer);
+        if (spokenLanguagesSuccessTimer) clearTimeout(spokenLanguagesSuccessTimer);
         profileSuccessTimer = null;
         passwordSuccessTimer = null;
         hostDescriptionSuccessTimer = null;
+        spokenLanguagesSuccessTimer = null;
         set({
           profile: null,
           loading: true,
@@ -298,6 +328,9 @@ export const useAccountSettingsStore = create<AccountSettingsState & AccountSett
           hostDescriptionError: null,
           hostDescriptionSuccess: false,
           isHost: false,
+          spokenLanguages: [],
+          spokenLanguagesSaving: false,
+          spokenLanguagesSuccess: false,
           passwordForm: EMPTY_PASSWORD_FORM,
           passwordSaving: false,
           passwordError: null,

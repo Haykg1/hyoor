@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { Textarea } from '@/components/ui/textarea';
 import type { ListingFormValues } from '@/lib/listing/schema';
 import { cn } from '@/lib/utils';
@@ -267,6 +268,27 @@ export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
                 <FormLabel>{t('additional_rules')}</FormLabel>
                 <FormControl>
                   <Textarea rows={4} placeholder={t('additional_rules_placeholder')} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="space-y-6 border-t border-border pt-6">
+          <h3 className="text-sm font-semibold">{t('guest_instructions_section')}</h3>
+          <p className="text-sm text-muted-foreground">{t('guest_instructions_hint')}</p>
+          <FormField
+            control={form.control}
+            name="guestInstructions"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('guest_instructions')}</FormLabel>
+                <FormControl>
+                  <RichTextEditor
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    placeholder={t('guest_instructions_placeholder')}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

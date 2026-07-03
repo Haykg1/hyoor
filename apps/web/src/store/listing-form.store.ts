@@ -174,6 +174,7 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
               quietHoursStart: normalizeTimeForInput(property.quietHoursStart, ''),
               quietHoursEnd: normalizeTimeForInput(property.quietHoursEnd, ''),
               additionalRules: property.additionalRules ?? '',
+              guestInstructions: property.guestInstructions ?? '',
               featuredPoiIds: property.featuredPoiIds ?? [],
             }),
             photos: sortedPhotos.map((p, index) => ({

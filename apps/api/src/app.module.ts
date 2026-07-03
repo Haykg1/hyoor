@@ -30,6 +30,7 @@ import { PromotionsModule } from './promotions/promotions.module';
 import { PropertiesModule } from './properties/properties.module';
 import { RedisModule } from './redis/redis.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { SchedulingModule } from './scheduling/scheduling.module';
 import { StorageModule } from './storage/storage.module';
 import { UsersModule } from './users/users.module';
 
@@ -77,6 +78,7 @@ const isTestEnv = process.env.NODE_ENV === 'test';
     NotificationsModule,
     CompareShareModule,
     AdminModule,
+    SchedulingModule,
   ],
   controllers: [HealthController],
   providers: [

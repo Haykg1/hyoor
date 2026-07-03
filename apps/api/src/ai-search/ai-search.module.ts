@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 
 import { AuthModule } from '../auth/auth.module';
 import { AvailabilityModule } from '../availability/availability.module';
@@ -15,7 +15,13 @@ import { LlmService } from './llm/llm.service';
 import { OpenAiLlmService } from './llm/openai-llm.service';
 
 @Module({
-  imports: [AuthModule, PropertiesModule, GeocodingModule, AvailabilityModule, HostProfilesModule],
+  imports: [
+    AuthModule,
+    forwardRef(() => PropertiesModule),
+    GeocodingModule,
+    AvailabilityModule,
+    HostProfilesModule,
+  ],
   controllers: [AiSearchController, HostCalendarController],
   providers: [
     AiSearchService,
@@ -24,6 +30,6 @@ import { OpenAiLlmService } from './llm/openai-llm.service';
     { provide: LlmService, useClass: OpenAiLlmService },
     OpenAiLlmService,
   ],
-  exports: [AiSearchService, HostCalendarService, LlmService],
+  exports: [AiSearchService, HostCalendarService, LlmService, AiSearchQuotaService],
 })
 export class AiSearchModule {}

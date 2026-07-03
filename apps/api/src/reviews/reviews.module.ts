@@ -2,12 +2,13 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { AuthModule } from '../auth/auth.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { StorageModule } from '../storage/storage.module';
 
 import { ReviewsController } from './reviews.controller';
 import { ReviewsService } from './reviews.service';
 
 @Module({
-  imports: [forwardRef(() => AuthModule), NotificationsModule],
+  imports: [forwardRef(() => AuthModule), NotificationsModule, StorageModule],
   controllers: [ReviewsController],
   providers: [ReviewsService],
   exports: [ReviewsService],
