@@ -24,6 +24,9 @@ export interface AiSearchExtractedFilters {
   region?: string;
   checkIn?: string;
   checkOut?: string;
+  stayNights?: number;
+  availableFrom?: string;
+  availableTo?: string;
   guests?: number;
   minBedrooms?: number;
   minBeds?: number;
@@ -39,13 +42,18 @@ export interface AiSearchExtractedFilters {
   q?: string;
 }
 
+export interface AiSearchPropertyResult extends PropertySummary {
+  suggestedCheckIn?: string;
+  suggestedCheckOut?: string;
+}
+
 export type AiSearchResponseType = 'clarify' | 'search';
 
 export interface AiSearchChatResponse {
   type: AiSearchResponseType;
   message: string;
   filters?: AiSearchExtractedFilters;
-  properties?: PropertySummary[];
+  properties?: AiSearchPropertyResult[];
   searchPath?: string;
   quota?: AiSearchQuota;
 }
@@ -66,6 +74,9 @@ export interface SearchPropertiesToolArgs {
   locationQuery?: string;
   checkIn?: string;
   checkOut?: string;
+  stayNights?: number;
+  availableFrom?: string;
+  availableTo?: string;
   maxGuests?: number;
   minBedrooms?: number;
   minBeds?: number;

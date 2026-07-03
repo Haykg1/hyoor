@@ -16,12 +16,32 @@ function formatDateRange(checkIn?: string, checkOut?: string): string | undefine
   return `${start.toLocaleDateString(undefined, opts)} – ${end.toLocaleDateString(undefined, opts)}`;
 }
 
+function formatFlexibleStay(filters: AiSearchExtractedFilters): string | undefined {
+  if (!filters.stayNights || !filters.availableFrom || !filters.availableTo) {
+    return undefined;
+  }
+  const from = new Date(`${filters.availableFrom}T00:00:00`);
+  const to = new Date(`${filters.availableTo}T00:00:00`);
+  if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) {
+    return `${filters.stayNights} nights`;
+  }
+  const monthOpts: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' };
+  const sameMonth =
+    from.getUTCFullYear() === to.getUTCFullYear() && from.getUTCMonth() === to.getUTCMonth();
+  const windowLabel = sameMonth
+    ? from.toLocaleDateString(undefined, monthOpts)
+    : `${from.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – ${to.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  return `${filters.stayNights} nights · ${windowLabel}`;
+}
+
 export function extractedFiltersToChips(filters: AiSearchExtractedFilters): AiSearchFilterChip[] {
   const chips: AiSearchFilterChip[] = [];
   const location = filters.locationLabel ?? filters.searchCity ?? filters.region;
   if (location) chips.push({ key: 'location', label: location });
-  const dates = formatDateRange(filters.checkIn, filters.checkOut);
-  if (dates) chips.push({ key: 'dates', label: dates });
+  const exactDates = formatDateRange(filters.checkIn, filters.checkOut);
+  const flexibleDates = formatFlexibleStay(filters);
+  if (exactDates) chips.push({ key: 'dates', label: exactDates });
+  else if (flexibleDates) chips.push({ key: 'dates', label: flexibleDates });
   if (filters.guests && filters.guests > 0) {
     chips.push({
       key: 'guests',
@@ -37,6 +57,7 @@ export function extractedFiltersToChips(filters: AiSearchExtractedFilters): AiSe
     else if (min) chips.push({ key: 'price', label: `from ${min}` });
     else if (max) chips.push({ key: 'price', label: `up to ${max}` });
   }
+  console.log(filters.amenities, '=======');
   if (filters.propertyType) {
     chips.push({ key: 'type', label: filters.propertyType.replace(/_/g, ' ').toLowerCase() });
   }
@@ -48,4 +69,12 @@ export function extractedFiltersToChips(filters: AiSearchExtractedFilters): AiSe
   if (filters.minAvgRating) chips.push({ key: 'rating', label: `${filters.minAvgRating}+ rating` });
   if (filters.q) chips.push({ key: 'q', label: `"${filters.q}"` });
   return chips;
+}
+
+export function formatSuggestedStayRange(
+  suggestedCheckIn: string,
+  suggestedCheckOut: string,
+): string {
+  const formatted = formatDateRange(suggestedCheckIn, suggestedCheckOut);
+  return formatted ?? `${suggestedCheckIn} – ${suggestedCheckOut}`;
 }

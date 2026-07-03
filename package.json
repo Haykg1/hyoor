@@ -17,9 +17,12 @@
     "localstack:init": "bash scripts/localstack-create-buckets.sh",
     "fetch:yerevan-metro": "node scripts/fetch-yerevan-metro-stations.mjs",
     "fetch:yerevan-metro:wikipedia": "node scripts/fetch-yerevan-metro-from-wikipedia.mjs",
+    "scrape:property": "tsx scrape-property-data.ts",
     "prepare": "husky"
   },
   "devDependencies": {
+    "sharp": "^0.34.3",
+    "tsx": "^4.20.3",
     "husky": "^9.0.0",
     "lint-staged": "^15.0.0",
     "prettier": "^3.0.0",

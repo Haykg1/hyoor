@@ -41,6 +41,7 @@ export class StorageService {
         secretAccessKey: secretAccessKey || 'placeholder',
       },
       endpoint: endpoint || undefined,
+      forcePathStyle: Boolean(endpoint),
       requestChecksumCalculation: 'WHEN_REQUIRED',
       responseChecksumValidation: 'WHEN_REQUIRED',
     });

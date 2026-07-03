@@ -7,6 +7,8 @@ import { hashSync } from 'bcryptjs';
 import { Decimal } from '@prisma/client/runtime/library';
 
 import { PrismaClient } from '../src/generated/client';
+import { SEED_AVATAR_KEYS, SEED_LOGO_KEY } from './seed-images';
+import { uploadSeedImages } from './seed-s3';
 
 const prisma = new PrismaClient();
 
@@ -74,6 +76,7 @@ function buildSeedAddressLabels(
 
 async function main(): Promise<void> {
   console.log('🌱 Seeding RentStar demo data...');
+  await uploadSeedImages();
 
   // ── Users ────────────────────────────────────────────────────────────────
   const admin = await prisma.user.upsert({
@@ -183,6 +186,7 @@ async function main(): Promise<void> {
     phone: string;
     nationality: string;
     bio: string;
+    avatarKey: string;
   }> = [
     {
       userId: admin.id,
@@ -191,6 +195,7 @@ async function main(): Promise<void> {
       phone: '+37410000001',
       nationality: 'AM',
       bio: 'Platform administrator.',
+      avatarKey: SEED_AVATAR_KEYS.admin,
     },
     {
       userId: staff.id,
@@ -199,6 +204,7 @@ async function main(): Promise<void> {
       phone: '+37410000002',
       nationality: 'AM',
       bio: 'Platform support.',
+      avatarKey: SEED_AVATAR_KEYS.staff,
     },
     {
       userId: host1.id,
@@ -207,6 +213,7 @@ async function main(): Promise<void> {
       phone: '+37491111001',
       nationality: 'AM',
       bio: 'Individual host with apartments in central Yerevan.',
+      avatarKey: SEED_AVATAR_KEYS.host1,
     },
     {
       userId: host2.id,
@@ -215,6 +222,7 @@ async function main(): Promise<void> {
       phone: '+37491111002',
       nationality: 'AM',
       bio: 'Independent host in Yerevan and Gyumri.',
+      avatarKey: SEED_AVATAR_KEYS.host2,
     },
     {
       userId: host3.id,
@@ -223,6 +231,7 @@ async function main(): Promise<void> {
       phone: '+37477111003',
       nationality: 'AM',
       bio: 'Operations lead, RentStar Hospitality.',
+      avatarKey: SEED_AVATAR_KEYS.host3,
     },
     {
       userId: guest1.id,
@@ -231,6 +240,7 @@ async function main(): Promise<void> {
       phone: '+447700900001',
       nationality: 'GB',
       bio: 'Frequent traveler exploring Armenia.',
+      avatarKey: SEED_AVATAR_KEYS.guest1,
     },
     {
       userId: guest2.id,
@@ -239,6 +249,7 @@ async function main(): Promise<void> {
       phone: '+821012345678',
       nationality: 'KR',
       bio: 'Digital nomad and coffee enthusiast.',
+      avatarKey: SEED_AVATAR_KEYS.guest2,
     },
     {
       userId: guest3.id,
@@ -247,6 +258,7 @@ async function main(): Promise<void> {
       phone: '+4915112345678',
       nationality: 'DE',
       bio: 'Architecture lover and slow traveler.',
+      avatarKey: SEED_AVATAR_KEYS.guest3,
     },
     {
       userId: guest4.id,
@@ -255,11 +267,16 @@ async function main(): Promise<void> {
       phone: '+37499222333',
       nationality: 'AM',
       bio: 'Local explorer discovering Armenia from a guest perspective.',
+      avatarKey: SEED_AVATAR_KEYS.guest4,
     },
   ];
 
   for (const p of profiles) {
-    await prisma.userProfile.upsert({ where: { userId: p.userId }, update: {}, create: p });
+    await prisma.userProfile.upsert({
+      where: { userId: p.userId },
+      update: { avatarKey: p.avatarKey },
+      create: p,
+    });
   }
 
   // ── Host Profiles ────────────────────────────────────────────────────────
@@ -300,6 +317,7 @@ async function main(): Promise<void> {
   const hp3 = await prisma.hostProfile.upsert({
     where: { userId: host3.id },
     update: {
+      companyLogoKey: SEED_LOGO_KEY,
       description:
         'RentStar Hospitality manages premium short-term rentals across Armenia with 24/7 guest support.',
     },
@@ -311,6 +329,7 @@ async function main(): Promise<void> {
       responseTimeHours: 1,
       companyName: 'RentStar Hospitality',
       companyRegNumber: 'AM-12345678',
+      companyLogoKey: SEED_LOGO_KEY,
       vatNumber: 'AM-VAT-001',
       payoutEmail: 'finance@rentstar.am',
       description:
@@ -1042,8 +1061,10 @@ async function main(): Promise<void> {
     },
   ];
 
+  const seededPropertyIds = [p1.id, p2.id, p3.id, p4.id, p5.id, p6.id];
+  await prisma.propertyPhoto.deleteMany({ where: { propertyId: { in: seededPropertyIds } } });
   for (const photo of photos) {
-    await prisma.propertyPhoto.upsert({ where: { key: photo.key }, update: {}, create: photo });
+    await prisma.propertyPhoto.create({ data: photo });
   }
 
   // ── Amenities ────────────────────────────────────────────────────────────

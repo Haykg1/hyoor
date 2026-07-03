@@ -187,6 +187,78 @@ describe('AI search (e2e)', () => {
     expect(mockPropertiesSearch).toHaveBeenCalledTimes(1);
   });
 
+  it('searches with flexible July dates and returns suggested stay per property', async () => {
+    mockPropertiesSearch.mockResolvedValue({
+      data: [
+        {
+          id: 'property-dilijan',
+          title: 'Forest Cottage Dilijan',
+          slug: 'forest-cottage-dilijan',
+          city: 'Dilijan',
+          region: 'Tavush',
+          country: 'AM',
+          propertyType: 'HOUSE',
+          maxGuests: 4,
+          bedrooms: 2,
+          pricePerNight: 22000,
+          currency: 'AMD',
+          reviewCount: 3,
+          featured: false,
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 8,
+      totalPages: 1,
+      suggestedDatesByPropertyId: {
+        'property-dilijan': {
+          suggestedCheckIn: '2026-07-04',
+          suggestedCheckOut: '2026-07-09',
+        },
+      },
+    });
+    mockLlm.complete.mockResolvedValue({
+      kind: 'tool',
+      message: 'Here are some stays in Dilijan for 5 nights in July.',
+      args: {
+        locationQuery: 'Dilijan',
+        stayNights: 5,
+        availableFrom: '2026-07-01',
+        availableTo: '2026-07-27',
+        maxPrice: 24000,
+      },
+      usage: mockUsage,
+    });
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/ai-search/chat')
+      .send({
+        messages: [
+          {
+            role: 'user',
+            content:
+              'I want 5 nights somewhere in Dilijan area, budget $60/night, anytime in July.',
+          },
+        ],
+        locale: 'en',
+      })
+      .expect(201);
+    const data = response.body.data;
+    expect(data.type).toBe('search');
+    expect(data.filters.stayNights).toBe(5);
+    expect(data.filters.availableFrom).toBe('2026-07-01');
+    expect(data.properties[0].suggestedCheckIn).toBe('2026-07-04');
+    expect(data.properties[0].suggestedCheckOut).toBe('2026-07-09');
+    expect(data.searchPath).toContain('checkIn=2026-07-04');
+    expect(mockPropertiesSearch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stayNights: 5,
+        availableFrom: '2026-07-01',
+        availableTo: '2026-07-27',
+        maxPrice: 24000,
+      }),
+    );
+  });
+
   it('returns 429 when a guest exceeds the daily AI search limit', async () => {
     mockLlm.complete.mockResolvedValue({
       kind: 'clarify',

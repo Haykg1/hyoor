@@ -67,13 +67,10 @@ export function AiSearchPanel({
           ) : null}
         </div>
       ) : null}
-      <AiSearchQuotaBanner quota={quota} isLoading={isQuotaLoading} />
-      <AiSearchCapabilitiesBanner />
       <ScrollArea className="min-h-0 flex-1 pr-3">
         <div className="space-y-4 pb-4">
-          {messages.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t('placeholder_hint')}</p>
-          ) : null}
+          <AiSearchQuotaBanner quota={quota} isLoading={isQuotaLoading} variant="message" />
+          <AiSearchCapabilitiesBanner variant="message" onExampleClick={setInput} />
           {messages.map((message) => (
             <div key={message.id} className="space-y-3">
               <AiSearchMessage message={message} />

@@ -300,17 +300,17 @@ export async function deleteProperty(id: string): Promise<{ success: true }> {
 }
 
 /**
- * Always filters by featured=true per MVP product rule: only featured properties
- * are surfaced anywhere on the marketplace.
+ * Public marketplace search — returns all ACTIVE listings matching filters.
+ * The API applies `status: ACTIVE` by default; featured is optional curation only.
  */
-export async function searchFeaturedProperties(
-  filters: Omit<ListPropertiesParams, 'featured'> = {},
+export async function searchProperties(
+  filters: ListPropertiesParams = {},
 ): Promise<SearchPropertiesResult> {
   try {
-    return await listProperties({ ...filters, featured: true });
+    return await listProperties(filters);
   } catch (err) {
     if (process.env.NODE_ENV !== 'production') {
-      console.warn('[searchFeaturedProperties] backend unreachable, returning empty result:', err);
+      console.warn('[searchProperties] backend unreachable, returning empty result:', err);
     }
     return EMPTY_RESULT;
   }

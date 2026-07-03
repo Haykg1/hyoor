@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { AiSearchPropertyResult } from '@repo/shared';
 import type { AiSearchChatResponse, AiSearchMessage } from '@repo/shared';
 import { localeToYandexLang } from '@repo/shared';
 
@@ -66,14 +67,36 @@ export class AiSearchService {
     const searchDto = toSearchPropertiesDto(args, location);
     searchDto.limit = AI_SEARCH_RESULT_LIMIT;
     const results = await this.propertiesService.search(searchDto);
-    const searchPath = buildSearchPathFromFilters(filters);
+    const properties: AiSearchPropertyResult[] = results.data.map((property) => {
+      const suggested = results.suggestedDatesByPropertyId?.[property.id];
+      if (!suggested) {
+        return property;
+      }
+      return {
+        ...property,
+        suggestedCheckIn: suggested.suggestedCheckIn,
+        suggestedCheckOut: suggested.suggestedCheckOut,
+      };
+    });
+    const firstSuggested = properties.find(
+      (property) => property.suggestedCheckIn && property.suggestedCheckOut,
+    );
+    const searchPath = buildSearchPathFromFilters(
+      filters,
+      firstSuggested?.suggestedCheckIn && firstSuggested.suggestedCheckOut
+        ? {
+            checkIn: firstSuggested.suggestedCheckIn,
+            checkOut: firstSuggested.suggestedCheckOut,
+          }
+        : undefined,
+    );
     const resultMessage =
-      results.data.length > 0 ? message : `${message}${AI_SEARCH_NO_MATCHES_SUFFIX[chatLocale]}`;
+      properties.length > 0 ? message : `${message}${AI_SEARCH_NO_MATCHES_SUFFIX[chatLocale]}`;
     return {
       type: 'search',
       message: resultMessage,
       filters,
-      properties: results.data,
+      properties,
       searchPath,
     };
   }

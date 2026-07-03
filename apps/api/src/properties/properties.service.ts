@@ -57,9 +57,19 @@ import { QueryMyPropertiesDto } from './dto/query-my-properties.dto';
 import { SearchPropertiesDto } from './dto/search-properties.dto';
 import { UpdatePhotoDto } from './dto/update-photo.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
+import {
+  addDays,
+  buildBlockedDatesForProperty,
+  diffDaysInclusive,
+  findFirstFlexibleStaySlot,
+  type FlexibleStayMatch,
+  MAX_FLEXIBLE_WINDOW_DAYS,
+  utcDateFromString,
+} from './flexible-availability';
 
 const ALLOWED_PHOTO_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const BLOCKING_BOOKING_STATUSES = ['PENDING', 'CONFIRMED'] as const;
+const FLEXIBLE_SEARCH_CANDIDATE_CAP = 200;
 const HOUSE_COORD_DELTA = 0.00045;
 const KM_PER_DEGREE_LAT = 111;
 const DEFAULT_RADIUS_KM = 8;
@@ -557,7 +567,14 @@ export class PropertiesService {
     return groups.map((g) => g.propertyId).filter((id): id is string => typeof id === 'string');
   }
 
-  async search(dto: SearchPropertiesDto): Promise<PaginatedResponse<PropertySummary>> {
+  async search(dto: SearchPropertiesDto): Promise<
+    PaginatedResponse<PropertySummary> & {
+      suggestedDatesByPropertyId?: Record<string, FlexibleStayMatch>;
+    }
+  > {
+    if (this.usesFlexibleDateSearch(dto)) {
+      return this.searchWithFlexibleDates(dto);
+    }
     const page = dto.page ?? 1;
     const limit = dto.limit ?? DEFAULT_PAGE_SIZE;
     const skip = (page - 1) * limit;
@@ -571,6 +588,144 @@ export class PropertiesService {
     if (ratedPropertyIds && ratedPropertyIds.length === 0) {
       return { data: [], total: 0, page, limit, totalPages: 1 };
     }
+    const where = this.buildSearchWhere(dto, unavailablePropertyIds, ratedPropertyIds);
+    const orderBy = this.buildOrderBy(dto);
+    const [properties, total] = await Promise.all([
+      this.prisma.property.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+        include: this.searchPropertyInclude(),
+      }),
+      this.prisma.property.count({ where }),
+    ]);
+    const summaries = await Promise.all(
+      properties.map((property) => this.toPropertySummary(property)),
+    );
+    return { data: summaries, total, page, limit, totalPages: Math.ceil(total / limit) || 1 };
+  }
+
+  private usesFlexibleDateSearch(dto: SearchPropertiesDto): boolean {
+    if (dto.checkIn || dto.checkOut) {
+      return false;
+    }
+    return (
+      dto.stayNights !== undefined && Boolean(dto.availableFrom?.trim() && dto.availableTo?.trim())
+    );
+  }
+
+  private validateFlexibleDateSearch(dto: SearchPropertiesDto): {
+    stayNights: number;
+    availableFrom: string;
+    availableTo: string;
+  } {
+    const stayNights = dto.stayNights;
+    const availableFrom = dto.availableFrom?.trim();
+    const availableTo = dto.availableTo?.trim();
+    if (!stayNights || stayNights < 1 || !availableFrom || !availableTo) {
+      throw new BadRequestException(
+        'stayNights, availableFrom, and availableTo are required for flexible date search',
+      );
+    }
+    const fromDate = utcDateFromString(availableFrom);
+    const toDate = utcDateFromString(availableTo);
+    if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+      throw new BadRequestException('Invalid availableFrom or availableTo date');
+    }
+    if (toDate < fromDate) {
+      throw new BadRequestException('availableTo must be on or after availableFrom');
+    }
+    if (diffDaysInclusive(fromDate, toDate) > MAX_FLEXIBLE_WINDOW_DAYS) {
+      throw new BadRequestException(
+        `Flexible date window cannot exceed ${MAX_FLEXIBLE_WINDOW_DAYS} days`,
+      );
+    }
+    return { stayNights, availableFrom, availableTo };
+  }
+
+  private async searchWithFlexibleDates(dto: SearchPropertiesDto): Promise<
+    PaginatedResponse<PropertySummary> & {
+      suggestedDatesByPropertyId: Record<string, FlexibleStayMatch>;
+    }
+  > {
+    const page = dto.page ?? 1;
+    const limit = dto.limit ?? DEFAULT_PAGE_SIZE;
+    const { stayNights, availableFrom, availableTo } = this.validateFlexibleDateSearch(dto);
+    const ratedPropertyIds = await this.getRatedPropertyIds(dto);
+    if (ratedPropertyIds && ratedPropertyIds.length === 0) {
+      return { data: [], total: 0, page, limit, totalPages: 1, suggestedDatesByPropertyId: {} };
+    }
+    const where = this.buildSearchWhere(dto, [], ratedPropertyIds);
+    const orderBy = this.buildOrderBy(dto);
+    const candidates = await this.prisma.property.findMany({
+      where,
+      orderBy,
+      take: FLEXIBLE_SEARCH_CANDIDATE_CAP,
+      select: { id: true },
+    });
+    const candidateIds = candidates.map((row) => row.id);
+    const flexibleMatches = await this.findFlexibleAvailabilityForProperties(
+      candidateIds,
+      availableFrom,
+      availableTo,
+      stayNights,
+    );
+    const availableIds = candidateIds.filter((id) => flexibleMatches.has(id));
+    const total = availableIds.length;
+    if (total === 0) {
+      return { data: [], total: 0, page, limit, totalPages: 1, suggestedDatesByPropertyId: {} };
+    }
+    const skip = (page - 1) * limit;
+    const pageIds = availableIds.slice(skip, skip + limit);
+    const properties = await this.prisma.property.findMany({
+      where: { id: { in: pageIds } },
+      include: this.searchPropertyInclude(),
+    });
+    const propertyById = new Map(properties.map((property) => [property.id, property]));
+    const orderedProperties = pageIds
+      .map((id) => propertyById.get(id))
+      .filter((property): property is NonNullable<typeof property> => property !== undefined);
+    const summaries = await Promise.all(
+      orderedProperties.map((property) => this.toPropertySummary(property)),
+    );
+    const suggestedDatesByPropertyId: Record<string, FlexibleStayMatch> = {};
+    for (const id of pageIds) {
+      const match = flexibleMatches.get(id);
+      if (match) {
+        suggestedDatesByPropertyId[id] = match;
+      }
+    }
+    return {
+      data: summaries,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+      suggestedDatesByPropertyId,
+    };
+  }
+
+  private searchPropertyInclude(): {
+    photos: { where: { isCover: true }; take: number };
+    _count: { select: { reviews: { where: { isPublished: true; target: 'PROPERTY' } } } };
+    reviews: { where: { isPublished: true; target: 'PROPERTY' }; select: { rating: true } };
+  } {
+    return {
+      photos: { where: { isCover: true }, take: 1 },
+      _count: { select: { reviews: { where: { isPublished: true, target: 'PROPERTY' } } } },
+      reviews: {
+        where: { isPublished: true, target: 'PROPERTY' },
+        select: { rating: true },
+      },
+    };
+  }
+
+  private buildSearchWhere(
+    dto: SearchPropertiesDto,
+    unavailablePropertyIds: string[],
+    ratedPropertyIds: string[] | null,
+  ): Prisma.PropertyWhereInput {
     const titleSearchOr = this.buildTitleSearchOr(dto.q);
     const andClauses: Prisma.PropertyWhereInput[] = [
       this.buildBaseWhere(),
@@ -588,29 +743,66 @@ export class PropertiesService {
       ...(unavailablePropertyIds.length > 0 ? [{ id: { notIn: unavailablePropertyIds } }] : []),
       ...(ratedPropertyIds ? [{ id: { in: ratedPropertyIds } }] : []),
     ].filter((w) => Object.keys(w).length > 0);
-    const where: Prisma.PropertyWhereInput = { AND: andClauses };
-    const orderBy = this.buildOrderBy(dto);
-    const [properties, total] = await Promise.all([
-      this.prisma.property.findMany({
-        where,
-        orderBy,
-        skip,
-        take: limit,
-        include: {
-          photos: { where: { isCover: true }, take: 1 },
-          _count: { select: { reviews: { where: { isPublished: true, target: 'PROPERTY' } } } },
-          reviews: {
-            where: { isPublished: true, target: 'PROPERTY' },
-            select: { rating: true },
-          },
+    return { AND: andClauses };
+  }
+
+  private async findFlexibleAvailabilityForProperties(
+    propertyIds: string[],
+    availableFrom: string,
+    availableTo: string,
+    stayNights: number,
+  ): Promise<Map<string, FlexibleStayMatch>> {
+    if (propertyIds.length === 0) {
+      return new Map();
+    }
+    const fromDate = utcDateFromString(availableFrom);
+    const lastCheckInDate = utcDateFromString(availableTo);
+    const scanEndDate = addDays(lastCheckInDate, stayNights);
+    const [bookings, closedAvailability] = await Promise.all([
+      this.prisma.booking.findMany({
+        where: {
+          propertyId: { in: propertyIds },
+          status: { in: [...BLOCKING_BOOKING_STATUSES] },
+          checkIn: { lt: scanEndDate },
+          checkOut: { gt: fromDate },
         },
+        select: { propertyId: true, checkIn: true, checkOut: true },
       }),
-      this.prisma.property.count({ where }),
+      this.prisma.availability.findMany({
+        where: {
+          propertyId: { in: propertyIds },
+          isAvailable: false,
+          date: { gte: fromDate, lt: scanEndDate },
+        },
+        select: { propertyId: true, date: true },
+      }),
     ]);
-    const summaries = await Promise.all(
-      properties.map((property) => this.toPropertySummary(property)),
-    );
-    return { data: summaries, total, page, limit, totalPages: Math.ceil(total / limit) || 1 };
+    const bookingsByProperty = new Map<string, Array<{ checkIn: Date; checkOut: Date }>>();
+    for (const booking of bookings) {
+      const rows = bookingsByProperty.get(booking.propertyId) ?? [];
+      rows.push({ checkIn: booking.checkIn, checkOut: booking.checkOut });
+      bookingsByProperty.set(booking.propertyId, rows);
+    }
+    const closedByProperty = new Map<string, Array<{ date: Date }>>();
+    for (const row of closedAvailability) {
+      const rows = closedByProperty.get(row.propertyId) ?? [];
+      rows.push({ date: row.date });
+      closedByProperty.set(row.propertyId, rows);
+    }
+    const matches = new Map<string, FlexibleStayMatch>();
+    for (const propertyId of propertyIds) {
+      const blocked = buildBlockedDatesForProperty(
+        bookingsByProperty.get(propertyId) ?? [],
+        closedByProperty.get(propertyId) ?? [],
+        fromDate,
+        scanEndDate,
+      );
+      const match = findFirstFlexibleStaySlot(blocked, availableFrom, availableTo, stayNights);
+      if (match) {
+        matches.set(propertyId, match);
+      }
+    }
+    return matches;
   }
 
   async findById(id: string, requestingUserId?: string): Promise<PropertyDetail> {

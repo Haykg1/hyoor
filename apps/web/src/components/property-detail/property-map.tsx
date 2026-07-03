@@ -32,7 +32,7 @@ export function PropertyMap({ latitude, longitude, title }: PropertyMapProps): R
   return (
     <section className="space-y-3 border-b border-border py-6">
       <h2 className="text-lg font-semibold">{t('title')}</h2>
-      <div className="h-72 overflow-hidden rounded-xl border border-border">
+      <div className="property-map-container relative isolate z-0 h-72 overflow-hidden rounded-xl border border-border">
         <MapContainer
           center={[latitude, longitude]}
           zoom={14}

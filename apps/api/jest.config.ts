@@ -21,6 +21,8 @@ const config: Config = {
           moduleResolution: 'node',
           paths: {
             '@repo/database/client': ['../../packages/database/src/generated/client'],
+            '@repo/shared/constants': ['../../packages/shared/src/constants/index.ts'],
+            '@repo/shared': ['../../packages/shared/src/index.ts'],
           },
         },
       },
