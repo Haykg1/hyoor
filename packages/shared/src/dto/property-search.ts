@@ -22,6 +22,12 @@ export interface SearchPropertiesQuery {
   propertyType?: PropertyType;
   checkIn?: string;
   checkOut?: string;
+  /** Flexible search: minimum length of stay when exact dates are not given. */
+  stayNights?: number;
+  /** Flexible search: earliest possible check-in (YYYY-MM-DD). */
+  availableFrom?: string;
+  /** Flexible search: latest possible check-in (YYYY-MM-DD). */
+  availableTo?: string;
   maxGuests?: number;
   minPrice?: number;
   maxPrice?: number;

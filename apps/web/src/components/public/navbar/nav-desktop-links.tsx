@@ -1,7 +1,7 @@
 'use client';
 
+import { UserRole } from '@repo/shared';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
@@ -10,12 +10,13 @@ import { useAuthStore } from '@/store';
 interface NavLink {
   href: string;
   labelKey: 'explore' | 'ai_search' | 'become_host';
+  forRoles: UserRole[];
 }
 
 const NAV_LINKS: NavLink[] = [
-  { href: '/search', labelKey: 'explore' },
-  { href: '/ai-search', labelKey: 'ai_search' },
-  { href: '/host/onboarding', labelKey: 'become_host' },
+  { href: '/search', labelKey: 'explore', forRoles: ['GUEST', 'HOST', 'ADMIN'] },
+  { href: '/ai-search', labelKey: 'ai_search', forRoles: ['GUEST', 'HOST', 'ADMIN'] },
+  { href: '/host/onboarding', labelKey: 'become_host', forRoles: ['GUEST'] },
 ];
 
 interface NavDesktopLinksProps {
@@ -25,18 +26,10 @@ interface NavDesktopLinksProps {
 export function NavDesktopLinks({ className }: NavDesktopLinksProps): React.JSX.Element {
   const t = useTranslations('nav');
   const { user } = useAuthStore();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  const hideLinks = mounted && !!user;
+  const role = user?.role ?? 'GUEST';
   return (
-    <nav
-      className={cn('items-center gap-6', className)}
-      style={hideLinks ? { display: 'none' } : undefined}
-      aria-label="Primary"
-    >
-      {NAV_LINKS.map((link) => (
+    <nav className={cn('items-center gap-6', className)} aria-label="Primary">
+      {NAV_LINKS.filter((link) => link.forRoles.includes(role)).map((link) => (
         <Link
           key={link.href}
           href={link.href}

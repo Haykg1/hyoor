@@ -295,6 +295,11 @@
       "confirm": "Confirm reservation",
       "cancel": "Cancel"
     },
+    "login_modal": {
+      "title": "Sign in to book",
+      "description": "You need to be logged in to make bookings. Please log in or create an account.",
+      "cancel": "Cancel"
+    },
     "confirmation": {
       "title": "Reservation confirmed!",
       "subtitle": "Your stay is booked. We sent you a confirmation.",
@@ -310,7 +315,11 @@
     "bedrooms_count": "{count, plural, =1 {1 bedroom} other {# bedrooms}}",
     "bathrooms_count": "{count, plural, =1 {1 bathroom} other {# bathrooms}}",
     "gallery": {
-      "show_all": "Show all {count} photos"
+      "show_all": "Show all {count} photos",
+      "close": "Close gallery",
+      "previous": "Previous photo",
+      "next": "Next photo",
+      "counter": "{current} / {total}"
     },
     "about": {
       "title": "About this place"
@@ -849,6 +858,7 @@
   },
   "property_card": {
     "per_night": "/ night",
+    "available_dates": "Available {dates}",
     "guests_max": "{count} guests max",
     "bedrooms": "{count} bedroom",
     "reviews": "{count} reviews",
@@ -864,7 +874,7 @@
   },
   "search": {
     "page_title": "Search stays",
-    "page_subtitle": "Find featured properties across Armenia",
+    "page_subtitle": "Find active properties across Armenia",
     "destination_placeholder": "Search destinations",
     "check_in": "Check-in",
     "check_out": "Check-out",
@@ -906,6 +916,7 @@
       "min_adults": "Min adults",
       "min_children": "Min children",
       "min_infants": "Min infants",
+      "price_per_night_range": "Price per night (AMD)",
       "cleaning_fee_range": "Cleaning fee (AMD)",
       "security_deposit_range": "Security deposit (AMD)",
       "min_nights": "Min nights",
@@ -1055,10 +1066,12 @@
     "capabilities": {
       "title": "This chat helps you find short-term rentals in Armenia.",
       "bullet_location": "Describe where you want to stay",
-      "bullet_dates": "Include check-in and check-out dates",
+      "bullet_dates": "Exact dates or a flexible window (e.g. 5 nights in July)",
       "bullet_guests": "Mention guests, budget, and preferences",
       "bullet_amenities": "Add amenities like WiFi, parking, or pets",
-      "off_topic_hint": "Only property search questions are answered here — not coding, general knowledge, or host calendar changes."
+      "example_label": "Example prompt",
+      "example_prompt": "Pet-friendly apartment in Yerevan for 2 guests, June 20–25, with WiFi and parking",
+      "off_topic_hint": "Only property search questions are answered here"
     },
     "quota": {
       "remaining": "Guests can use AI search {remaining} of {limit} times per day.",

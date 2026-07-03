@@ -72,9 +72,9 @@ export const HOST_CALENDAR_REVERT_HINTS: LocalizedCopy = {
 };
 
 export const AI_SEARCH_MISSING_FIELDS_MESSAGES: LocalizedCopy = {
-  en: 'I need a destination and travel dates before I can search. Where would you like to stay, and what are your check-in and check-out dates?',
-  hy: 'Որոնելու համար պետք են վայրը և ամսաթվերը։ Որտե՞ղ եք ցանկանում մնալ, և որոնե՞ն են մուտքի ու ելքի ամսաթվերը։',
-  ru: 'Для поиска нужны место и даты поездки. Где вы хотите остановиться и какие даты заезда и выезда?',
+  en: 'I need a destination and travel dates before I can search. Where would you like to stay, and when? Exact dates or a flexible window like "5 nights in July" both work.',
+  hy: 'Որոնելու համար պետք են վայրը և ամսաթվերը։ Որտե՞ղ եք ցանկանում մնալ, և երբե՞։ Կարող են լինել ճշգրիտ ամսաթվեր կամ ճկուն պատուհան, օրինակ «5 գիշեր հուլիսին»։',
+  ru: 'Для поиска нужны место и даты. Где вы хотите остановиться и когда? Подойдут точные даты или гибкое окно, например «5 ночей в июле».',
 };
 
 export const AI_SEARCH_NO_MATCHES_SUFFIX: LocalizedCopy = {

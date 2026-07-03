@@ -26,6 +26,8 @@ export type SearchNavigationParams = Partial<
     | 'minAdults'
     | 'minChildren'
     | 'minInfants'
+    | 'minPrice'
+    | 'maxPrice'
     | 'minCleaningFee'
     | 'maxCleaningFee'
     | 'minSecurityDeposit'
@@ -71,6 +73,8 @@ export function searchFiltersToNavigationParams(filters: SearchFilters): SearchN
     minAdults: filters.minAdults,
     minChildren: filters.minChildren,
     minInfants: filters.minInfants,
+    minPrice: filters.minPrice,
+    maxPrice: filters.maxPrice,
     minCleaningFee: omitUnsetFeeValue(filters.minCleaningFee),
     maxCleaningFee: omitUnsetFeeValue(filters.maxCleaningFee),
     minSecurityDeposit: omitUnsetFeeValue(filters.minSecurityDeposit),
@@ -116,6 +120,8 @@ export function buildSearchQueryString(params?: SearchNavigationParams): string 
   setOptionalNumber(query, 'minAdults', params?.minAdults);
   setOptionalNumber(query, 'minChildren', params?.minChildren);
   setOptionalNumber(query, 'minInfants', params?.minInfants);
+  setOptionalNumber(query, 'minPrice', params?.minPrice);
+  setOptionalNumber(query, 'maxPrice', params?.maxPrice);
   setOptionalNumber(query, 'minCleaningFee', params?.minCleaningFee);
   setOptionalNumber(query, 'maxCleaningFee', params?.maxCleaningFee);
   setOptionalNumber(query, 'minSecurityDeposit', params?.minSecurityDeposit);

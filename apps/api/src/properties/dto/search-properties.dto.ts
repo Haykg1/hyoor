@@ -280,6 +280,35 @@ export class SearchPropertiesDto {
   @IsDateString()
   checkOut?: string;
 
+  @ApiPropertyOptional({
+    example: 5,
+    minimum: 1,
+    description: 'Flexible search: length of stay when exact dates are not provided.',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  stayNights?: number;
+
+  @ApiPropertyOptional({
+    example: '2026-07-01',
+    format: 'date',
+    description: 'Flexible search: earliest possible check-in date.',
+  })
+  @IsOptional()
+  @IsDateString()
+  availableFrom?: string;
+
+  @ApiPropertyOptional({
+    example: '2026-07-27',
+    format: 'date',
+    description: 'Flexible search: latest possible check-in date.',
+  })
+  @IsOptional()
+  @IsDateString()
+  availableTo?: string;
+
   @ApiPropertyOptional({ example: true, description: 'Return only featured listings' })
   @IsOptional()
   @Transform(({ value }) => toOptionalBoolean(value))

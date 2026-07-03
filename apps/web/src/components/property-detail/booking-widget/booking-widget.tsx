@@ -1,13 +1,17 @@
 'use client';
 
 import type { PropertyDetail } from '@repo/shared';
+import { useState } from 'react';
 
 import { useBlockedDates } from '@/hooks/use-blocked-dates';
 import { useBookingForm } from '@/hooks/use-booking-form';
+import { usePathname } from '@/i18n/navigation';
+import { useAuthStore } from '@/store/auth.store';
 
 import { BookingConfirmDialog } from './booking-confirm-dialog';
 import { BookingDateFields } from './booking-date-fields';
 import { BookingGuestField } from './booking-guest-field';
+import { BookingLoginDialog } from './booking-login-dialog';
 import { BookingPriceHeader } from './booking-price-header';
 import { BookingPromoCodeField } from './booking-promo-code-field';
 import { BookingSubmitButton } from './booking-submit-button';
@@ -30,6 +34,10 @@ interface BookingWidgetProps {
 }
 
 export function BookingWidget({ property }: BookingWidgetProps): React.JSX.Element {
+  const pathname = usePathname();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const [loginOpen, setLoginOpen] = useState(false);
+
   const form = useBookingForm({
     propertyId: property.id,
     maxGuests: property.maxGuests,
@@ -38,6 +46,16 @@ export function BookingWidget({ property }: BookingWidgetProps): React.JSX.Eleme
   });
 
   const { blockedDates } = useBlockedDates(property.id);
+
+  const submitDisabled = isAuthenticated && !form.canSubmit;
+
+  function handleBookClick(): void {
+    if (!isAuthenticated) {
+      setLoginOpen(true);
+      return;
+    }
+    form.openConfirmDialog();
+  }
 
   return (
     <div className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-md">
@@ -76,10 +94,11 @@ export function BookingWidget({ property }: BookingWidgetProps): React.JSX.Eleme
         <p className="text-center text-sm text-destructive">{form.errors.submit}</p>
       )}
       <BookingSubmitButton
-        canSubmit={form.canSubmit}
+        disabled={submitDisabled}
         isSubmitting={form.isSubmitting}
-        onClick={form.openConfirmDialog}
+        onClick={handleBookClick}
       />
+      <BookingLoginDialog open={loginOpen} onOpenChange={setLoginOpen} returnPath={pathname} />
       <BookingConfirmDialog
         open={form.isConfirmOpen}
         onOpenChange={form.setConfirmOpen}

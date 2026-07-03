@@ -23,6 +23,8 @@ export interface SearchFilters {
   minAdults?: number;
   minChildren?: number;
   minInfants?: number;
+  minPrice?: number;
+  maxPrice?: number;
   minCleaningFee?: number;
   maxCleaningFee?: number;
   minSecurityDeposit?: number;
@@ -133,6 +135,8 @@ export function parseSearchFilters(raw: RawSearchParams): SearchFilters {
     minAdults: readOptionalInt(raw, 'minAdults'),
     minChildren: readOptionalInt(raw, 'minChildren'),
     minInfants: readOptionalInt(raw, 'minInfants'),
+    minPrice: readOptionalInt(raw, 'minPrice'),
+    maxPrice: readOptionalInt(raw, 'maxPrice'),
     minCleaningFee: readOptionalFeeInt(raw, 'minCleaningFee'),
     maxCleaningFee: readOptionalFeeInt(raw, 'maxCleaningFee'),
     minSecurityDeposit: readOptionalFeeInt(raw, 'minSecurityDeposit'),
@@ -199,6 +203,8 @@ export function filtersToApiParams(filters: SearchFilters): Omit<ListPropertiesP
     minAdults: filters.minAdults,
     minChildren: filters.minChildren,
     minInfants: filters.minInfants,
+    minPrice: filters.minPrice,
+    maxPrice: filters.maxPrice,
     minCleaningFee: omitUnsetFeeValue(filters.minCleaningFee),
     maxCleaningFee: omitUnsetFeeValue(filters.maxCleaningFee),
     minSecurityDeposit: omitUnsetFeeValue(filters.minSecurityDeposit),
@@ -234,6 +240,8 @@ export function hasActiveFilters(filters: SearchFilters): boolean {
     filters.minAdults !== undefined ||
     filters.minChildren !== undefined ||
     filters.minInfants !== undefined ||
+    filters.minPrice !== undefined ||
+    filters.maxPrice !== undefined ||
     filters.minCleaningFee !== undefined ||
     filters.maxCleaningFee !== undefined ||
     filters.minSecurityDeposit !== undefined ||

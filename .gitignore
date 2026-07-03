@@ -44,3 +44,10 @@ coverage/
 
 # Docker
 postgres_data/
+
+# Local scrape script output / secrets
+scraped-property.json
+[0-9]*-*.webp
+[0-9]*-*.jpg
+[0-9]*-*.jpeg
+[0-9]*-*.png

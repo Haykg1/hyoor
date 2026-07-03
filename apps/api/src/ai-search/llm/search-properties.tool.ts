@@ -15,7 +15,7 @@ export function buildSearchPropertiesToolDefinition(): {
     function: {
       name: SEARCH_PROPERTIES_TOOL_NAME,
       description:
-        'Search short-term rental properties. Call only when the guest provided a location and both check-in and check-out dates.',
+        'Search short-term rental properties. Call when the guest provided a location and either (a) exact checkIn and checkOut dates, or (b) stayNights plus availableFrom and availableTo for a flexible window (e.g. "5 nights anytime in July").',
       parameters: {
         type: 'object',
         additionalProperties: false,
@@ -25,8 +25,30 @@ export function buildSearchPropertiesToolDefinition(): {
             description:
               'City, region, or landmark in Armenia (e.g. Yerevan, Dilijan, Lake Sevan).',
           },
-          checkIn: { type: 'string', description: 'Check-in date in YYYY-MM-DD format.' },
-          checkOut: { type: 'string', description: 'Check-out date in YYYY-MM-DD format.' },
+          checkIn: {
+            type: 'string',
+            description: 'Exact check-in date in YYYY-MM-DD format. Use with checkOut.',
+          },
+          checkOut: {
+            type: 'string',
+            description: 'Exact check-out date in YYYY-MM-DD format. Use with checkIn.',
+          },
+          stayNights: {
+            type: 'integer',
+            minimum: 1,
+            description:
+              'Length of stay in nights when the guest did not give exact dates (e.g. "5 nights").',
+          },
+          availableFrom: {
+            type: 'string',
+            description:
+              'Earliest possible check-in (YYYY-MM-DD) for flexible search. Use with stayNights and availableTo.',
+          },
+          availableTo: {
+            type: 'string',
+            description:
+              'Latest possible check-in (YYYY-MM-DD) for flexible search. Use with stayNights and availableFrom.',
+          },
           maxGuests: { type: 'integer', minimum: 1, description: 'Total number of guests.' },
           minBedrooms: { type: 'integer', minimum: 0 },
           minBeds: { type: 'integer', minimum: 0 },
@@ -44,7 +66,7 @@ export function buildSearchPropertiesToolDefinition(): {
           minAvgRating: { type: 'number', minimum: 0, maximum: 5 },
           q: { type: 'string', description: 'Free-text search in property titles.' },
         },
-        required: ['locationQuery', 'checkIn', 'checkOut'],
+        required: ['locationQuery'],
       },
     },
   };

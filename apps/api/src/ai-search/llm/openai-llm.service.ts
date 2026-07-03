@@ -263,6 +263,9 @@ export class OpenAiLlmService extends LlmService {
     if (typeof record.locationQuery === 'string') args.locationQuery = record.locationQuery.trim();
     if (typeof record.checkIn === 'string') args.checkIn = record.checkIn.trim();
     if (typeof record.checkOut === 'string') args.checkOut = record.checkOut.trim();
+    if (typeof record.stayNights === 'number') args.stayNights = Math.floor(record.stayNights);
+    if (typeof record.availableFrom === 'string') args.availableFrom = record.availableFrom.trim();
+    if (typeof record.availableTo === 'string') args.availableTo = record.availableTo.trim();
     if (typeof record.maxGuests === 'number') args.maxGuests = Math.floor(record.maxGuests);
     if (typeof record.minBedrooms === 'number') args.minBedrooms = Math.floor(record.minBedrooms);
     if (typeof record.minBeds === 'number') args.minBeds = Math.floor(record.minBeds);

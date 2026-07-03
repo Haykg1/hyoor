@@ -47,7 +47,10 @@ function setOptionalBoolean(query: URLSearchParams, key: string, value: boolean 
   if (value !== undefined) query.set(key, String(value));
 }
 
-export function buildSearchPathFromFilters(filters: AiSearchExtractedFilters): string {
+export function buildSearchPathFromFilters(
+  filters: AiSearchExtractedFilters,
+  suggestedDates?: { checkIn: string; checkOut: string },
+): string {
   const query = new URLSearchParams();
   if (filters.searchCity) query.set('searchCity', filters.searchCity);
   if (filters.region) query.set('region', filters.region);
@@ -56,8 +59,10 @@ export function buildSearchPathFromFilters(filters: AiSearchExtractedFilters): s
   if (filters.searchPlaceKind) query.set('searchPlaceKind', filters.searchPlaceKind);
   setOptionalNumber(query, 'searchLatitude', filters.searchLatitude);
   setOptionalNumber(query, 'searchLongitude', filters.searchLongitude);
-  if (filters.checkIn) query.set('checkIn', filters.checkIn);
-  if (filters.checkOut) query.set('checkOut', filters.checkOut);
+  const checkIn = suggestedDates?.checkIn ?? filters.checkIn;
+  const checkOut = suggestedDates?.checkOut ?? filters.checkOut;
+  if (checkIn) query.set('checkIn', checkIn);
+  if (checkOut) query.set('checkOut', checkOut);
   if (filters.guests && filters.guests > 1) query.set('guests', String(filters.guests));
   setOptionalNumber(query, 'minBedrooms', filters.minBedrooms);
   setOptionalNumber(query, 'minBeds', filters.minBeds);
@@ -93,6 +98,9 @@ export function toExtractedFilters(
     region: location.region,
     checkIn: args.checkIn,
     checkOut: args.checkOut,
+    stayNights: args.stayNights,
+    availableFrom: args.availableFrom,
+    availableTo: args.availableTo,
     guests: args.maxGuests,
     minBedrooms: args.minBedrooms,
     minBeds: args.minBeds,
@@ -109,6 +117,18 @@ export function toExtractedFilters(
   };
 }
 
+export function hasExactSearchDates(args: SearchPropertiesToolArgs): boolean {
+  return Boolean(args.checkIn?.trim() && args.checkOut?.trim());
+}
+
+export function hasFlexibleSearchDates(args: SearchPropertiesToolArgs): boolean {
+  return (
+    args.stayNights !== undefined &&
+    args.stayNights >= 1 &&
+    Boolean(args.availableFrom?.trim() && args.availableTo?.trim())
+  );
+}
+
 export function toSearchPropertiesDto(
   args: SearchPropertiesToolArgs,
   location: ResolvedLocation,
@@ -122,8 +142,16 @@ export function toSearchPropertiesDto(
   dto.searchLongitude = location.searchLongitude;
   dto.region = location.region;
   dto.city = location.city;
-  dto.checkIn = args.checkIn;
-  dto.checkOut = args.checkOut;
+  if (hasExactSearchDates(args)) {
+    dto.checkIn = args.checkIn;
+    dto.checkOut = args.checkOut;
+  } else if (hasFlexibleSearchDates(args)) {
+    dto.stayNights = args.stayNights;
+    dto.availableFrom = args.availableFrom;
+    dto.availableTo = args.availableTo;
+    dto.minNights = args.stayNights;
+    dto.maxNights = args.stayNights;
+  }
   dto.maxGuests = args.maxGuests;
   dto.minBedrooms = args.minBedrooms;
   dto.minBeds = args.minBeds;
@@ -144,6 +172,6 @@ export function toSearchPropertiesDto(
 
 export function hasRequiredSearchFields(args: SearchPropertiesToolArgs): boolean {
   const hasLocation = Boolean(args.locationQuery?.trim());
-  const hasDates = Boolean(args.checkIn?.trim() && args.checkOut?.trim());
+  const hasDates = hasExactSearchDates(args) || hasFlexibleSearchDates(args);
   return hasLocation && hasDates;
 }

@@ -1,11 +1,11 @@
 'use client';
 
-import type { PropertySummary } from '@repo/shared';
+import type { AiSearchPropertyResult } from '@repo/shared';
 
 import { PropertyCard } from '@/components/property';
 
 interface AiSearchResultsProps {
-  properties: PropertySummary[];
+  properties: AiSearchPropertyResult[];
 }
 
 export function AiSearchResults({ properties }: AiSearchResultsProps): React.JSX.Element | null {
@@ -13,7 +13,7 @@ export function AiSearchResults({ properties }: AiSearchResultsProps): React.JSX
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {properties.map((property) => (
-        <PropertyCard key={property.id} property={property} />
+        <PropertyCard key={property.id} property={property} showSuggestedDates />
       ))}
     </div>
   );

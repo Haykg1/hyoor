@@ -1,6 +1,6 @@
 'use client';
 
-import type { AiSearchExtractedFilters, PropertySummary } from '@repo/shared';
+import type { AiSearchExtractedFilters, AiSearchPropertyResult } from '@repo/shared';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -19,7 +19,7 @@ export interface AiSearchUiMessage {
   role: 'user' | 'assistant';
   content: string;
   filters?: AiSearchExtractedFilters;
-  properties?: PropertySummary[];
+  properties?: AiSearchPropertyResult[];
   searchPath?: string;
 }
 

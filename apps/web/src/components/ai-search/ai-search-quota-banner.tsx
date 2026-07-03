@@ -8,25 +8,21 @@ import { Link } from '@/i18n/navigation';
 interface AiSearchQuotaBannerProps {
   quota: AiSearchQuota | null;
   isLoading: boolean;
+  variant?: 'banner' | 'message';
 }
 
 export function AiSearchQuotaBanner({
   quota,
   isLoading,
+  variant = 'banner',
 }: AiSearchQuotaBannerProps): React.JSX.Element | null {
   const t = useTranslations('ai_search.quota');
   if (isLoading || !quota) return null;
   const exhausted = quota.remaining <= 0;
   const isVerifiedMember = quota.isAuthenticated && quota.isVerifiedProfile;
   const isAuthenticatedIncomplete = quota.isAuthenticated && !quota.isVerifiedProfile;
-  return (
-    <div
-      className={
-        exhausted
-          ? 'rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm'
-          : 'rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-sm text-muted-foreground'
-      }
-    >
+  const content = (
+    <>
       <p>
         {exhausted
           ? isVerifiedMember
@@ -58,6 +54,32 @@ export function AiSearchQuotaBanner({
           </Link>
         </p>
       ) : null}
+    </>
+  );
+  if (variant === 'message') {
+    return (
+      <div className="flex justify-start">
+        <div
+          className={
+            exhausted
+              ? 'max-w-[85%] rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-2.5 text-sm leading-relaxed'
+              : 'max-w-[85%] rounded-2xl border border-border/60 bg-muted/50 px-4 py-2.5 text-sm leading-relaxed text-muted-foreground'
+          }
+        >
+          {content}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div
+      className={
+        exhausted
+          ? 'rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm'
+          : 'rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-sm text-muted-foreground'
+      }
+    >
+      {content}
     </div>
   );
 }

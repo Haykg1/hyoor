@@ -1,6 +1,6 @@
 'use client';
 
-import type { PropertySummary } from '@repo/shared';
+import type { AiSearchPropertyResult, PropertySummary } from '@repo/shared';
 import { getLocalizedAddress, getLocalizedTitle, propertyTypeLabelKey } from '@repo/shared';
 import { Star } from 'lucide-react';
 import Image from 'next/image';
@@ -8,15 +8,36 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { usePriceFormatter } from '@/hooks/use-price-formatter';
 import { Link } from '@/i18n/navigation';
+import { formatSuggestedStayRange } from '@/lib/ai-search/filters-display';
 import { PROPERTY_PLACEHOLDER_IMAGE } from '@/lib/constants/property-placeholder';
 
 import { FavoriteButton } from './favorite-button';
 
 interface PropertyCardProps {
-  property: PropertySummary;
+  property: PropertySummary | AiSearchPropertyResult;
+  showSuggestedDates?: boolean;
 }
 
-export function PropertyCard({ property }: PropertyCardProps): React.JSX.Element {
+function buildPropertyHref(
+  propertyId: string,
+  property: PropertySummary | AiSearchPropertyResult,
+  showSuggestedDates: boolean,
+): string {
+  const base = `/property/${propertyId}`;
+  if (!showSuggestedDates) return base;
+  const suggested = property as AiSearchPropertyResult;
+  if (!suggested.suggestedCheckIn || !suggested.suggestedCheckOut) return base;
+  const query = new URLSearchParams({
+    checkIn: suggested.suggestedCheckIn,
+    checkOut: suggested.suggestedCheckOut,
+  });
+  return `${base}?${query.toString()}`;
+}
+
+export function PropertyCard({
+  property,
+  showSuggestedDates = false,
+}: PropertyCardProps): React.JSX.Element {
   const locale = useLocale();
   const t = useTranslations('property_card');
   const tc = useTranslations('property_card.categories');
@@ -30,8 +51,16 @@ export function PropertyCard({ property }: PropertyCardProps): React.JSX.Element
   });
   const localizedTitle = getLocalizedTitle(property.titleLabels, locale, property.title);
   const locationLine = address.region ? `${address.city}, ${address.region}` : (address.city ?? '');
+  const suggested = property as AiSearchPropertyResult;
+  const suggestedLabel =
+    showSuggestedDates && suggested.suggestedCheckIn && suggested.suggestedCheckOut
+      ? formatSuggestedStayRange(suggested.suggestedCheckIn, suggested.suggestedCheckOut)
+      : null;
   return (
-    <Link href={`/property/${property.id}`} className="group block">
+    <Link
+      href={buildPropertyHref(property.id, property, showSuggestedDates)}
+      className="group block"
+    >
       <article className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
         <PropertyCardMedia
           propertyId={property.id}
@@ -50,6 +79,11 @@ export function PropertyCard({ property }: PropertyCardProps): React.JSX.Element
             </div>
           </div>
           <p className="mb-3 text-xs text-muted-foreground">{locationLine}</p>
+          {suggestedLabel ? (
+            <p className="mb-2 text-xs font-medium text-primary">
+              {t('available_dates', { dates: suggestedLabel })}
+            </p>
+          ) : null}
           <div className="flex items-center justify-between">
             <div>
               <span className="font-bold text-foreground">{formatAmd(property.pricePerNight)}</span>

@@ -401,11 +401,11 @@ pnpm db:studio    # Open Prisma Studio
 2. `prisma db seed`
 3. Starts the API server
 
-- **postgres** on port 5432
+- **postgres** on port 5433 (host) → 5432 (container)
 - **api** on port 3001
 - **web** on port 3000
 
-If port 5432 is already in use (local Postgres), either stop the local instance or change the port mapping in `docker-compose.yml`.
+Docker Postgres is mapped to host port **5433** to avoid conflicts with a local Postgres on 5432.
 
 ---
 

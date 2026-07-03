@@ -212,8 +212,27 @@ export function AdvancedFiltersDialog({
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {/* <div className="space-y-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t('price_per_night_range')}</label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder={t('min')}
+                  value={filters.minPrice ?? ''}
+                  onChange={(e) => setFilters({ minPrice: toOptionalInt(e.target.value) })}
+                />
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder={t('max')}
+                  value={filters.maxPrice ?? ''}
+                  onChange={(e) => setFilters({ maxPrice: toOptionalInt(e.target.value) })}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
               <label className="text-sm font-medium">{t('cleaning_fee_range')}</label>
               <div className="grid grid-cols-2 gap-2">
                 <Input
@@ -231,7 +250,7 @@ export function AdvancedFiltersDialog({
                   onChange={(e) => setFilters({ maxCleaningFee: toOptionalInt(e.target.value) })}
                 />
               </div>
-            </div> */}
+            </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">{t('security_deposit_range')}</label>
               <div className="grid grid-cols-2 gap-2">
