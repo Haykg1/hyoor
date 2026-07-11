@@ -2,10 +2,12 @@
 
 import {
   BarChart3,
+  CalendarDays,
   LayoutDashboard,
   LogOut,
   MessageSquare,
   Plane,
+  Users,
   User as UserIcon,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -103,6 +105,22 @@ export function UserMenu({ variant = 'default' }: UserMenuProps = {}): React.JSX
             <Link href="/admin/stats" className="cursor-pointer">
               <BarChart3 className="mr-2 h-4 w-4" />
               {t('admin_stats')}
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
+        {isAdminLike ? (
+          <DropdownMenuItem asChild>
+            <Link href="/admin/bookings" className="cursor-pointer">
+              <CalendarDays className="mr-2 h-4 w-4" />
+              {t('admin_bookings')}
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
+        {isAdminLike ? (
+          <DropdownMenuItem asChild>
+            <Link href="/admin/hosts" className="cursor-pointer">
+              <Users className="mr-2 h-4 w-4" />
+              {t('admin_hosts')}
             </Link>
           </DropdownMenuItem>
         ) : null}

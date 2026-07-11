@@ -345,6 +345,7 @@ export interface BookingDetail {
   guestCount: number;
   nightsCount: number;
   nightlyRate: number;
+  nightlyBreakdown?: import('../dto/booking-quote').BookingNightPrice[] | null;
   cleaningFee: number;
   securityDeposit: number;
   discountAmount: number;
@@ -432,5 +433,53 @@ export interface AdminPaymentFailure {
   stripeErrorCode: string | null;
   resolved: boolean;
   resolvedAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminBooking {
+  id: string;
+  status: string;
+  paymentStatus: string;
+  depositStatus: string;
+  payoutStatus: string;
+  checkIn: string;
+  checkOut: string;
+  guestCount: number;
+  nightsCount: number;
+  nightlyRate: number;
+  nightlyBreakdown: import('../dto/booking-quote').BookingNightPrice[];
+  cleaningFee: number;
+  securityDeposit: number;
+  discountAmount: number;
+  totalAmount: number;
+  currency: string;
+  platformFeeAmount: number | null;
+  hostPayoutAmount: number | null;
+  refundedAmount: number;
+  propertyId: string;
+  propertyTitle: string;
+  guestId: string;
+  guestName: string;
+  hostProfileId: string;
+  hostName: string;
+  canRetryRentCapture: boolean;
+  canRetryPayout: boolean;
+  createdAt: string;
+}
+
+export interface AdminHost {
+  id: string;
+  userId: string;
+  email: string;
+  displayName: string;
+  hostType: 'INDIVIDUAL' | 'COMPANY';
+  companyName: string | null;
+  isVerified: boolean;
+  propertyCount: number;
+  platformFeePercent: number | null;
+  defaultPlatformFeePercent: number;
+  effectivePlatformFeePercent: number;
+  stripeChargesEnabled: boolean;
+  stripePayoutsEnabled: boolean;
   createdAt: string;
 }

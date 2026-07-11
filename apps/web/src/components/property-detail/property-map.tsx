@@ -17,7 +17,7 @@ function fixDefaultIcon(): void {
   });
 }
 
-interface PropertyMapProps {
+export interface PropertyMapProps {
   latitude: number;
   longitude: number;
   title: string;

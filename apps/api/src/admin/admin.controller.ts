@@ -1,13 +1,9 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { Property, SecurityDepositClaim, User } from '@repo/database/client';
 import type {
-  Booking,
-  HostProfile,
-  Property,
-  SecurityDepositClaim,
-  User,
-} from '@repo/database/client';
-import type {
+  AdminBooking,
+  AdminHost,
   AdminPaymentFailure,
   HostDashboardStats,
   HostListingsResponse,
@@ -37,6 +33,7 @@ import {
   type TimeseriesResponse,
 } from './admin.service';
 import { QueryAdminBookingsDto } from './dto/query-admin-bookings.dto';
+import { QueryAdminHostsDto } from './dto/query-admin-hosts.dto';
 import { QueryAdminPropertiesDto } from './dto/query-admin-properties.dto';
 import { QueryPaymentFailuresDto } from './dto/query-payment-failures.dto';
 import { QueryTimeseriesDto } from './dto/query-timeseries.dto';
@@ -145,8 +142,34 @@ export class AdminController {
   @ApiOperation({ summary: 'List all bookings with optional filters' })
   @ApiOkResponse({ description: 'Paginated booking list with status, property, and date filters' })
   @ApiStandardErrors()
-  getBookings(@Query() dto: QueryAdminBookingsDto): Promise<PaginatedResponse<Booking>> {
+  getBookings(@Query() dto: QueryAdminBookingsDto): Promise<PaginatedResponse<AdminBooking>> {
     return this.adminService.getBookings(dto);
+  }
+
+  @Post('bookings/:id/retry-rent-capture')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Retry failed or pending rent capture for a booking (admin only)' })
+  @ApiOkResponse({ description: 'Updated booking after capture attempt' })
+  @ApiStandardErrors({ notFound: true })
+  retryRentCapture(@Param('id') id: string): Promise<AdminBooking> {
+    return this.adminService.retryRentCapture(id);
+  }
+
+  @Post('bookings/:id/retry-payout')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Retry failed or due host payout for a booking (admin only)' })
+  @ApiOkResponse({ description: 'Updated booking after payout attempt' })
+  @ApiStandardErrors({ notFound: true })
+  retryPayout(@Param('id') id: string): Promise<AdminBooking> {
+    return this.adminService.retryPayout(id);
+  }
+
+  @Get('hosts')
+  @ApiOperation({ summary: 'List host profiles with platform fee settings' })
+  @ApiOkResponse({ description: 'Paginated host list' })
+  @ApiStandardErrors()
+  getHosts(@Query() dto: QueryAdminHostsDto): Promise<PaginatedResponse<AdminHost>> {
+    return this.adminService.getHosts(dto);
   }
 
   @Patch('hosts/:id/platform-fee')
@@ -154,12 +177,12 @@ export class AdminController {
   @ApiOperation({
     summary: 'Set or clear a negotiated platform fee override for a host (admin only)',
   })
-  @ApiOkResponse({ description: 'Updated host profile' })
+  @ApiOkResponse({ description: 'Updated host with effective fee' })
   @ApiStandardErrors({ notFound: true })
   setHostPlatformFee(
     @Param('id') id: string,
     @Body() dto: UpdateHostPlatformFeeDto,
-  ): Promise<HostProfile> {
+  ): Promise<AdminHost> {
     return this.adminService.setHostPlatformFee(id, dto.platformFeePercent);
   }
 

@@ -72,6 +72,8 @@ model Booking {
   currency                     String
   nightlyRate                  Int
   nightsCount                  Int
+  /// Per-night prices at booking time: [{ date: "YYYY-MM-DD", amount: number }, ...]
+  nightlyBreakdown             Json?
   cleaningFee                  Int              @default(0)
   securityDeposit              Int              @default(0)
   discountAmount               Int              @default(0)

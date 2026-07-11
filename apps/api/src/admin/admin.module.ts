@@ -3,6 +3,7 @@ import { forwardRef, Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { DepositClaimsModule } from '../deposit-claims/deposit-claims.module';
 import { PaymentFailuresModule } from '../payment-failures/payment-failures.module';
+import { PaymentsModule } from '../payments/payments.module';
 import { SchedulingModule } from '../scheduling/scheduling.module';
 import { StorageModule } from '../storage/storage.module';
 
@@ -16,6 +17,7 @@ import { AdminService } from './admin.service';
     StorageModule,
     SchedulingModule,
     PaymentFailuresModule,
+    PaymentsModule,
   ],
   controllers: [AdminController],
   providers: [AdminService],

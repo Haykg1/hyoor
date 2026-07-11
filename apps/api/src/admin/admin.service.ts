@@ -1,8 +1,13 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type {
   Booking,
   BookingStatus,
+  DepositStatus,
   HostProfile,
+  HostType,
+  PaymentStatus,
+  PayoutStatus,
   Property,
   PropertyPhoto,
   PropertyStatus,
@@ -10,7 +15,11 @@ import type {
   User,
   UserRole,
 } from '@repo/database/client';
+import { Prisma as PrismaNamespace } from '@repo/database/client';
 import type {
+  AdminBooking,
+  AdminHost,
+  BookingNightPrice,
   HostDashboardStats,
   HostListingSummary,
   HostListingsResponse,
@@ -19,10 +28,14 @@ import type {
 import { AddressLocales } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 
+import { isPrismaSerializationFailure, runWithRetry } from '../common/connection/retry';
+import type { AppConfig } from '../config/configuration';
 import { PrismaService } from '../database/prisma.service';
+import { StripeCheckoutService } from '../payments/stripe/stripe-checkout.service';
 import { StorageService } from '../storage/storage.service';
 
 import { QueryAdminBookingsDto } from './dto/query-admin-bookings.dto';
+import { QueryAdminHostsDto } from './dto/query-admin-hosts.dto';
 import { QueryAdminPropertiesDto } from './dto/query-admin-properties.dto';
 import { QueryTimeseriesDto, TimeseriesMetric, TimeseriesRange } from './dto/query-timeseries.dto';
 import { QueryUsersDto } from './dto/query-users.dto';
@@ -97,6 +110,8 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
+    private readonly stripeCheckout: StripeCheckoutService,
+    private readonly config: ConfigService<AppConfig, true>,
   ) {}
 
   async getUsers(dto: QueryUsersDto): Promise<PaginatedResponse<User>> {
@@ -275,15 +290,115 @@ export class AdminService {
   async setHostPlatformFee(
     hostProfileId: string,
     platformFeePercent: number | null | undefined,
-  ): Promise<HostProfile> {
+  ): Promise<AdminHost> {
     const hostProfile = await this.prisma.hostProfile.findUnique({ where: { id: hostProfileId } });
     if (!hostProfile) {
       throw new NotFoundException('Host profile not found');
     }
-    return this.prisma.hostProfile.update({
+    await this.prisma.hostProfile.update({
       where: { id: hostProfileId },
       data: { platformFeePercent: platformFeePercent ?? null },
     });
+    return this.getAdminHostOrThrow(hostProfileId);
+  }
+
+  async getHosts(dto: QueryAdminHostsDto): Promise<PaginatedResponse<AdminHost>> {
+    const page = dto.page ?? 1;
+    const limit = dto.limit ?? DEFAULT_PAGE_SIZE;
+    const skip = (page - 1) * limit;
+    const search = dto.search?.trim();
+    const where: Prisma.HostProfileWhereInput = {
+      ...(dto.hostType ? { hostType: dto.hostType as HostType } : {}),
+      ...(dto.isVerified !== undefined ? { isVerified: dto.isVerified } : {}),
+      ...(dto.hasFeeOverride === true ? { platformFeePercent: { not: null } } : {}),
+      ...(dto.hasFeeOverride === false ? { platformFeePercent: null } : {}),
+      ...(search
+        ? {
+            OR: [
+              { companyName: { contains: search, mode: 'insensitive' } },
+              { user: { email: { contains: search, mode: 'insensitive' } } },
+              { user: { profile: { firstName: { contains: search, mode: 'insensitive' } } } },
+              { user: { profile: { lastName: { contains: search, mode: 'insensitive' } } } },
+            ],
+          }
+        : {}),
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.hostProfile.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+        include: {
+          user: { include: { profile: true } },
+          _count: { select: { properties: true } },
+        },
+      }),
+      this.prisma.hostProfile.count({ where }),
+    ]);
+    const defaultFee = this.config.get('stripe.platformFeePercentDefault', { infer: true });
+    return {
+      data: rows.map((row) => this.toAdminHost(row, defaultFee)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    };
+  }
+
+  private async getAdminHostOrThrow(hostProfileId: string): Promise<AdminHost> {
+    const row = await this.prisma.hostProfile.findUnique({
+      where: { id: hostProfileId },
+      include: {
+        user: { include: { profile: true } },
+        _count: { select: { properties: true } },
+      },
+    });
+    if (!row) {
+      throw new NotFoundException('Host profile not found');
+    }
+    return this.toAdminHost(
+      row,
+      this.config.get('stripe.platformFeePercentDefault', { infer: true }),
+    );
+  }
+
+  private toAdminHost(
+    row: HostProfile & {
+      user: {
+        id: string;
+        email: string;
+        profile: { firstName: string | null; lastName: string | null } | null;
+      };
+      _count: { properties: number };
+    },
+    defaultFee: number,
+  ): AdminHost {
+    const override =
+      row.platformFeePercent === null || row.platformFeePercent === undefined
+        ? null
+        : Number(row.platformFeePercent);
+    const displayName =
+      row.hostType === 'COMPANY' && row.companyName
+        ? row.companyName
+        : `${row.user.profile?.firstName ?? ''} ${row.user.profile?.lastName ?? ''}`.trim() ||
+          row.user.email;
+    return {
+      id: row.id,
+      userId: row.userId,
+      email: row.user.email,
+      displayName,
+      hostType: row.hostType,
+      companyName: row.companyName,
+      isVerified: row.isVerified,
+      propertyCount: row._count.properties,
+      platformFeePercent: override,
+      defaultPlatformFeePercent: defaultFee,
+      effectivePlatformFeePercent: override ?? defaultFee,
+      stripeChargesEnabled: row.stripeChargesEnabled,
+      stripePayoutsEnabled: row.stripePayoutsEnabled,
+      createdAt: row.createdAt.toISOString(),
+    };
   }
 
   private async safePresignedUrl(key: string): Promise<string | undefined> {
@@ -320,13 +435,19 @@ export class AdminService {
     };
   }
 
-  async getBookings(dto: QueryAdminBookingsDto): Promise<PaginatedResponse<Booking>> {
+  async getBookings(dto: QueryAdminBookingsDto): Promise<PaginatedResponse<AdminBooking>> {
     const page = dto.page ?? 1;
     const limit = dto.limit ?? DEFAULT_PAGE_SIZE;
     const skip = (page - 1) * limit;
+    const search = dto.search?.trim();
     const where: Prisma.BookingWhereInput = {
       ...(dto.status ? { status: dto.status as BookingStatus } : {}),
+      ...(dto.paymentStatus ? { paymentStatus: dto.paymentStatus as PaymentStatus } : {}),
+      ...(dto.payoutStatus ? { payoutStatus: dto.payoutStatus as PayoutStatus } : {}),
+      ...(dto.depositStatus ? { depositStatus: dto.depositStatus as DepositStatus } : {}),
       ...(dto.propertyId ? { propertyId: dto.propertyId } : {}),
+      ...(dto.guestId ? { guestId: dto.guestId } : {}),
+      ...(dto.hostId ? { property: { hostId: dto.hostId } } : {}),
       ...(dto.from || dto.to
         ? {
             checkIn: {
@@ -335,23 +456,202 @@ export class AdminService {
             },
           }
         : {}),
+      ...(search
+        ? {
+            OR: [
+              { property: { title: { contains: search, mode: 'insensitive' } } },
+              { guest: { profile: { firstName: { contains: search, mode: 'insensitive' } } } },
+              { guest: { profile: { lastName: { contains: search, mode: 'insensitive' } } } },
+              { guest: { email: { contains: search, mode: 'insensitive' } } },
+              {
+                property: {
+                  host: {
+                    user: { profile: { firstName: { contains: search, mode: 'insensitive' } } },
+                  },
+                },
+              },
+              {
+                property: {
+                  host: {
+                    user: { profile: { lastName: { contains: search, mode: 'insensitive' } } },
+                  },
+                },
+              },
+              { property: { host: { companyName: { contains: search, mode: 'insensitive' } } } },
+            ],
+          }
+        : {}),
     };
-    const [data, total] = await Promise.all([
+    const [rows, total] = await Promise.all([
       this.prisma.booking.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { checkIn: 'asc' },
         skip,
         take: limit,
+        include: {
+          property: {
+            include: { host: { include: { user: { include: { profile: true } } } } },
+          },
+          guest: { include: { profile: true } },
+        },
       }),
       this.prisma.booking.count({ where }),
     ]);
     return {
-      data,
+      data: rows.map((row) => this.toAdminBooking(row)),
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit) || 1,
     };
+  }
+
+  async retryRentCapture(bookingId: string): Promise<AdminBooking> {
+    const booking = await runWithRetry(
+      () =>
+        this.prisma.$transaction(
+          async (tx) => {
+            const row = await tx.booking.findUnique({ where: { id: bookingId } });
+            if (!row) {
+              throw new NotFoundException('Booking not found');
+            }
+            if (!this.isRentCaptureRetryable(row)) {
+              throw new BadRequestException('Booking is not eligible for rent capture retry');
+            }
+            return row;
+          },
+          { isolationLevel: PrismaNamespace.TransactionIsolationLevel.Serializable },
+        ),
+      async () => undefined,
+      undefined,
+      isPrismaSerializationFailure,
+    );
+    await this.stripeCheckout.captureRentOnCheckIn(booking);
+    return this.getAdminBookingOrThrow(bookingId);
+  }
+
+  async retryPayout(bookingId: string): Promise<AdminBooking> {
+    const booking = await runWithRetry(
+      () =>
+        this.prisma.$transaction(
+          async (tx) => {
+            const row = await tx.booking.findUnique({ where: { id: bookingId } });
+            if (!row) {
+              throw new NotFoundException('Booking not found');
+            }
+            if (!this.isPayoutRetryable(row)) {
+              throw new BadRequestException('Booking is not eligible for payout retry');
+            }
+            return row;
+          },
+          { isolationLevel: PrismaNamespace.TransactionIsolationLevel.Serializable },
+        ),
+      async () => undefined,
+      undefined,
+      isPrismaSerializationFailure,
+    );
+    await this.stripeCheckout.payoutToHost(booking);
+    return this.getAdminBookingOrThrow(bookingId);
+  }
+
+  private async getAdminBookingOrThrow(bookingId: string): Promise<AdminBooking> {
+    const row = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        property: {
+          include: { host: { include: { user: { include: { profile: true } } } } },
+        },
+        guest: { include: { profile: true } },
+      },
+    });
+    if (!row) {
+      throw new NotFoundException('Booking not found');
+    }
+    return this.toAdminBooking(row);
+  }
+
+  private toAdminBooking(
+    row: Booking & {
+      property: {
+        id: string;
+        title: string;
+        hostId: string;
+        host: {
+          id: string;
+          hostType: string;
+          companyName: string | null;
+          user: { profile: { firstName: string | null; lastName: string | null } | null };
+        };
+      };
+      guest: {
+        id: string;
+        profile: { firstName: string | null; lastName: string | null } | null;
+      };
+    },
+  ): AdminBooking {
+    const { property, guest } = row;
+    const { host } = property;
+    const hostName =
+      host.hostType === 'COMPANY' && host.companyName
+        ? host.companyName
+        : `${host.user.profile?.firstName ?? 'Host'} ${host.user.profile?.lastName ?? ''}`.trim();
+    const guestName =
+      `${guest.profile?.firstName ?? ''} ${guest.profile?.lastName ?? ''}`.trim() || guest.id;
+    return {
+      id: row.id,
+      status: row.status,
+      paymentStatus: row.paymentStatus,
+      depositStatus: row.depositStatus,
+      payoutStatus: row.payoutStatus,
+      checkIn: formatIsoDate(row.checkIn),
+      checkOut: formatIsoDate(row.checkOut),
+      guestCount: row.guestCount,
+      nightsCount: row.nightsCount,
+      nightlyRate: row.nightlyRate,
+      nightlyBreakdown: resolveNightlyBreakdown(row),
+      cleaningFee: row.cleaningFee,
+      securityDeposit: row.securityDeposit,
+      discountAmount: row.discountAmount,
+      totalAmount: row.totalAmount,
+      currency: row.currency,
+      platformFeeAmount: row.platformFeeAmount,
+      hostPayoutAmount: row.hostPayoutAmount,
+      refundedAmount: row.refundedAmount,
+      propertyId: property.id,
+      propertyTitle: property.title,
+      guestId: guest.id,
+      guestName,
+      hostProfileId: host.id,
+      hostName,
+      canRetryRentCapture: this.isRentCaptureRetryable(row),
+      canRetryPayout: this.isPayoutRetryable(row),
+      createdAt: row.createdAt.toISOString(),
+    };
+  }
+
+  private isRentCaptureRetryable(booking: Booking): boolean {
+    return (
+      booking.status === 'CONFIRMED' &&
+      booking.paymentStatus === 'AUTHORIZED' &&
+      !!booking.stripePaymentIntentId
+    );
+  }
+
+  private isPayoutRetryable(booking: Booking): boolean {
+    if (!booking.hostPayoutAmount || booking.hostPayoutAmount <= 0) {
+      return false;
+    }
+    if (booking.stripeTransferId) {
+      return false;
+    }
+    if (booking.payoutStatus === 'FAILED') {
+      return true;
+    }
+    if (booking.payoutStatus === 'SCHEDULED') {
+      if (!booking.payoutScheduledAt) return true;
+      return booking.payoutScheduledAt.getTime() <= Date.now();
+    }
+    return false;
   }
 
   async getStats(): Promise<PlatformStats> {
@@ -479,4 +779,37 @@ function parseDateOrThrow(value: string, field: string): Date {
     throw new BadRequestException(`Invalid ${field} date`);
   }
   return parsed;
+}
+
+function formatIsoDate(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function resolveNightlyBreakdown(booking: Booking): BookingNightPrice[] {
+  const raw = booking.nightlyBreakdown;
+  if (Array.isArray(raw)) {
+    const parsed: BookingNightPrice[] = [];
+    for (const entry of raw) {
+      if (
+        typeof entry === 'object' &&
+        entry !== null &&
+        !Array.isArray(entry) &&
+        typeof entry.date === 'string' &&
+        typeof entry.amount === 'number'
+      ) {
+        parsed.push({ date: entry.date, amount: entry.amount });
+      }
+    }
+    if (parsed.length > 0) {
+      return parsed;
+    }
+  }
+  const nights: BookingNightPrice[] = [];
+  const start = new Date(booking.checkIn.getTime());
+  for (let i = 0; i < booking.nightsCount; i++) {
+    const day = new Date(start.getTime());
+    day.setUTCDate(day.getUTCDate() + i);
+    nights.push({ date: formatIsoDate(day), amount: booking.nightlyRate });
+  }
+  return nights;
 }

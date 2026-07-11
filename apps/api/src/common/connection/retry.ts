@@ -19,8 +19,9 @@ export function delay(ms: number): Promise<void> {
 
 export async function runWithRetry<T>(
   operation: () => Promise<T>,
-  onRetry: () => Promise<void>,
+  onRetry: () => Promise<void> = async () => undefined,
   maxAttempts = CONNECTION_MAX_ATTEMPTS,
+  shouldRetry: (error: unknown) => boolean = () => true,
 ): Promise<T> {
   let lastError: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -28,7 +29,7 @@ export async function runWithRetry<T>(
       return await operation();
     } catch (error) {
       lastError = error;
-      if (attempt === maxAttempts) {
+      if (attempt === maxAttempts || !shouldRetry(error)) {
         throw error;
       }
       await onRetry();
@@ -36,4 +37,13 @@ export async function runWithRetry<T>(
     }
   }
   throw lastError;
+}
+
+export function isPrismaSerializationFailure(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code: unknown }).code === 'P2034'
+  );
 }

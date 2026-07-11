@@ -7,8 +7,10 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Booking } from '@repo/database/client';
+import { Prisma } from '@repo/database/client';
 import Stripe from 'stripe';
 
+import { isPrismaSerializationFailure, runWithRetry } from '../../common/connection/retry';
 import type { AppConfig } from '../../config/configuration';
 import { PrismaService } from '../../database/prisma.service';
 import { NotificationsService } from '../../notifications/notifications.service';
@@ -155,18 +157,37 @@ export class StripeCheckoutService {
         amountCaptured,
       );
       const payoutDelayHours = this.config.get('stripe.payoutDelayHours', { infer: true });
-      await this.prisma.booking.update({
-        where: { id: booking.id },
-        data: {
-          paymentStatus: 'CAPTURED',
-          capturedAt: new Date(),
-          paymentCompletedAt: new Date(),
-          platformFeeAmount,
-          hostPayoutAmount,
-          payoutStatus: 'SCHEDULED',
-          payoutScheduledAt: new Date(Date.now() + payoutDelayHours * 60 * 60 * 1000),
-        },
-      });
+      await runWithRetry(
+        () =>
+          this.prisma.$transaction(
+            async (tx) => {
+              const result = await tx.booking.updateMany({
+                where: {
+                  id: booking.id,
+                  paymentStatus: 'AUTHORIZED',
+                },
+                data: {
+                  paymentStatus: 'CAPTURED',
+                  capturedAt: new Date(),
+                  paymentCompletedAt: new Date(),
+                  platformFeeAmount,
+                  hostPayoutAmount,
+                  payoutStatus: 'SCHEDULED',
+                  payoutScheduledAt: new Date(Date.now() + payoutDelayHours * 60 * 60 * 1000),
+                },
+              });
+              if (result.count === 0) {
+                this.logger.warn(
+                  `Booking ${booking.id} rent capture skipped — already captured or not AUTHORIZED`,
+                );
+              }
+            },
+            { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+          ),
+        async () => undefined,
+        undefined,
+        isPrismaSerializationFailure,
+      );
     } catch (error) {
       await this.paymentFailures.record(booking.id, 'RENT_CAPTURE_FAILED', error);
       throw error;
@@ -176,8 +197,11 @@ export class StripeCheckoutService {
   async payoutToHost(booking: Booking): Promise<void> {
     if (!booking.hostPayoutAmount || booking.hostPayoutAmount <= 0) {
       this.logger.warn(`Booking ${booking.id} has no payout amount to transfer`);
-      await this.prisma.booking.update({
-        where: { id: booking.id },
+      await this.prisma.booking.updateMany({
+        where: {
+          id: booking.id,
+          payoutStatus: { in: ['SCHEDULED', 'FAILED'] },
+        },
         data: { payoutStatus: 'PAID' },
       });
       return;
@@ -190,29 +214,58 @@ export class StripeCheckoutService {
       const message = 'Host has no connected Stripe account, cannot pay out';
       this.logger.error(`Booking ${booking.id}: ${message}`);
       await this.paymentFailures.record(booking.id, 'PAYOUT_TRANSFER_FAILED', new Error(message));
-      await this.prisma.booking.update({
-        where: { id: booking.id },
+      await this.prisma.booking.updateMany({
+        where: {
+          id: booking.id,
+          payoutStatus: { in: ['SCHEDULED', 'FAILED'] },
+        },
         data: { payoutStatus: 'FAILED', payoutScheduledAt: this.nextPayoutRetryAt() },
       });
       return;
     }
     try {
-      const transfer = await this.stripe.transfers.create({
-        amount: booking.hostPayoutAmount,
-        currency: booking.currency.toLowerCase(),
-        destination: property.host.stripeAccountId,
-        transfer_group: booking.id,
-        metadata: { bookingId: booking.id },
-      });
-      await this.prisma.booking.update({
-        where: { id: booking.id },
-        data: { payoutStatus: 'PAID', stripeTransferId: transfer.id },
-      });
+      const transfer = await this.stripe.transfers.create(
+        {
+          amount: booking.hostPayoutAmount,
+          currency: booking.currency.toLowerCase(),
+          destination: property.host.stripeAccountId,
+          transfer_group: booking.id,
+          metadata: { bookingId: booking.id },
+        },
+        { idempotencyKey: `payout-${booking.id}-${booking.hostPayoutAmount}` },
+      );
+      await runWithRetry(
+        () =>
+          this.prisma.$transaction(
+            async (tx) => {
+              const result = await tx.booking.updateMany({
+                where: {
+                  id: booking.id,
+                  payoutStatus: { in: ['SCHEDULED', 'FAILED'] },
+                  stripeTransferId: null,
+                },
+                data: { payoutStatus: 'PAID', stripeTransferId: transfer.id },
+              });
+              if (result.count === 0) {
+                this.logger.warn(
+                  `Booking ${booking.id} payout skipped — already paid or ineligible`,
+                );
+              }
+            },
+            { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+          ),
+        async () => undefined,
+        undefined,
+        isPrismaSerializationFailure,
+      );
     } catch (error) {
       this.logger.error(`Transfer failed for booking ${booking.id}: ${String(error)}`);
       await this.paymentFailures.record(booking.id, 'PAYOUT_TRANSFER_FAILED', error);
-      await this.prisma.booking.update({
-        where: { id: booking.id },
+      await this.prisma.booking.updateMany({
+        where: {
+          id: booking.id,
+          payoutStatus: { in: ['SCHEDULED', 'FAILED'] },
+        },
         data: { payoutStatus: 'FAILED', payoutScheduledAt: this.nextPayoutRetryAt() },
       });
     }

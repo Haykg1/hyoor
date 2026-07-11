@@ -19,6 +19,20 @@ function utcDate(daysFromNow = 0): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + daysFromNow));
 }
 
+function seedNightlyBreakdown(
+  checkIn: Date,
+  nightsCount: number,
+  nightlyRate: number,
+): Array<{ date: string; amount: number }> {
+  const nights: Array<{ date: string; amount: number }> = [];
+  for (let i = 0; i < nightsCount; i++) {
+    const day = new Date(checkIn.getTime());
+    day.setUTCDate(day.getUTCDate() + i);
+    nights.push({ date: day.toISOString().slice(0, 10), amount: nightlyRate });
+  }
+  return nights;
+}
+
 /**
  * Rolling "this month + next month" window, so the demo promotion always
  * covers a plausible near-future date range regardless of when seed runs
@@ -1269,9 +1283,15 @@ async function main(): Promise<void> {
   // COMPLETED: guest1 stayed at p1 (needed for reviews)
   const completedBooking1TotalAmount = p1.pricePerNight * 3 + p1.cleaningFee + p1.securityDeposit;
   const completedBooking1CheckIn = utcDate(-20);
+  const completedBooking1Breakdown = seedNightlyBreakdown(
+    completedBooking1CheckIn,
+    3,
+    p1.pricePerNight,
+  );
   const completedBooking = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed' },
     update: {
+      nightlyBreakdown: completedBooking1Breakdown,
       ...completedStripeFields(
         'seed-booking-completed',
         completedBooking1CheckIn,
@@ -1290,6 +1310,7 @@ async function main(): Promise<void> {
       currency: 'USD',
       nightlyRate: p1.pricePerNight,
       nightsCount: 3,
+      nightlyBreakdown: completedBooking1Breakdown,
       cleaningFee: p1.cleaningFee,
       securityDeposit: p1.securityDeposit,
       totalAmount: completedBooking1TotalAmount,
@@ -1304,20 +1325,24 @@ async function main(): Promise<void> {
   });
 
   // CONFIRMED: guest1 past stay at p2
+  const confirmedBooking1CheckIn = utcDate(-8);
   const confirmedBooking1 = await prisma.booking.upsert({
     where: { id: 'seed-booking-confirmed-1' },
-    update: {},
+    update: {
+      nightlyBreakdown: seedNightlyBreakdown(confirmedBooking1CheckIn, 2, p2.pricePerNight),
+    },
     create: {
       id: 'seed-booking-confirmed-1',
       propertyId: p2.id,
       guestId: guest1.id,
       status: 'CONFIRMED',
-      checkIn: utcDate(-8),
+      checkIn: confirmedBooking1CheckIn,
       checkOut: utcDate(-6),
       guestCount: 1,
       currency: 'USD',
       nightlyRate: p2.pricePerNight,
       nightsCount: 2,
+      nightlyBreakdown: seedNightlyBreakdown(confirmedBooking1CheckIn, 2, p2.pricePerNight),
       cleaningFee: p2.cleaningFee,
       securityDeposit: p2.securityDeposit,
       totalAmount: p2.pricePerNight * 2 + p2.cleaningFee + p2.securityDeposit,
@@ -1325,20 +1350,24 @@ async function main(): Promise<void> {
   });
 
   // CONFIRMED: guest1 upcoming stay at p3
+  const confirmedBooking2CheckIn = utcDate(10);
   const confirmedBooking2 = await prisma.booking.upsert({
     where: { id: 'seed-booking-confirmed-2' },
-    update: {},
+    update: {
+      nightlyBreakdown: seedNightlyBreakdown(confirmedBooking2CheckIn, 4, p3.pricePerNight),
+    },
     create: {
       id: 'seed-booking-confirmed-2',
       propertyId: p3.id,
       guestId: guest1.id,
       status: 'CONFIRMED',
-      checkIn: utcDate(10),
+      checkIn: confirmedBooking2CheckIn,
       checkOut: utcDate(14),
       guestCount: 4,
       currency: 'USD',
       nightlyRate: p3.pricePerNight,
       nightsCount: 4,
+      nightlyBreakdown: seedNightlyBreakdown(confirmedBooking2CheckIn, 4, p3.pricePerNight),
       cleaningFee: p3.cleaningFee,
       securityDeposit: p3.securityDeposit,
       totalAmount: p3.pricePerNight * 4 + p3.cleaningFee + p3.securityDeposit,
@@ -1346,21 +1375,25 @@ async function main(): Promise<void> {
   });
 
   // PENDING: guest2 at p4
+  const pendingBookingCheckIn = utcDate(20);
   const pendingBooking = await prisma.booking.upsert({
     where: { id: 'seed-booking-pending' },
-    update: {},
+    update: {
+      nightlyBreakdown: seedNightlyBreakdown(pendingBookingCheckIn, 3, p4.pricePerNight),
+    },
     create: {
       id: 'seed-booking-pending',
       propertyId: p4.id,
       guestId: guest2.id,
       status: 'PENDING',
-      checkIn: utcDate(20),
+      checkIn: pendingBookingCheckIn,
       checkOut: utcDate(23),
       guestCount: 3,
       specialRequests: 'Could we get a late check-out if possible?',
       currency: 'USD',
       nightlyRate: p4.pricePerNight,
       nightsCount: 3,
+      nightlyBreakdown: seedNightlyBreakdown(pendingBookingCheckIn, 3, p4.pricePerNight),
       cleaningFee: p4.cleaningFee,
       securityDeposit: p4.securityDeposit,
       totalAmount: p4.pricePerNight * 3 + p4.cleaningFee + p4.securityDeposit,

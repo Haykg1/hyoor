@@ -78,9 +78,9 @@
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    scroll-behavior: smooth;
-  }
+  /* No global scroll-behavior: smooth — it turns Next.js scroll restoration on
+     browser back/forward into a visible animated scroll instead of an instant
+     restore. Components that want smooth scrolling pass behavior: 'smooth'. */
   .sidebar-scroll::-webkit-scrollbar {
     width: 4px;
   }
@@ -89,5 +89,57 @@
   }
   .sidebar-scroll::-webkit-scrollbar-thumb {
     @apply rounded-full bg-sidebar-border;
+  }
+}
+
+/* View Transitions: property card image morphs into the detail-page gallery hero.
+   Elements opt in via view-transition-name/-class (see lib/constants/view-transitions.ts). */
+@supports (view-transition-name: none) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 400ms;
+    animation-timing-function: ease-in-out;
+  }
+  ::view-transition-group(.property-image) {
+    animation-duration: 550ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* Ease the cross-fade between the two snapshots along with the morph so the
+     swap doesn't pop while the box is still moving. */
+  ::view-transition-image-pair(.property-image) {
+    animation-duration: 550ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* Keep the snapshots covering the morphing box so the image doesn't stretch while
+     the aspect ratio changes between the card (4:3) and the gallery hero. */
+  ::view-transition-old(.property-image),
+  ::view-transition-new(.property-image) {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    overflow: hidden;
+  }
+  /* Gallery thumbnail scaling up into the lightbox modal (and back on close). */
+  ::view-transition-group(lightbox-photo) {
+    animation-duration: 450ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  ::view-transition-image-pair(lightbox-photo) {
+    animation-duration: 450ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  ::view-transition-old(lightbox-photo),
+  ::view-transition-new(lightbox-photo) {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-image-pair(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
+    }
   }
 }

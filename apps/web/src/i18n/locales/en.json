@@ -77,6 +77,8 @@
     "logout": "Sign out",
     "account": "Account",
     "admin_stats": "Platform stats",
+    "admin_bookings": "Bookings",
+    "admin_hosts": "Hosts",
     "favorites": "Favorites",
     "menu": "Menu",
     "notifications": "Notifications"
@@ -581,6 +583,8 @@
       "enabling": "Enabling…",
       "disabling": "Disabling…",
       "payment_failures_link": "Payment failures",
+      "bookings_link": "Bookings",
+      "hosts_link": "Hosts",
       "tabs": {
         "all_properties": "All Properties"
       }
@@ -1199,6 +1203,114 @@
           "week": "Week",
           "month": "Month"
         }
+      }
+    },
+    "bookings": {
+      "title": "Bookings",
+      "subtitle": "All platform bookings — check-in dates, totals, and per-night prices.",
+      "back_to_dashboard": "Back to dashboard",
+      "empty_state": "No bookings match your filters.",
+      "retry_capture": "Retry capture",
+      "retry_payout": "Retry payout",
+      "retrying": "Retrying…",
+      "table": {
+        "check_in": "Check-in",
+        "property": "Property",
+        "guest": "Guest",
+        "host": "Host",
+        "status": "Status",
+        "payment": "Payment",
+        "payout": "Payout",
+        "total": "Total",
+        "nights": "{count, plural, one {# night} other {# nights}}",
+        "nightly_breakdown": "Price per night",
+        "toggle_nights": "Show nightly prices"
+      },
+      "pagination": {
+        "page_of": "Page {page} of {totalPages} ({total} total)"
+      },
+      "filters": {
+        "search_placeholder": "Search guest, host, or property…",
+        "status": "Status",
+        "all_statuses": "All statuses",
+        "payment_status": "Payment",
+        "all_payment_statuses": "All payment statuses",
+        "payout_status": "Payout",
+        "all_payout_statuses": "All payout statuses",
+        "from": "Check-in from",
+        "to": "Check-in to",
+        "property_id": "Property ID",
+        "guest_id": "Guest ID",
+        "host_id": "Host ID",
+        "reset": "Reset",
+        "payment_status_values": {
+          "UNPAID": "Unpaid",
+          "PENDING": "Pending",
+          "PAID": "Paid",
+          "AUTHORIZED": "Authorized",
+          "CAPTURED": "Captured",
+          "PARTIALLY_REFUNDED": "Partially refunded",
+          "REFUNDED": "Refunded",
+          "FAILED": "Failed",
+          "CANCELLED": "Cancelled"
+        },
+        "payout_status_values": {
+          "NONE": "None",
+          "SCHEDULED": "Scheduled",
+          "PAID": "Paid",
+          "FAILED": "Failed"
+        }
+      }
+    },
+    "hosts": {
+      "title": "Hosts",
+      "subtitle": "Host profiles and platform fee overrides. Custom fees apply to future rent captures only.",
+      "back_to_dashboard": "Back to dashboard",
+      "empty_state": "No hosts match your filters.",
+      "type_individual": "Individual",
+      "type_company": "Company",
+      "verified_yes": "Verified",
+      "verified_no": "Unverified",
+      "stripe_ready": "Payouts ready",
+      "stripe_pending": "Payouts pending",
+      "using_default": "default",
+      "custom": "custom",
+      "using_default_value": "default {percent}%",
+      "effective": "Effective {percent}%",
+      "save": "Save",
+      "saving": "Saving…",
+      "clear": "Use default",
+      "fee_saved": "Platform fee updated",
+      "fee_cleared": "Platform fee reset to default",
+      "fee_invalid": "Enter a fee between 0 and 100",
+      "fee_save_error": "Could not update platform fee",
+      "table": {
+        "host": "Host",
+        "email": "Email",
+        "type": "Type",
+        "properties": "Listings",
+        "verified": "Verified",
+        "stripe": "Stripe",
+        "platform_fee": "Platform fee"
+      },
+      "pagination": {
+        "page_of": "Page {page} of {totalPages} ({total} total)"
+      },
+      "filters": {
+        "search_placeholder": "Search name, company, or email…",
+        "host_type": "Host type",
+        "all_types": "All types",
+        "type_individual": "Individual",
+        "type_company": "Company",
+        "verified": "Verified",
+        "all_verified": "All verification",
+        "verified_yes": "Verified",
+        "verified_no": "Unverified",
+        "fee_override": "Platform fee",
+        "all_fees": "All fees",
+        "custom_fee": "Custom fee",
+        "default_fee": "Default fee",
+        "reset": "Reset"
       }
     },
     "payment_failures": {

@@ -4,6 +4,15 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const nextConfig = {
   transpilePackages: ['@repo/shared'],
   output: 'standalone',
+  experimental: {
+    // Keep visited pages in the client router cache longer so browser back/forward
+    // restores them (and their scroll position) instantly instead of refetching
+    // and briefly painting at the top.
+    staleTimes: {
+      dynamic: 180,
+      static: 300,
+    },
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },

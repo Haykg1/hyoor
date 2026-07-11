@@ -6,9 +6,10 @@ import { Star } from 'lucide-react';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { Link } from '@/i18n/navigation';
+import { TransitionLink } from '@/i18n/transition-link';
 import { formatSuggestedStayRange } from '@/lib/ai-search/filters-display';
 import { PROPERTY_PLACEHOLDER_IMAGE } from '@/lib/constants/property-placeholder';
+import { propertyImageTransitionStyle } from '@/lib/constants/view-transitions';
 
 import { FavoriteButton } from './favorite-button';
 import { PropertyPriceDisplay } from './property-price-display';
@@ -56,7 +57,7 @@ export function PropertyCard({
       ? formatSuggestedStayRange(suggested.suggestedCheckIn, suggested.suggestedCheckOut)
       : null;
   return (
-    <Link
+    <TransitionLink
       href={buildPropertyHref(property.id, property, showSuggestedDates)}
       className="group block"
     >
@@ -104,7 +105,7 @@ export function PropertyCard({
           </p>
         </div>
       </article>
-    </Link>
+    </TransitionLink>
   );
 }
 
@@ -122,7 +123,10 @@ function PropertyCardMedia({
   categoryLabel,
 }: PropertyCardMediaProps): React.JSX.Element {
   return (
-    <div className="relative aspect-[4/3] overflow-hidden">
+    <div
+      className="relative aspect-[4/3] overflow-hidden"
+      style={propertyImageTransitionStyle(propertyId)}
+    >
       <Image
         src={imageUrl}
         alt={title}
