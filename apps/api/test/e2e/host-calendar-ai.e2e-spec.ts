@@ -7,10 +7,14 @@ import { LlmService } from '../../src/ai-search/llm/llm.service';
 import { AppModule } from '../../src/app.module';
 import { HttpExceptionFilter } from '../../src/common/filters/http-exception.filter';
 import { PrismaService } from '../../src/database/prisma.service';
+import { StripeCheckoutService } from '../../src/payments/stripe/stripe-checkout.service';
+import { StripeConnectService } from '../../src/payments/stripe/stripe-connect.service';
 import { RedisService } from '../../src/redis/redis.service';
 import { StorageService } from '../../src/storage/storage.service';
 import { MockRedisService } from '../helpers/mock-redis.service';
 import { MockStorageService } from '../helpers/mock-storage.service';
+import { MockStripeCheckoutService } from '../helpers/mock-stripe-checkout.service';
+import { MockStripeConnectService } from '../helpers/mock-stripe-connect.service';
 import {
   createActivePropertyDirect,
   registerHostUser,
@@ -45,6 +49,10 @@ describe('Host calendar AI (e2e)', () => {
       .useValue(redis)
       .overrideProvider(LlmService)
       .useValue(mockLlm)
+      .overrideProvider(StripeConnectService)
+      .useClass(MockStripeConnectService)
+      .overrideProvider(StripeCheckoutService)
+      .useClass(MockStripeCheckoutService)
       .compile();
     app = module.createNestApplication();
     app.setGlobalPrefix('api/v1', { exclude: ['health'] });

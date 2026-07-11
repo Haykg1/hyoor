@@ -5,14 +5,17 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { Booking, BookingStatus, Prisma, Property } from '@repo/database/client';
 import type { BookingQuoteResult, PaginatedResponse } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 
 import { AvailabilityService } from '../availability/availability.service';
+import type { AppConfig } from '../config/configuration';
 import { PrismaService } from '../database/prisma.service';
 import { HostProfilesService } from '../host-profiles/host-profiles.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { StripeCheckoutService } from '../payments/stripe/stripe-checkout.service';
 import { PromotionsService } from '../promotions/promotions.service';
 import { StorageService } from '../storage/storage.service';
 
@@ -21,7 +24,8 @@ import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { QueryBookingsDto } from './dto/query-bookings.dto';
 
-const CANCELLABLE_STATUSES: BookingStatus[] = ['PENDING', 'CONFIRMED'];
+const CANCELLABLE_STATUSES: BookingStatus[] = ['AWAITING_PAYMENT', 'PENDING', 'CONFIRMED'];
+const PAYMENT_BLOCKING_STATUSES: BookingStatus[] = ['AWAITING_PAYMENT', 'CONFIRMED'];
 
 export interface BookingGuestProfile {
   id: string;
@@ -43,7 +47,6 @@ export interface BookingPropertySummary {
 export interface BookingDetail extends Booking {
   property: BookingPropertySummary;
   guest: BookingGuestProfile;
-  conversationId: string | null;
   promotionSummary?: import('@repo/shared').BookingPromotionSummary | null;
 }
 
@@ -58,6 +61,8 @@ export class BookingsService {
     private readonly notificationsService: NotificationsService,
     private readonly promotionsService: PromotionsService,
     private readonly storage: StorageService,
+    private readonly stripeCheckout: StripeCheckoutService,
+    private readonly config: ConfigService<AppConfig, true>,
   ) {}
 
   async getQuote(dto: BookingQuoteDto): Promise<BookingQuoteResult> {
@@ -99,6 +104,11 @@ export class BookingsService {
     if (property.host.userId === guestId) {
       throw new BadRequestException('You cannot book your own property');
     }
+    if (!property.host.stripePayoutsEnabled) {
+      throw new BadRequestException(
+        'This host has not finished setting up payments yet. Please try another property.',
+      );
+    }
     const checkIn = parseIsoDate(dto.checkIn, 'checkIn');
     const checkOut = parseIsoDate(dto.checkOut, 'checkOut');
     validateStayDates(checkIn, checkOut);
@@ -127,7 +137,22 @@ export class BookingsService {
       throw new BadRequestException(quote.promoCodeError);
     }
     const promotionId = quote.appliedPromotion?.id ?? null;
+    const lockMinutes = this.config.get('stripe.paymentLockMinutes', { infer: true });
+    const paymentLockExpiresAt = new Date(Date.now() + lockMinutes * 60 * 1000);
     const booking = await this.prisma.$transaction(async (tx) => {
+      // Serializes concurrent create() calls for this property; re-check below is what
+      // actually prevents a double-booking once a concurrent request releases the lock.
+      await this.availabilityService.acquirePropertyLock(dto.propertyId, tx);
+      const stillAvailable = await this.availabilityService.isRangeAvailable(
+        dto.propertyId,
+        checkIn,
+        checkOut,
+        undefined,
+        tx,
+      );
+      if (!stillAvailable) {
+        throw new ConflictException('Selected dates are not available');
+      }
       if (promotionId) {
         await this.promotionsService.assertPromotionSlotAvailable(promotionId);
         await this.promotionsService.incrementAppliedCount(promotionId, tx);
@@ -136,7 +161,7 @@ export class BookingsService {
         data: {
           propertyId: dto.propertyId,
           guestId,
-          status: 'CONFIRMED',
+          status: 'AWAITING_PAYMENT',
           checkIn,
           checkOut,
           guestCount: dto.guestCount,
@@ -149,21 +174,19 @@ export class BookingsService {
           discountAmount: quote.discountAmount,
           promotionId,
           totalAmount: quote.totalAmount,
+          paymentProvider: 'STRIPE',
+          paymentLockExpiresAt,
         },
       });
-      await tx.conversation.create({ data: { bookingId: created.id } });
+      await this.availabilityService.blockDatesForBooking(dto.propertyId, checkIn, checkOut, tx);
       return created;
     });
-    await this.availabilityService.blockDatesForBooking(dto.propertyId, checkIn, checkOut);
-    await Promise.all([
-      this.notificationsService.notify(
-        property.host.userId,
-        'BOOKING_REQUEST',
-        booking.id,
-        'booking',
-      ),
-      this.notificationsService.notify(guestId, 'BOOKING_CONFIRMED', booking.id, 'booking'),
-    ]);
+    await this.notificationsService.notify(
+      property.host.userId,
+      'BOOKING_REQUEST',
+      booking.id,
+      'booking',
+    );
     return this.findById(booking.id, guestId, 'GUEST');
   }
 
@@ -183,6 +206,17 @@ export class BookingsService {
       throw new ConflictException('Selected dates are no longer available');
     }
     await this.prisma.$transaction(async (tx) => {
+      await this.availabilityService.acquirePropertyLock(booking.propertyId, tx);
+      const stillAvailable = await this.availabilityService.isRangeAvailable(
+        booking.propertyId,
+        booking.checkIn,
+        booking.checkOut,
+        bookingId,
+        tx,
+      );
+      if (!stillAvailable) {
+        throw new ConflictException('Selected dates are no longer available');
+      }
       if (booking.promotionId) {
         await this.promotionsService.assertPromotionSlotAvailable(booking.promotionId);
         await this.promotionsService.incrementAppliedCount(booking.promotionId, tx);
@@ -191,12 +225,13 @@ export class BookingsService {
         where: { id: bookingId },
         data: { status: 'CONFIRMED' },
       });
+      await this.availabilityService.blockDatesForBooking(
+        booking.propertyId,
+        booking.checkIn,
+        booking.checkOut,
+        tx,
+      );
     });
-    await this.availabilityService.blockDatesForBooking(
-      booking.propertyId,
-      booking.checkIn,
-      booking.checkOut,
-    );
     await this.notificationsService.notify(
       booking.guestId,
       'BOOKING_CONFIRMED',
@@ -220,7 +255,10 @@ export class BookingsService {
     if (!CANCELLABLE_STATUSES.includes(booking.status)) {
       throw new BadRequestException('This booking cannot be cancelled');
     }
-    const wasConfirmed = booking.status === 'CONFIRMED';
+    if (booking.checkIn <= new Date()) {
+      throw new BadRequestException('This booking can no longer be cancelled after check-in');
+    }
+    const wasPaymentBlocking = PAYMENT_BLOCKING_STATUSES.includes(booking.status);
     const nextStatus: BookingStatus = access.asHost ? 'CANCELLED_BY_HOST' : 'CANCELLED_BY_GUEST';
     await this.prisma.$transaction(async (tx) => {
       await tx.booking.update({
@@ -231,11 +269,12 @@ export class BookingsService {
           cancelledAt: new Date(),
         },
       });
-      if (wasConfirmed && booking.promotionId) {
+      if (wasPaymentBlocking && booking.promotionId) {
         await this.promotionsService.decrementAppliedCount(booking.promotionId, tx);
       }
     });
-    if (wasConfirmed) {
+    if (wasPaymentBlocking) {
+      await this.stripeCheckout.cancelBookingPayment(booking, access.asHost);
       await this.availabilityService.unblockDatesForBooking(
         booking.propertyId,
         booking.checkIn,
@@ -472,7 +511,7 @@ export class BookingsService {
   }
 
   private async toBookingDetail(booking: Booking): Promise<BookingDetail> {
-    const [property, guest, conversation, promotion] = await Promise.all([
+    const [property, guest, promotion] = await Promise.all([
       this.prisma.property.findUnique({
         where: { id: booking.propertyId },
         include: {
@@ -483,7 +522,6 @@ export class BookingsService {
         where: { id: booking.guestId },
         include: { profile: true },
       }),
-      this.prisma.conversation.findUnique({ where: { bookingId: booking.id } }),
       booking.promotionId
         ? this.prisma.propertyPromotion.findUnique({ where: { id: booking.promotionId } })
         : Promise.resolve(null),
@@ -511,7 +549,6 @@ export class BookingsService {
         lastName: guest.profile?.lastName ?? null,
         avatarUrl: guest.profile?.avatarKey ?? null,
       },
-      conversationId: conversation?.id ?? null,
       promotionSummary: promotion
         ? this.promotionsService.toAppliedPromotionSummary(promotion)
         : null,

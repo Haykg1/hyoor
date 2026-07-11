@@ -19,6 +19,59 @@ function utcDate(daysFromNow = 0): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + daysFromNow));
 }
 
+/**
+ * Rolling "this month + next month" window, so the demo promotion always
+ * covers a plausible near-future date range regardless of when seed runs
+ * (rather than drifting away from its own description on re-seed).
+ */
+function startOfThisMonthUtc(): Date {
+  const d = new Date();
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
+}
+
+function endOfNextMonthUtc(): Date {
+  const d = new Date();
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 2, 0));
+}
+
+function monthRangeLabel(from: Date, to: Date): string {
+  const fmt = (date: Date): string =>
+    date.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
+  const fromMonth = fmt(from);
+  const toMonth = fmt(to);
+  return fromMonth === toMonth ? fromMonth : `${fromMonth} and ${toMonth}`;
+}
+
+/**
+ * Backfills Stripe payment/payout fields for demo COMPLETED bookings (seeded
+ * directly, without going through the real checkout/capture/payout flow), so
+ * host dashboards show realistic earnings instead of 0.
+ */
+function completedStripeFields(
+  id: string,
+  checkIn: Date,
+  totalAmount: number,
+  securityDeposit: number,
+) {
+  const rentAmount = totalAmount - securityDeposit;
+  const platformFeeAmount = Math.round(rentAmount * 0.1);
+  return {
+    paymentProvider: 'STRIPE' as const,
+    paymentStatus: 'CAPTURED' as const,
+    paymentInitiatedAt: checkIn,
+    paymentCompletedAt: checkIn,
+    capturedAt: checkIn,
+    stripePaymentIntentId: `pi_seed_${id}`,
+    depositStatus: securityDeposit > 0 ? ('RELEASED' as const) : ('NONE' as const),
+    stripeDepositPaymentIntentId: securityDeposit > 0 ? `pi_seed_deposit_${id}` : null,
+    platformFeeAmount,
+    hostPayoutAmount: rentAmount - platformFeeAmount,
+    payoutStatus: 'PAID' as const,
+    payoutScheduledAt: checkIn,
+    stripeTransferId: `tr_seed_${id}`,
+  };
+}
+
 function parseSeedAddress(addressLine: string): {
   street: string;
   buildingNumber: string;
@@ -280,11 +333,22 @@ async function main(): Promise<void> {
   }
 
   // ── Host Profiles ────────────────────────────────────────────────────────
+  // Placeholder Connect status so seeded hosts can accept bookings locally without
+  // walking through real Stripe onboarding. Payouts to these fake account IDs will
+  // fail (logged, non-fatal) — only real onboarding produces payable accounts.
+  const SEED_STRIPE_FIELDS = {
+    stripeDetailsSubmitted: true,
+    stripeChargesEnabled: true,
+    stripePayoutsEnabled: true,
+  };
+
   const hp1 = await prisma.hostProfile.upsert({
     where: { userId: host1.id },
     update: {
       description:
         'Local host with 5+ years of experience welcoming guests to Yerevan. I love sharing tips on food, culture, and hidden gems.',
+      stripeAccountId: 'acct_seed_armen',
+      ...SEED_STRIPE_FIELDS,
     },
     create: {
       userId: host1.id,
@@ -295,6 +359,8 @@ async function main(): Promise<void> {
       payoutEmail: 'armen@rentstar.am',
       description:
         'Local host with 5+ years of experience welcoming guests to Yerevan. I love sharing tips on food, culture, and hidden gems.',
+      stripeAccountId: 'acct_seed_armen',
+      ...SEED_STRIPE_FIELDS,
     },
   });
 
@@ -302,6 +368,8 @@ async function main(): Promise<void> {
     where: { userId: host2.id },
     update: {
       description: 'Passionate about hospitality and making every stay comfortable and memorable.',
+      stripeAccountId: 'acct_seed_nare',
+      ...SEED_STRIPE_FIELDS,
     },
     create: {
       userId: host2.id,
@@ -311,6 +379,8 @@ async function main(): Promise<void> {
       responseTimeHours: 4,
       payoutEmail: 'nare@rentstar.am',
       description: 'Passionate about hospitality and making every stay comfortable and memorable.',
+      stripeAccountId: 'acct_seed_nare',
+      ...SEED_STRIPE_FIELDS,
     },
   });
 
@@ -320,6 +390,8 @@ async function main(): Promise<void> {
       companyLogoKey: SEED_LOGO_KEY,
       description:
         'RentStar Hospitality manages premium short-term rentals across Armenia with 24/7 guest support.',
+      stripeAccountId: 'acct_seed_company',
+      ...SEED_STRIPE_FIELDS,
     },
     create: {
       userId: host3.id,
@@ -334,6 +406,8 @@ async function main(): Promise<void> {
       payoutEmail: 'finance@rentstar.am',
       description:
         'RentStar Hospitality manages premium short-term rentals across Armenia with 24/7 guest support.',
+      stripeAccountId: 'acct_seed_company',
+      ...SEED_STRIPE_FIELDS,
     },
   });
 
@@ -361,6 +435,10 @@ async function main(): Promise<void> {
     where: { slug: 'cascade-view-apartment' },
     update: {
       featured: true,
+      currency: 'USD',
+      pricePerNight: 75,
+      cleaningFee: 15,
+      securityDeposit: 50,
       maxAdults: 2,
       maxChildren: 2,
       maxInfants: 1,
@@ -408,10 +486,10 @@ async function main(): Promise<void> {
       bedrooms: 2,
       beds: 2,
       bathrooms: new Decimal('1.0'),
-      currency: 'AMD',
-      pricePerNight: 28000,
-      cleaningFee: 5000,
-      securityDeposit: 20000,
+      currency: 'USD',
+      pricePerNight: 75,
+      cleaningFee: 15,
+      securityDeposit: 50,
       minNights: 2,
       maxNights: 30,
       checkInTime: '14:00',
@@ -447,6 +525,10 @@ async function main(): Promise<void> {
   const p2 = await prisma.property.upsert({
     where: { slug: 'northern-avenue-studio' },
     update: {
+      currency: 'USD',
+      pricePerNight: 45,
+      cleaningFee: 10,
+      securityDeposit: 25,
       maxAdults: 2,
       maxChildren: 0,
       maxInfants: 1,
@@ -493,10 +575,10 @@ async function main(): Promise<void> {
       bedrooms: 0,
       beds: 1,
       bathrooms: new Decimal('1.0'),
-      currency: 'AMD',
-      pricePerNight: 18000,
-      cleaningFee: 3000,
-      securityDeposit: 10000,
+      currency: 'USD',
+      pricePerNight: 45,
+      cleaningFee: 10,
+      securityDeposit: 25,
       minNights: 1,
       maxNights: 14,
       checkInTime: '13:00',
@@ -529,6 +611,10 @@ async function main(): Promise<void> {
     where: { slug: 'kentron-heritage-house' },
     update: {
       featured: true,
+      currency: 'USD',
+      pricePerNight: 120,
+      cleaningFee: 20,
+      securityDeposit: 75,
       maxAdults: 4,
       maxChildren: 2,
       maxInfants: 1,
@@ -576,10 +662,10 @@ async function main(): Promise<void> {
       bedrooms: 3,
       beds: 4,
       bathrooms: new Decimal('2.0'),
-      currency: 'AMD',
-      pricePerNight: 45000,
-      cleaningFee: 8000,
-      securityDeposit: 30000,
+      currency: 'USD',
+      pricePerNight: 120,
+      cleaningFee: 20,
+      securityDeposit: 75,
       minNights: 3,
       maxNights: 21,
       checkInTime: '15:00',
@@ -614,6 +700,10 @@ async function main(): Promise<void> {
     where: { slug: 'ararat-mountain-guesthouse' },
     update: {
       featured: true,
+      currency: 'USD',
+      pricePerNight: 90,
+      cleaningFee: 15,
+      securityDeposit: 65,
       maxAdults: 3,
       maxChildren: 2,
       maxInfants: 1,
@@ -661,10 +751,10 @@ async function main(): Promise<void> {
       bedrooms: 2,
       beds: 3,
       bathrooms: new Decimal('1.5'),
-      currency: 'AMD',
-      pricePerNight: 35000,
-      cleaningFee: 6000,
-      securityDeposit: 25000,
+      currency: 'USD',
+      pricePerNight: 90,
+      cleaningFee: 15,
+      securityDeposit: 65,
       minNights: 2,
       maxNights: 14,
       checkInTime: '14:00',
@@ -697,6 +787,10 @@ async function main(): Promise<void> {
     where: { slug: 'silk-road-penthouse' },
     update: {
       featured: true,
+      currency: 'USD',
+      pricePerNight: 220,
+      cleaningFee: 30,
+      securityDeposit: 130,
       maxAdults: 2,
       maxChildren: 2,
       maxInfants: 1,
@@ -744,10 +838,10 @@ async function main(): Promise<void> {
       bedrooms: 2,
       beds: 2,
       bathrooms: new Decimal('2.0'),
-      currency: 'AMD',
-      pricePerNight: 85000,
-      cleaningFee: 12000,
-      securityDeposit: 50000,
+      currency: 'USD',
+      pricePerNight: 220,
+      cleaningFee: 30,
+      securityDeposit: 130,
       minNights: 2,
       maxNights: 30,
       checkInTime: '15:00',
@@ -780,6 +874,10 @@ async function main(): Promise<void> {
     where: { slug: 'dilijan-forest-villa' },
     update: {
       featured: true,
+      currency: 'USD',
+      pricePerNight: 170,
+      cleaningFee: 25,
+      securityDeposit: 100,
       maxAdults: 4,
       maxChildren: 3,
       maxInfants: 2,
@@ -827,10 +925,10 @@ async function main(): Promise<void> {
       bedrooms: 4,
       beds: 5,
       bathrooms: new Decimal('2.5'),
-      currency: 'AMD',
-      pricePerNight: 65000,
-      cleaningFee: 10000,
-      securityDeposit: 40000,
+      currency: 'USD',
+      pricePerNight: 170,
+      cleaningFee: 25,
+      securityDeposit: 100,
       minNights: 3,
       maxNights: 28,
       checkInTime: '15:00',
@@ -862,6 +960,9 @@ async function main(): Promise<void> {
   const p7 = await prisma.property.upsert({
     where: { slug: 'yerevan-city-loft-draft' },
     update: {
+      currency: 'USD',
+      pricePerNight: 55,
+      cleaningFee: 10,
       maxAdults: 2,
       maxChildren: 1,
       maxInfants: 0,
@@ -908,9 +1009,9 @@ async function main(): Promise<void> {
       bedrooms: 1,
       beds: 2,
       bathrooms: new Decimal('1.0'),
-      currency: 'AMD',
-      pricePerNight: 22000,
-      cleaningFee: 4000,
+      currency: 'USD',
+      pricePerNight: 55,
+      cleaningFee: 10,
       minNights: 1,
     },
   });
@@ -1166,24 +1267,39 @@ async function main(): Promise<void> {
   // ── Bookings ─────────────────────────────────────────────────────────────
 
   // COMPLETED: guest1 stayed at p1 (needed for reviews)
+  const completedBooking1TotalAmount = p1.pricePerNight * 3 + p1.cleaningFee + p1.securityDeposit;
+  const completedBooking1CheckIn = utcDate(-20);
   const completedBooking = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed' },
-    update: {},
+    update: {
+      ...completedStripeFields(
+        'seed-booking-completed',
+        completedBooking1CheckIn,
+        completedBooking1TotalAmount,
+        p1.securityDeposit,
+      ),
+    },
     create: {
       id: 'seed-booking-completed',
       propertyId: p1.id,
       guestId: guest1.id,
       status: 'COMPLETED',
-      checkIn: utcDate(-20),
+      checkIn: completedBooking1CheckIn,
       checkOut: utcDate(-17),
       guestCount: 2,
-      currency: 'AMD',
+      currency: 'USD',
       nightlyRate: p1.pricePerNight,
       nightsCount: 3,
       cleaningFee: p1.cleaningFee,
       securityDeposit: p1.securityDeposit,
-      totalAmount: p1.pricePerNight * 3 + p1.cleaningFee + p1.securityDeposit,
+      totalAmount: completedBooking1TotalAmount,
       externalPaymentRef: 'BANK-TRX-001',
+      ...completedStripeFields(
+        'seed-booking-completed',
+        completedBooking1CheckIn,
+        completedBooking1TotalAmount,
+        p1.securityDeposit,
+      ),
     },
   });
 
@@ -1199,7 +1315,7 @@ async function main(): Promise<void> {
       checkIn: utcDate(-8),
       checkOut: utcDate(-6),
       guestCount: 1,
-      currency: 'AMD',
+      currency: 'USD',
       nightlyRate: p2.pricePerNight,
       nightsCount: 2,
       cleaningFee: p2.cleaningFee,
@@ -1220,7 +1336,7 @@ async function main(): Promise<void> {
       checkIn: utcDate(10),
       checkOut: utcDate(14),
       guestCount: 4,
-      currency: 'AMD',
+      currency: 'USD',
       nightlyRate: p3.pricePerNight,
       nightsCount: 4,
       cleaningFee: p3.cleaningFee,
@@ -1242,7 +1358,7 @@ async function main(): Promise<void> {
       checkOut: utcDate(23),
       guestCount: 3,
       specialRequests: 'Could we get a late check-out if possible?',
-      currency: 'AMD',
+      currency: 'USD',
       nightlyRate: p4.pricePerNight,
       nightsCount: 3,
       cleaningFee: p4.cleaningFee,
@@ -1252,226 +1368,367 @@ async function main(): Promise<void> {
   });
 
   // COMPLETED: guest3 stayed at p1 (Cascade View)
+  const completedBooking2TotalAmount = p1.pricePerNight * 3 + p1.cleaningFee + p1.securityDeposit;
+  const completedBooking2CheckIn = utcDate(-45);
   const completedBooking2 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-2' },
-    update: {},
+    update: {
+      ...completedStripeFields(
+        'seed-booking-completed-2',
+        completedBooking2CheckIn,
+        completedBooking2TotalAmount,
+        p1.securityDeposit,
+      ),
+    },
     create: {
       id: 'seed-booking-completed-2',
       propertyId: p1.id,
       guestId: guest3.id,
       status: 'COMPLETED',
-      checkIn: utcDate(-45),
+      checkIn: completedBooking2CheckIn,
       checkOut: utcDate(-42),
       guestCount: 2,
-      currency: 'AMD',
+      currency: 'USD',
       nightlyRate: p1.pricePerNight,
       nightsCount: 3,
       cleaningFee: p1.cleaningFee,
       securityDeposit: p1.securityDeposit,
-      totalAmount: p1.pricePerNight * 3 + p1.cleaningFee + p1.securityDeposit,
+      totalAmount: completedBooking2TotalAmount,
+      ...completedStripeFields(
+        'seed-booking-completed-2',
+        completedBooking2CheckIn,
+        completedBooking2TotalAmount,
+        p1.securityDeposit,
+      ),
     },
   });
 
   // COMPLETED: guest2 stayed at p2 (Northern Avenue Studio)
+  const completedBooking3TotalAmount = p2.pricePerNight * 2 + p2.cleaningFee + p2.securityDeposit;
+  const completedBooking3CheckIn = utcDate(-30);
   const completedBooking3 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-3' },
-    update: {},
+    update: {
+      ...completedStripeFields(
+        'seed-booking-completed-3',
+        completedBooking3CheckIn,
+        completedBooking3TotalAmount,
+        p2.securityDeposit,
+      ),
+    },
     create: {
       id: 'seed-booking-completed-3',
       propertyId: p2.id,
       guestId: guest2.id,
       status: 'COMPLETED',
-      checkIn: utcDate(-30),
+      checkIn: completedBooking3CheckIn,
       checkOut: utcDate(-28),
       guestCount: 2,
-      currency: 'AMD',
+      currency: 'USD',
       nightlyRate: p2.pricePerNight,
       nightsCount: 2,
       cleaningFee: p2.cleaningFee,
       securityDeposit: p2.securityDeposit,
-      totalAmount: p2.pricePerNight * 2 + p2.cleaningFee + p2.securityDeposit,
+      totalAmount: completedBooking3TotalAmount,
+      ...completedStripeFields(
+        'seed-booking-completed-3',
+        completedBooking3CheckIn,
+        completedBooking3TotalAmount,
+        p2.securityDeposit,
+      ),
     },
   });
 
   // COMPLETED: guest4 stayed at p3 (Kentron Heritage House)
+  const completedBooking4TotalAmount = p3.pricePerNight * 4 + p3.cleaningFee + p3.securityDeposit;
+  const completedBooking4CheckIn = utcDate(-60);
   const completedBooking4 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-4' },
-    update: {},
+    update: {
+      ...completedStripeFields(
+        'seed-booking-completed-4',
+        completedBooking4CheckIn,
+        completedBooking4TotalAmount,
+        p3.securityDeposit,
+      ),
+    },
     create: {
       id: 'seed-booking-completed-4',
       propertyId: p3.id,
       guestId: guest4.id,
       status: 'COMPLETED',
-      checkIn: utcDate(-60),
+      checkIn: completedBooking4CheckIn,
       checkOut: utcDate(-56),
       guestCount: 4,
-      currency: 'AMD',
+      currency: 'USD',
       nightlyRate: p3.pricePerNight,
       nightsCount: 4,
       cleaningFee: p3.cleaningFee,
       securityDeposit: p3.securityDeposit,
-      totalAmount: p3.pricePerNight * 4 + p3.cleaningFee + p3.securityDeposit,
+      totalAmount: completedBooking4TotalAmount,
+      ...completedStripeFields(
+        'seed-booking-completed-4',
+        completedBooking4CheckIn,
+        completedBooking4TotalAmount,
+        p3.securityDeposit,
+      ),
     },
   });
 
   // COMPLETED: guest3 stayed at p3 (Kentron Heritage House)
+  const completedBooking5TotalAmount = p3.pricePerNight * 4 + p3.cleaningFee + p3.securityDeposit;
+  const completedBooking5CheckIn = utcDate(-90);
   const completedBooking5 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-5' },
-    update: {},
+    update: {
+      ...completedStripeFields(
+        'seed-booking-completed-5',
+        completedBooking5CheckIn,
+        completedBooking5TotalAmount,
+        p3.securityDeposit,
+      ),
+    },
     create: {
       id: 'seed-booking-completed-5',
       propertyId: p3.id,
       guestId: guest3.id,
       status: 'COMPLETED',
-      checkIn: utcDate(-90),
+      checkIn: completedBooking5CheckIn,
       checkOut: utcDate(-86),
       guestCount: 3,
-      currency: 'AMD',
+      currency: 'USD',
       nightlyRate: p3.pricePerNight,
       nightsCount: 4,
       cleaningFee: p3.cleaningFee,
       securityDeposit: p3.securityDeposit,
-      totalAmount: p3.pricePerNight * 4 + p3.cleaningFee + p3.securityDeposit,
+      totalAmount: completedBooking5TotalAmount,
+      ...completedStripeFields(
+        'seed-booking-completed-5',
+        completedBooking5CheckIn,
+        completedBooking5TotalAmount,
+        p3.securityDeposit,
+      ),
     },
   });
 
   // COMPLETED: guest4 stayed at p4 (Ararat Mountain Guesthouse)
+  const completedBooking6TotalAmount = p4.pricePerNight * 3 + p4.cleaningFee + p4.securityDeposit;
+  const completedBooking6CheckIn = utcDate(-50);
   const completedBooking6 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-6' },
-    update: {},
+    update: {
+      ...completedStripeFields(
+        'seed-booking-completed-6',
+        completedBooking6CheckIn,
+        completedBooking6TotalAmount,
+        p4.securityDeposit,
+      ),
+    },
     create: {
       id: 'seed-booking-completed-6',
       propertyId: p4.id,
       guestId: guest4.id,
       status: 'COMPLETED',
-      checkIn: utcDate(-50),
+      checkIn: completedBooking6CheckIn,
       checkOut: utcDate(-47),
       guestCount: 2,
-      currency: 'AMD',
+      currency: 'USD',
       nightlyRate: p4.pricePerNight,
       nightsCount: 3,
       cleaningFee: p4.cleaningFee,
       securityDeposit: p4.securityDeposit,
-      totalAmount: p4.pricePerNight * 3 + p4.cleaningFee + p4.securityDeposit,
+      totalAmount: completedBooking6TotalAmount,
+      ...completedStripeFields(
+        'seed-booking-completed-6',
+        completedBooking6CheckIn,
+        completedBooking6TotalAmount,
+        p4.securityDeposit,
+      ),
     },
   });
 
   // COMPLETED: guest3 stayed at p5 (Silk Road Penthouse)
+  const completedBooking7TotalAmount = p5.pricePerNight * 3 + p5.cleaningFee + p5.securityDeposit;
+  const completedBooking7CheckIn = utcDate(-15);
   const completedBooking7 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-7' },
-    update: {},
+    update: {
+      ...completedStripeFields(
+        'seed-booking-completed-7',
+        completedBooking7CheckIn,
+        completedBooking7TotalAmount,
+        p5.securityDeposit,
+      ),
+    },
     create: {
       id: 'seed-booking-completed-7',
       propertyId: p5.id,
       guestId: guest3.id,
       status: 'COMPLETED',
-      checkIn: utcDate(-15),
+      checkIn: completedBooking7CheckIn,
       checkOut: utcDate(-12),
       guestCount: 2,
-      currency: 'AMD',
+      currency: 'USD',
       nightlyRate: p5.pricePerNight,
       nightsCount: 3,
       cleaningFee: p5.cleaningFee,
       securityDeposit: p5.securityDeposit,
-      totalAmount: p5.pricePerNight * 3 + p5.cleaningFee + p5.securityDeposit,
+      totalAmount: completedBooking7TotalAmount,
+      ...completedStripeFields(
+        'seed-booking-completed-7',
+        completedBooking7CheckIn,
+        completedBooking7TotalAmount,
+        p5.securityDeposit,
+      ),
     },
   });
 
   // COMPLETED: guest4 stayed at p5 (Silk Road Penthouse)
+  const completedBooking8TotalAmount = p5.pricePerNight * 3 + p5.cleaningFee + p5.securityDeposit;
+  const completedBooking8CheckIn = utcDate(-25);
   const completedBooking8 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-8' },
-    update: {},
+    update: {
+      ...completedStripeFields(
+        'seed-booking-completed-8',
+        completedBooking8CheckIn,
+        completedBooking8TotalAmount,
+        p5.securityDeposit,
+      ),
+    },
     create: {
       id: 'seed-booking-completed-8',
       propertyId: p5.id,
       guestId: guest4.id,
       status: 'COMPLETED',
-      checkIn: utcDate(-25),
+      checkIn: completedBooking8CheckIn,
       checkOut: utcDate(-22),
       guestCount: 2,
-      currency: 'AMD',
+      currency: 'USD',
       nightlyRate: p5.pricePerNight,
       nightsCount: 3,
       cleaningFee: p5.cleaningFee,
       securityDeposit: p5.securityDeposit,
-      totalAmount: p5.pricePerNight * 3 + p5.cleaningFee + p5.securityDeposit,
+      totalAmount: completedBooking8TotalAmount,
+      ...completedStripeFields(
+        'seed-booking-completed-8',
+        completedBooking8CheckIn,
+        completedBooking8TotalAmount,
+        p5.securityDeposit,
+      ),
     },
   });
 
   // COMPLETED: guest1 stayed at p6 (Dilijan Forest Villa)
+  const completedBooking9TotalAmount = p6.pricePerNight * 4 + p6.cleaningFee + p6.securityDeposit;
+  const completedBooking9CheckIn = utcDate(-40);
   const completedBooking9 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-9' },
-    update: {},
+    update: {
+      ...completedStripeFields(
+        'seed-booking-completed-9',
+        completedBooking9CheckIn,
+        completedBooking9TotalAmount,
+        p6.securityDeposit,
+      ),
+    },
     create: {
       id: 'seed-booking-completed-9',
       propertyId: p6.id,
       guestId: guest1.id,
       status: 'COMPLETED',
-      checkIn: utcDate(-40),
+      checkIn: completedBooking9CheckIn,
       checkOut: utcDate(-36),
       guestCount: 4,
-      currency: 'AMD',
+      currency: 'USD',
       nightlyRate: p6.pricePerNight,
       nightsCount: 4,
       cleaningFee: p6.cleaningFee,
       securityDeposit: p6.securityDeposit,
-      totalAmount: p6.pricePerNight * 4 + p6.cleaningFee + p6.securityDeposit,
+      totalAmount: completedBooking9TotalAmount,
+      ...completedStripeFields(
+        'seed-booking-completed-9',
+        completedBooking9CheckIn,
+        completedBooking9TotalAmount,
+        p6.securityDeposit,
+      ),
     },
   });
 
   // COMPLETED: guest2 stayed at p6 (Dilijan Forest Villa)
+  const completedBooking10TotalAmount = p6.pricePerNight * 5 + p6.cleaningFee + p6.securityDeposit;
+  const completedBooking10CheckIn = utcDate(-70);
   const completedBooking10 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-10' },
-    update: {},
+    update: {
+      ...completedStripeFields(
+        'seed-booking-completed-10',
+        completedBooking10CheckIn,
+        completedBooking10TotalAmount,
+        p6.securityDeposit,
+      ),
+    },
     create: {
       id: 'seed-booking-completed-10',
       propertyId: p6.id,
       guestId: guest2.id,
       status: 'COMPLETED',
-      checkIn: utcDate(-70),
+      checkIn: completedBooking10CheckIn,
       checkOut: utcDate(-65),
       guestCount: 3,
-      currency: 'AMD',
+      currency: 'USD',
       nightlyRate: p6.pricePerNight,
       nightsCount: 5,
       cleaningFee: p6.cleaningFee,
       securityDeposit: p6.securityDeposit,
-      totalAmount: p6.pricePerNight * 5 + p6.cleaningFee + p6.securityDeposit,
+      totalAmount: completedBooking10TotalAmount,
+      ...completedStripeFields(
+        'seed-booking-completed-10',
+        completedBooking10CheckIn,
+        completedBooking10TotalAmount,
+        p6.securityDeposit,
+      ),
     },
   });
 
   // ── Conversations ────────────────────────────────────────────────────────
-  const completedConversation = await prisma.conversation.upsert({
-    where: { bookingId: completedBooking.id },
+  const guestHostConversation = await prisma.conversation.upsert({
+    where: {
+      guestId_hostUserId: {
+        guestId: guest1.id,
+        hostUserId: host1.id,
+      },
+    },
     update: {},
-    create: { bookingId: completedBooking.id },
+    create: {
+      id: 'seed-conversation-guest1-host1',
+      guestId: guest1.id,
+      hostUserId: host1.id,
+    },
   });
 
-  await prisma.conversation.upsert({
-    where: { bookingId: confirmedBooking1.id },
+  // ── Messages (guest ↔ host) ──────────────────────────────────────────────
+  await prisma.message.upsert({
+    where: { id: 'seed-msg-property-card-p1' },
     update: {},
-    create: { bookingId: confirmedBooking1.id },
+    create: {
+      id: 'seed-msg-property-card-p1',
+      conversationId: guestHostConversation.id,
+      senderId: guest1.id,
+      body: p1.title,
+      kind: 'PROPERTY_CARD',
+      propertyId: p1.id,
+      status: 'READ',
+      readAt: utcDate(-23),
+    },
   });
 
-  await prisma.conversation.upsert({
-    where: { bookingId: confirmedBooking2.id },
-    update: {},
-    create: { bookingId: confirmedBooking2.id },
-  });
-
-  await prisma.conversation.upsert({
-    where: { bookingId: pendingBooking.id },
-    update: {},
-    create: { bookingId: pendingBooking.id },
-  });
-
-  // ── Messages (3 in completed booking conversation) ───────────────────────
   await prisma.message.upsert({
     where: { id: 'seed-msg-001' },
     update: {},
     create: {
       id: 'seed-msg-001',
-      conversationId: completedConversation.id,
+      conversationId: guestHostConversation.id,
       senderId: guest1.id,
       body: 'Hi Armen! Looking forward to the stay. Any parking tips nearby?',
       status: 'READ',
@@ -1484,7 +1741,7 @@ async function main(): Promise<void> {
     update: {},
     create: {
       id: 'seed-msg-002',
-      conversationId: completedConversation.id,
+      conversationId: guestHostConversation.id,
       senderId: host1.id,
       body: 'Welcome Maria! There is free street parking on Tamanyan St after 18:00. See you soon!',
       status: 'READ',
@@ -1497,7 +1754,7 @@ async function main(): Promise<void> {
     update: {},
     create: {
       id: 'seed-msg-003',
-      conversationId: completedConversation.id,
+      conversationId: guestHostConversation.id,
       senderId: guest1.id,
       body: 'Thank you for a wonderful stay! The view was incredible.',
       status: 'READ',
@@ -1753,19 +2010,25 @@ async function main(): Promise<void> {
     update: {},
     create: { userId: guest1.id, propertyId: p1.id },
   });
+  const demoPromotionStart = startOfThisMonthUtc();
+  const demoPromotionEnd = endOfNextMonthUtc();
+  const demoPromotionDescription = `15% off for stays booked between ${monthRangeLabel(demoPromotionStart, demoPromotionEnd)}.`;
   const demoPromotion = await prisma.propertyPromotion.upsert({
     where: { id: 'seed-promotion-001' },
-    update: {},
+    update: {
+      bookingStartDate: demoPromotionStart,
+      bookingEndDate: demoPromotionEnd,
+      description: demoPromotionDescription,
+    },
     create: {
       id: 'seed-promotion-001',
       propertyId: p1.id,
       type: 'DATE_RANGE',
       discountType: 'PERCENT',
       discountPercent: 15,
-      description:
-        '15% off for stays booked between July and August. Valid for 5 future bookings in this period (0 already applied).',
-      bookingStartDate: utcDate(30),
-      bookingEndDate: utcDate(90),
+      description: demoPromotionDescription,
+      bookingStartDate: demoPromotionStart,
+      bookingEndDate: demoPromotionEnd,
       maxApplications: 5,
       appliedCount: 0,
       notifyGuests: true,

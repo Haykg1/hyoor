@@ -6,20 +6,25 @@ enum HostType {
 }
 
 model HostProfile {
-  id                  String   @id @default(cuid())
-  userId              String   @unique
-  hostType            HostType @default(INDIVIDUAL)
-  isVerified          Boolean  @default(false)
-  responseRatePercent Int?
-  responseTimeHours   Int?
-  companyName         String?
-  companyRegNumber    String?
-  companyLogoKey      String?
-  vatNumber           String?
-  payoutEmail         String?
-  description         String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+  hostType               HostType @default(INDIVIDUAL)
+  isVerified             Boolean  @default(false)
+  responseRatePercent    Int?
+  responseTimeHours      Int?
+  companyName            String?
+  companyRegNumber       String?
+  companyLogoKey         String?
+  vatNumber              String?
+  payoutEmail            String?
+  description            String?
+  stripeAccountId        String?  @unique
+  stripeDetailsSubmitted Boolean  @default(false)
+  stripeChargesEnabled   Boolean  @default(false)
+  stripePayoutsEnabled   Boolean  @default(false)
+  platformFeePercent     Decimal? @db.Decimal(5, 2)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   properties Property[]

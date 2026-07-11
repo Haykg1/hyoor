@@ -73,12 +73,14 @@ export class PaymentsService {
       return { received: true };
     }
     const paid = result.status === 'PAID';
+    const isAwaitingConfirmation =
+      booking.status === 'PENDING' || booking.status === 'AWAITING_PAYMENT';
     await this.prisma.booking.update({
       where: { id: booking.id },
       data: {
         paymentStatus: result.status,
         paymentCompletedAt: paid ? new Date() : booking.paymentCompletedAt,
-        status: paid && booking.status === 'PENDING' ? 'CONFIRMED' : booking.status,
+        status: paid && isAwaitingConfirmation ? 'CONFIRMED' : booking.status,
       },
     });
     return { received: true };

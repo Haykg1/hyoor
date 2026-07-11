@@ -1,6 +1,6 @@
 import { Prisma, PrismaClient } from '@repo/database/client';
 
-import { CONNECTION_MAX_ATTEMPTS, delay, retryBackoffMs } from '../common/connection/retry';
+import { CONNECTION_MAX_ATTEMPTS, delay, exponentialBackoffMs } from '../common/connection/retry';
 
 const TRANSIENT_PRISMA_ERROR_CODES = new Set(['P1001', 'P1002', 'P1008', 'P1017']);
 const TRANSIENT_SYSTEM_ERROR_CODES = new Set([
@@ -41,7 +41,7 @@ export async function connectPrismaWithRetry(
       if (attempt === maxAttempts) {
         throw error;
       }
-      await delay(retryBackoffMs(attempt));
+      await delay(exponentialBackoffMs(attempt));
     }
   }
   throw lastError;
@@ -67,7 +67,7 @@ export async function runDbOperationWithReconnect<T>(
         throw error;
       }
       await reconnect();
-      await delay(retryBackoffMs(attempt));
+      await delay(exponentialBackoffMs(attempt));
     }
   }
   throw lastError;

@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { AiSearchModule } from '../ai-search/ai-search.module';
 import { AuthModule } from '../auth/auth.module';
+import { CurrencyModule } from '../currency/currency.module';
 import { GeocodingModule } from '../geocoding/geocoding.module';
 import { HostProfilesModule } from '../host-profiles/host-profiles.module';
 import { StorageModule } from '../storage/storage.module';
@@ -19,6 +20,7 @@ import { PropertiesService } from './properties.service';
     HostProfilesModule,
     StorageModule,
     GeocodingModule,
+    CurrencyModule,
     forwardRef(() => AiSearchModule),
   ],
   controllers: [PropertiesController, PropertyBulkImportController],

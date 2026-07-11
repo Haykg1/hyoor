@@ -3,9 +3,13 @@ import request from 'supertest';
 
 import { PrismaService } from '../../src/database/prisma.service';
 import { createTestApp, type TestAppContext } from '../helpers/create-test-app';
-import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
-import { createGuestBooking, registerHostUser } from '../helpers/property-test.helper';
+import {
+  createActivePropertyDirect,
+  createGuestHostConversation,
+  registerHostUser,
+} from '../helpers/property-test.helper';
 import { resetE2eDatabase } from '../helpers/reset-database';
+import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
 
 describe('Messaging (e2e)', () => {
   let app: INestApplication;
@@ -24,10 +28,59 @@ describe('Messaging (e2e)', () => {
     await app.close();
   });
 
-  it('lists conversations for guest and host with last message preview', async () => {
+  async function startConversation(): Promise<{
+    host: Awaited<ReturnType<typeof registerHostUser>>;
+    guest: Awaited<ReturnType<typeof registerUser>>;
+    property: Awaited<ReturnType<typeof createActivePropertyDirect>>;
+    conversationId: string;
+  }> {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const { conversationId } = await createGuestBooking(app, host, guest);
+    const property = await createActivePropertyDirect(app, host);
+    const { conversationId } = await createGuestHostConversation(app, guest, property.id);
+    return { host, guest, property, conversationId };
+  }
+
+  it('finds or creates a conversation from a property for guests only', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const created = await request(app.getHttpServer())
+      .post('/api/v1/messaging/conversations')
+      .set(authHeader(guest.accessToken))
+      .send({ propertyId: property.id })
+      .expect(201);
+    expect(created.body.data.id).toBeTruthy();
+    expect(created.body.data.guestId).toBe(guest.userId);
+    expect(created.body.data.hostUserId).toBe(host.userId);
+    expect(created.body.data.lastMessage.kind).toBe('PROPERTY_CARD');
+    expect(created.body.data.lastMessage.propertyId).toBe(property.id);
+    const again = await request(app.getHttpServer())
+      .post('/api/v1/messaging/conversations')
+      .set(authHeader(guest.accessToken))
+      .send({ propertyId: property.id })
+      .expect(201);
+    expect(again.body.data.id).toBe(created.body.data.id);
+    const messages = await request(app.getHttpServer())
+      .get(`/api/v1/messaging/conversations/${created.body.data.id}/messages`)
+      .set(authHeader(guest.accessToken))
+      .query({ limit: 20 })
+      .expect(200);
+    const propertyCards = messages.body.data.data.filter(
+      (message: { kind: string; propertyId: string | null }) =>
+        message.kind === 'PROPERTY_CARD' && message.propertyId === property.id,
+    );
+    expect(propertyCards).toHaveLength(1);
+    expect(propertyCards[0].property?.id).toBe(property.id);
+    await request(app.getHttpServer())
+      .post('/api/v1/messaging/conversations')
+      .set(authHeader(host.accessToken))
+      .send({ propertyId: property.id })
+      .expect(403);
+  });
+
+  it('lists conversations for guest and host with last message preview', async () => {
+    const { host, guest, conversationId } = await startConversation();
     await request(app.getHttpServer())
       .post(`/api/v1/messaging/conversations/${conversationId}/messages`)
       .set(authHeader(guest.accessToken))
@@ -37,22 +90,24 @@ describe('Messaging (e2e)', () => {
       .get('/api/v1/messaging/conversations')
       .set(authHeader(guest.accessToken))
       .expect(200);
-    expect(guestConversations.body.data).toHaveLength(1);
-    expect(guestConversations.body.data[0].id).toBe(conversationId);
-    expect(guestConversations.body.data[0].lastMessage.body).toBe('Is early check-in possible?');
-    expect(guestConversations.body.data[0].unreadCount).toBe(0);
+    expect(guestConversations.body.data.data).toHaveLength(1);
+    expect(guestConversations.body.data.data[0].id).toBe(conversationId);
+    expect(guestConversations.body.data.data[0].lastMessage.body).toBe(
+      'Is early check-in possible?',
+    );
+    expect(guestConversations.body.data.data[0].unreadCount).toBe(0);
+    expect(guestConversations.body.data.data[0].otherParticipant.id).toBe(host.userId);
     const hostConversations = await request(app.getHttpServer())
       .get('/api/v1/messaging/conversations')
       .set(authHeader(host.accessToken))
       .expect(200);
-    expect(hostConversations.body.data).toHaveLength(1);
-    expect(hostConversations.body.data[0].unreadCount).toBe(1);
+    expect(hostConversations.body.data.data).toHaveLength(1);
+    // Property card + text message from guest
+    expect(hostConversations.body.data.data[0].unreadCount).toBe(2);
   });
 
-  it('returns paginated messages for conversation participants', async () => {
-    const host = await registerHostUser(app);
-    const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const { conversationId } = await createGuestBooking(app, host, guest);
+  it('returns cursor-paginated messages for conversation participants', async () => {
+    const { host, guest, conversationId } = await startConversation();
     await request(app.getHttpServer())
       .post(`/api/v1/messaging/conversations/${conversationId}/messages`)
       .set(authHeader(guest.accessToken))
@@ -64,19 +119,17 @@ describe('Messaging (e2e)', () => {
       .send({ body: 'Hello guest' })
       .expect(201);
     const response = await request(app.getHttpServer())
-      .get(`/api/v1/messaging/conversations/${conversationId}`)
+      .get(`/api/v1/messaging/conversations/${conversationId}/messages`)
       .set(authHeader(guest.accessToken))
-      .query({ page: 1, limit: 10 })
+      .query({ limit: 10 })
       .expect(200);
-    expect(response.body.data.messages.total).toBe(2);
-    expect(response.body.data.messages.data).toHaveLength(2);
-    expect(response.body.data.booking.guest.id).toBe(guest.userId);
+    // Auto property card + 2 text messages
+    expect(response.body.data.data).toHaveLength(3);
+    expect(response.body.data.hasMore).toBe(false);
   });
 
   it('marks messages as read for the recipient', async () => {
-    const host = await registerHostUser(app);
-    const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const { conversationId } = await createGuestBooking(app, host, guest);
+    const { host, guest, conversationId } = await startConversation();
     await request(app.getHttpServer())
       .post(`/api/v1/messaging/conversations/${conversationId}/messages`)
       .set(authHeader(guest.accessToken))
@@ -86,18 +139,17 @@ describe('Messaging (e2e)', () => {
       .patch(`/api/v1/messaging/conversations/${conversationId}/read`)
       .set(authHeader(host.accessToken))
       .expect(200);
-    expect(markRead.body.data.updatedCount).toBe(1);
+    // Property card + text message
+    expect(markRead.body.data.updatedCount).toBe(2);
     const hostConversations = await request(app.getHttpServer())
       .get('/api/v1/messaging/conversations')
       .set(authHeader(host.accessToken))
       .expect(200);
-    expect(hostConversations.body.data[0].unreadCount).toBe(0);
+    expect(hostConversations.body.data.data[0].unreadCount).toBe(0);
   });
 
-  it('creates NEW_MESSAGE notification for recipient', async () => {
-    const host = await registerHostUser(app);
-    const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const { conversationId } = await createGuestBooking(app, host, guest);
+  it('does not create NEW_MESSAGE notifications for chat messages', async () => {
+    const { host, guest, conversationId } = await startConversation();
     await request(app.getHttpServer())
       .post(`/api/v1/messaging/conversations/${conversationId}/messages`)
       .set(authHeader(guest.accessToken))
@@ -107,15 +159,12 @@ describe('Messaging (e2e)', () => {
     const notifications = await prisma.notification.findMany({
       where: { userId: host.userId, type: 'NEW_MESSAGE' },
     });
-    expect(notifications).toHaveLength(1);
-    expect(notifications[0]!.refId).toBe(conversationId);
+    expect(notifications).toHaveLength(0);
   });
 
   it('rejects non-participants from accessing conversation', async () => {
-    const host = await registerHostUser(app);
-    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const { conversationId } = await startConversation();
     const outsider = await registerUser(app, { email: uniqueEmail('outsider') });
-    const { conversationId } = await createGuestBooking(app, host, guest);
     const response = await request(app.getHttpServer())
       .get(`/api/v1/messaging/conversations/${conversationId}`)
       .set(authHeader(outsider.accessToken))

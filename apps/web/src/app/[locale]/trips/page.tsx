@@ -154,6 +154,7 @@ export default function TripsPage(): React.JSX.Element {
   const upcoming = bookings.filter((b) => STATUS_UPCOMING.has(b.status));
   const past = bookings.filter((b) => b.status === 'COMPLETED');
   const cancelled = bookings.filter((b) => STATUS_CANCELLED.has(b.status));
+  console.log(past, '====', upcoming);
   const totalSpent = past.reduce((sum, b) => sum + b.totalAmount, 0);
 
   const tabBookings: Record<BookingTab, BookingDetail[]> = { upcoming, past, cancelled };

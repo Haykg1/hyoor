@@ -11,6 +11,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -33,6 +34,7 @@ import type {
   PresignedPhotoUrlResponse,
   PropertySummary,
 } from '@repo/shared';
+import type { Request } from 'express';
 
 import type { RequestUser } from '../auth/decorators/current-user.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -42,6 +44,8 @@ import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
 import { WRITE_THROTTLE } from '../common/throttle/throttle.constants';
+import { resolveCountryFromRequest } from '../common/utils/geo-ip';
+import { CurrencyService } from '../currency/currency.service';
 
 import { ConfirmPhotoUploadDto } from './dto/confirm-photo-upload.dto';
 import { CreatePresignedPhotoUrlDto } from './dto/create-presigned-photo-url.dto';
@@ -61,7 +65,10 @@ import {
 @ApiTags('properties')
 @Controller('properties')
 export class PropertiesController {
-  constructor(private readonly propertiesService: PropertiesService) {}
+  constructor(
+    private readonly propertiesService: PropertiesService,
+    private readonly currencyService: CurrencyService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -80,9 +87,14 @@ export class PropertiesController {
   @ApiOperation({ summary: 'Search and list active properties' })
   @ApiOkResponse({ description: 'Paginated property search results' })
   @ApiStandardErrors({ auth: false })
-  search(@Query() dto: SearchPropertiesDto): Promise<PaginatedResponse<PropertySummary>> {
-    console.log(dto, '=======');
-    return this.propertiesService.search(dto);
+  search(
+    @Query() dto: SearchPropertiesDto,
+    @Req() req: Request,
+  ): Promise<PaginatedResponse<PropertySummary>> {
+    const displayCurrency = this.currencyService.resolveDisplayCurrency(
+      resolveCountryFromRequest(req),
+    );
+    return this.propertiesService.search(dto, displayCurrency);
   }
 
   @Get('my')
@@ -107,8 +119,12 @@ export class PropertiesController {
   findById(
     @Param('id') id: string,
     @CurrentUser() user: RequestUser | null,
+    @Req() req: Request,
   ): Promise<PropertyDetail> {
-    return this.propertiesService.findById(id, user?.userId);
+    const displayCurrency = this.currencyService.resolveDisplayCurrency(
+      resolveCountryFromRequest(req),
+    );
+    return this.propertiesService.findById(id, user?.userId, displayCurrency);
   }
 
   @Patch(':id')

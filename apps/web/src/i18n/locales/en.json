@@ -76,6 +76,7 @@
     "sign_up": "Sign up",
     "logout": "Sign out",
     "account": "Account",
+    "admin_stats": "Platform stats",
     "favorites": "Favorites",
     "menu": "Menu",
     "notifications": "Notifications"
@@ -248,10 +249,12 @@
   },
   "booking": {
     "status": {
+      "AWAITING_PAYMENT": "Awaiting payment",
       "PENDING": "Pending",
       "CONFIRMED": "Confirmed",
       "CANCELLED_BY_GUEST": "Cancelled",
       "CANCELLED_BY_HOST": "Cancelled by host",
+      "PAYMENT_EXPIRED": "Payment window expired",
       "COMPLETED": "Completed",
       "NO_SHOW": "No show"
     },
@@ -268,6 +271,9 @@
     "per_night": "/ night",
     "night": "{count, plural, =1 {1 night} other {# nights}}",
     "select_dates_hint": "Select dates to see total price",
+    "min_nights_hint": "Minimum stay: {min} nights",
+    "max_nights_hint": "Maximum stay: {max} nights",
+    "min_max_nights_hint": "Stay length: {min}–{max} nights",
     "guests": "Guests",
     "guests_max": "Max {max} guests",
     "book_now": "Book now",
@@ -303,8 +309,49 @@
     "confirmation": {
       "title": "Reservation confirmed!",
       "subtitle": "Your stay is booked. We sent you a confirmation.",
-      "continue_payment": "Continue to payment (coming soon)"
+      "continue_payment": "Continue to payment"
     }
+  },
+  "payment": {
+    "title": "Complete your payment",
+    "subtitle": "Your dates are held while you pay.",
+    "time_remaining": "Dates held for {time}",
+    "total_due": "Total due now",
+    "method_label": "Payment method",
+    "method": {
+      "STRIPE": "Credit or debit card",
+      "ARCA": "ArCa",
+      "CASH": "Cash",
+      "IDRAM": "Idram"
+    },
+    "coming_soon": "Coming soon",
+    "pay_button": "Pay now",
+    "paying": "Processing…",
+    "success_toast": "Payment successful — your booking is confirmed!",
+    "error_generic": "Something went wrong processing your payment. Please try again.",
+    "expired_title": "Payment window expired",
+    "expired_description": "This booking's payment window has closed and the dates were released. Please make a new booking.",
+    "back_home": "Back to home"
+  },
+  "host_onboarding": {
+    "title": "Become a host",
+    "subtitle": "Tell us a bit about yourself to start listing properties.",
+    "host_type_label": "Host type",
+    "individual": "Individual",
+    "company": "Company",
+    "company_name_label": "Company name",
+    "company_name_placeholder": "e.g. RentStar LLC",
+    "company_name_required": "Company name is required for company hosts",
+    "description_label": "About you as a host (optional)",
+    "description_placeholder": "Introduce yourself, your hosting style, and what guests can expect…",
+    "submit": "Create host profile",
+    "submitting": "Creating…",
+    "error_generic": "Something went wrong. Please try again.",
+    "success_title": "You're a host now!",
+    "success_subtitle": "Set up payouts with Stripe so you can receive guest payments directly to your bank account — or skip this for now and do it later from your account settings.",
+    "setup_payouts_button": "Set up payouts now",
+    "skip_button": "Skip for now",
+    "skip_hint": "You can always set up payouts later from your account page."
   },
   "property_detail": {
     "back": "Back to search",
@@ -331,7 +378,9 @@
       "title": "Hosted by",
       "individual": "Individual host",
       "company": "Company",
-      "verified": "Identity verified"
+      "verified": "Identity verified",
+      "speaks": "Speaks",
+      "chat_with_host": "Chat with host"
     },
     "where": {
       "title": "Where you'll be"
@@ -531,6 +580,7 @@
       "disable_confirm": "This property will be hidden from guests.",
       "enabling": "Enabling…",
       "disabling": "Disabling…",
+      "payment_failures_link": "Payment failures",
       "tabs": {
         "all_properties": "All Properties"
       }
@@ -774,17 +824,19 @@
     "pricing_rules": {
       "pricing_section": "Pricing",
       "rules_section": "House rules",
-      "price_per_night": "Price per Night (AMD)",
-      "price_placeholder": "e.g. 25000",
+      "price_per_night": "Price per Night (USD)",
+      "price_placeholder": "e.g. 250",
       "price_required": "Enter a price greater than zero",
-      "cleaning_fee": "Cleaning Fee (AMD)",
-      "cleaning_placeholder": "e.g. 5000",
-      "security_deposit": "Security Deposit (AMD)",
-      "deposit_placeholder": "e.g. 50000",
+      "cleaning_fee": "Cleaning Fee (USD)",
+      "cleaning_placeholder": "e.g. 50",
+      "security_deposit": "Security Deposit (USD)",
+      "deposit_placeholder": "e.g. 500",
       "min_nights": "Minimum nights",
       "max_nights": "Maximum nights",
       "max_nights_placeholder": "Optional",
       "cancellation_policy": "Cancellation Policy",
+      "non_refundable_percent": "Non-refundable percentage",
+      "non_refundable_percent_hint": "Percent of the rent kept if a guest cancels; the rest is released. Ignored (always 100%) for Non-refundable.",
       "check_in_time": "Check-in time",
       "check_out_time": "Check-out time",
       "quiet_hours_start": "Quiet hours start",
@@ -1012,6 +1064,28 @@
       "saving": "Saving…",
       "save_success": "Host profile saved."
     },
+    "payouts": {
+      "title": "Payouts",
+      "subtitle": "Set up Stripe to receive guest payments directly to your bank account.",
+      "status_not_started": "Not set up",
+      "status_action_needed": "Action needed",
+      "status_ready": "Ready to receive payouts",
+      "start_setup": "Set up payouts",
+      "continue_setup": "Continue setup",
+      "open_dashboard": "Open Stripe dashboard",
+      "loading": "Checking status…",
+      "error": "Couldn't load payout status. Please try again.",
+      "return_onboarded": "Stripe onboarding submitted — your status will update once it's verified.",
+      "return_refresh": "That setup link expired. Please start payout setup again.",
+      "back_to_dashboard": "Back to dashboard"
+    },
+    "languages": {
+      "title": "Languages I speak",
+      "subtitle": "Select all languages you can communicate in.",
+      "save": "Save languages",
+      "saving": "Saving…",
+      "save_success": "Languages saved."
+    },
     "personal": {
       "title": "Personal Information",
       "full_name": "Full Name",
@@ -1083,5 +1157,110 @@
       "complete_profile_hint": "Verify your email and add a phone number in settings to unlock 10 daily AI searches.",
       "complete_profile_link": "Account settings"
     }
+  },
+  "admin": {
+    "stats": {
+      "title": "Platform stats",
+      "subtitle": "Overview of users, listings, bookings, and reviews across the platform.",
+      "back_to_dashboard": "Back to dashboard",
+      "loading": "Loading stats…",
+      "error": "Could not load platform stats. Try again.",
+      "cards": {
+        "total_users": "Users",
+        "active_users": "{count} active",
+        "total_properties": "Properties",
+        "total_bookings": "Bookings",
+        "reviews": "Reviews",
+        "avg_rating": "Avg {rating}"
+      },
+      "breakdown": {
+        "users_by_role": "Users by role",
+        "properties_by_status": "Properties by status",
+        "bookings_by_status": "Bookings by status"
+      },
+      "roles": {
+        "GUEST": "Guest",
+        "HOST": "Host",
+        "ADMIN": "Admin",
+        "STAFF": "Staff"
+      },
+      "timeseries": {
+        "title": "Trends",
+        "loading": "Loading chart…",
+        "empty": "No data for this range.",
+        "error": "Could not load trend data.",
+        "metrics": {
+          "bookings": "Bookings",
+          "users": "Users",
+          "revenue": "Revenue"
+        },
+        "ranges": {
+          "day": "Day",
+          "week": "Week",
+          "month": "Month"
+        }
+      }
+    },
+    "payment_failures": {
+      "title": "Payment failures",
+      "subtitle": "Mid-transaction payment errors that need admin attention — capture, payout, deposit, and cancellation failures.",
+      "back_to_dashboard": "Back to dashboard",
+      "empty_state": "No payment failures match your filters.",
+      "resolve_button": "Mark resolved",
+      "resolved_badge": "Resolved",
+      "unresolved_badge": "Unresolved",
+      "table": {
+        "created_at": "Occurred",
+        "category": "Category",
+        "booking": "Booking",
+        "property": "Property",
+        "guest": "Guest",
+        "host": "Host",
+        "message": "Error",
+        "resolved": "Status"
+      },
+      "pagination": {
+        "page_of": "Page {page} of {totalPages} ({total} total)"
+      },
+      "filters": {
+        "search_placeholder": "Search guest, host, or property…",
+        "category": "Category",
+        "all_categories": "All categories",
+        "resolved": "Resolved",
+        "all_statuses": "All statuses",
+        "unresolved": "Unresolved",
+        "reset": "Reset",
+        "booking_id": "Booking ID",
+        "property_id": "Property ID",
+        "host_id": "Host ID",
+        "guest_id": "Guest ID",
+        "category_values": {
+          "RENT_CAPTURE_FAILED": "Rent capture failed",
+          "DEPOSIT_RELEASE_FAILED": "Deposit release failed",
+          "DEPOSIT_CLAIM_TRANSFER_FAILED": "Deposit claim transfer failed",
+          "PAYOUT_TRANSFER_FAILED": "Payout transfer failed",
+          "PAYMENT_LOCK_SWEEP_FAILED": "Payment lock sweep failed",
+          "CANCELLATION_CAPTURE_FAILED": "Cancellation capture failed"
+        }
+      }
+    }
+  },
+  "messaging": {
+    "title": "Messages",
+    "empty_conversations": "No conversations yet. Start a chat from a property page.",
+    "select_conversation": "Select a conversation to start messaging",
+    "conversation": "Conversation",
+    "from": "From {place}",
+    "no_messages_yet": "No messages yet",
+    "composer_placeholder": "Write a message…",
+    "send": "Send",
+    "loading": "Loading…",
+    "start_chat_error": "Could not start the chat. Please try again.",
+    "sign_in_to_chat": "Sign in to chat with the host",
+    "new_messages": "{count, plural, =1 {1 new message} other {# new messages}}",
+    "scroll_to_bottom": "Scroll to bottom",
+    "safety_notice_title": "Keep it on RentStar",
+    "safety_notice_body": "For your safety, avoid sharing phone numbers or other contact details, and always book and pay through RentStar — payments made outside the app aren't protected.",
+    "safety_notice_dismiss": "Dismiss"
   }
 }

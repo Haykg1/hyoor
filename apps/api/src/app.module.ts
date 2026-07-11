@@ -16,6 +16,7 @@ import { CompareShareModule } from './compare-share/compare-share.module';
 import type { AppConfig } from './config/configuration';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation.schema';
+import { CurrencyModule } from './currency/currency.module';
 import { DatabaseModule } from './database/database.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { GeocodingModule } from './geocoding/geocoding.module';
@@ -65,6 +66,7 @@ const isTestEnv = process.env.NODE_ENV === 'test';
     UsersModule,
     HostProfilesModule,
     PropertiesModule,
+    CurrencyModule,
     GeocodingModule,
     AiSearchModule,
     PoiModule,

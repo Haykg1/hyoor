@@ -16,6 +16,7 @@ import {
 import { useLocale, useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 
+import { PayoutsPanel } from '@/components/dashboard/payouts-panel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -386,6 +387,8 @@ export default function AccountSettingsPage(): React.JSX.Element {
           </SectionCard>
         ) : null}
 
+        {isHost ? <PayoutsPanel /> : null}
+
         {/* Language */}
         <SectionCard>
           <SectionHeader icon={<Globe className="h-4 w-4" />} title={t('language.title')} />
@@ -413,15 +416,8 @@ export default function AccountSettingsPage(): React.JSX.Element {
 
         {/* Spoken Languages */}
         <SectionCard>
-          <SectionHeader
-            icon={<Languages className="h-4 w-4" />}
-            title={t('languages.title', { defaultValue: 'Languages I speak' })}
-          />
-          <p className="text-sm text-muted-foreground mb-3">
-            {t('languages.subtitle', {
-              defaultValue: 'Select all languages you can communicate in.',
-            })}
-          </p>
+          <SectionHeader icon={<Languages className="h-4 w-4" />} title={t('languages.title')} />
+          <p className="text-sm text-muted-foreground mb-3">{t('languages.subtitle')}</p>
           <div className="flex flex-wrap gap-2 mb-4">
             {SPOKEN_LANGUAGES.map((lang) => {
               const selected = spokenLanguages.includes(lang.code);
@@ -451,7 +447,7 @@ export default function AccountSettingsPage(): React.JSX.Element {
           {spokenLanguagesSuccess && (
             <div className="flex items-center gap-2 text-sm text-green-600 mb-3">
               <CheckCircle2 className="h-4 w-4" />
-              {t('languages.save_success', { defaultValue: 'Languages saved.' })}
+              {t('languages.save_success')}
             </div>
           )}
           <Button
@@ -459,9 +455,7 @@ export default function AccountSettingsPage(): React.JSX.Element {
             disabled={spokenLanguagesSaving}
             className="rounded-xl"
           >
-            {spokenLanguagesSaving
-              ? t('languages.saving', { defaultValue: 'Saving…' })
-              : t('languages.save', { defaultValue: 'Save languages' })}
+            {spokenLanguagesSaving ? t('languages.saving') : t('languages.save')}
           </Button>
         </SectionCard>
 

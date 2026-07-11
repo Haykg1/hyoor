@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
 
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { FavoritesHydrator } from '@/components/providers/favorites-hydrator';
+import { MessagingHydrator } from '@/components/providers/messaging-hydrator';
 import { NotificationsHydrator } from '@/components/providers/notifications-hydrator';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
@@ -50,6 +51,7 @@ export default async function LocaleLayout({
           <AuthProvider>
             <FavoritesHydrator />
             <NotificationsHydrator />
+            <MessagingHydrator />
             <NextIntlClientProvider locale={locale} messages={messages}>
               {children}
               <Toaster richColors closeButton />

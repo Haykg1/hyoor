@@ -32,11 +32,25 @@ export const validationSchema = Joi.object({
   THROTTLE_AI_SEARCH_LIMIT: Joi.number().integer().min(1).optional(),
   OPENAI_API_KEY: Joi.string().allow('').optional(),
   OPENAI_MODEL: Joi.string().optional(),
+  STRIPE_SECRET_KEY: Joi.string()
+    .allow('')
+    .when('NODE_ENV', { is: 'production', then: Joi.string().min(1).required() }),
+  STRIPE_PUBLISHABLE_KEY: Joi.string().allow('').optional(),
+  STRIPE_WEBHOOK_SECRET: Joi.string()
+    .allow('')
+    .when('NODE_ENV', { is: 'production', then: Joi.string().min(1).required() }),
+  STRIPE_CONNECT_DEFAULT_COUNTRY: Joi.string().length(2).optional(),
+  STRIPE_PLATFORM_FEE_PERCENT_DEFAULT: Joi.number().min(0).max(100).optional(),
+  STRIPE_PAYMENT_LOCK_MINUTES: Joi.number().integer().min(1).optional(),
+  STRIPE_PAYOUT_DELAY_HOURS: Joi.number().integer().min(0).optional(),
+  STRIPE_PAYOUT_RETRY_MINUTES: Joi.number().integer().min(1).optional(),
+  STRIPE_DEPOSIT_CLAIM_WINDOW_HOURS: Joi.number().integer().min(0).optional(),
   AI_SEARCH_GUEST_LIMIT: Joi.number().integer().min(1).optional(),
   AI_SEARCH_VERIFIED_USER_LIMIT: Joi.number().integer().min(1).optional(),
   AI_SEARCH_GUEST_TTL_SECONDS: Joi.number().integer().min(60).optional(),
   YANDEX_MAPS_API_KEY: Joi.string().allow('').optional(),
   REDIS_URL: Joi.string().allow('').optional(),
+  CURRENCY_RATES_API_URL: Joi.string().allow('').optional(),
   TRUST_PROXY: Joi.string().valid('true', 'false').optional(),
   JSON_BODY_LIMIT: Joi.string().optional(),
   MAX_UPLOAD_BYTES: Joi.number().integer().min(1).optional(),

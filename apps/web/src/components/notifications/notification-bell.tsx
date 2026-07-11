@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { NotificationsPanel } from '@/components/notifications/notifications-panel';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import { useNotificationsStore } from '@/store/notifications.store';
 
 interface NotificationBellProps {
@@ -23,12 +24,12 @@ export function NotificationBell({ className }: NotificationBellProps): React.JS
           type="button"
           variant="ghost"
           size="icon"
-          className={className}
+          className={cn('relative', className)}
           aria-label={t('bell_label')}
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 ? (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+            <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           ) : null}

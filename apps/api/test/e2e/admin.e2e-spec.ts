@@ -165,7 +165,7 @@ describe('Admin (e2e)', () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
     const property = await createActiveHostProperty(app, host);
-    await request(app.getHttpServer())
+    const created = await request(app.getHttpServer())
       .post('/api/v1/bookings')
       .set(authHeader(guest.accessToken))
       .send({
@@ -175,6 +175,11 @@ describe('Admin (e2e)', () => {
         guestCount: 2,
       })
       .expect(201);
+    const prisma = app.get(PrismaService);
+    await prisma.booking.update({
+      where: { id: created.body.data.id },
+      data: { status: 'PENDING' },
+    });
     const response = await request(app.getHttpServer())
       .get('/api/v1/admin/bookings')
       .query({ status: 'PENDING' })
@@ -233,5 +238,42 @@ describe('Admin (e2e)', () => {
       .query({ metric: 'unknown' })
       .set(authHeader(admin.accessToken))
       .expect(400);
+  });
+
+  describe('manual cron triggers', () => {
+    const endpoints = [
+      'cron/release-expired-deposit-holds',
+      'cron/send-guest-instructions',
+      'cron/capture-todays-checkins',
+      'cron/sweep-expired-payment-locks',
+      'cron/run-scheduled-payouts',
+    ];
+
+    it.each(endpoints)('runs %s for an admin', async (endpoint) => {
+      const admin = await registerAdmin(app);
+      const response = await request(app.getHttpServer())
+        .post(`/api/v1/admin/${endpoint}`)
+        .set(authHeader(admin.accessToken))
+        .expect(201);
+      expect(response.body.data.message).toEqual(expect.any(String));
+    });
+
+    it.each(endpoints)('rejects non-admin staff for %s', async (endpoint) => {
+      const staff = await registerUser(app, { email: uniqueEmail('staff') });
+      const prisma = app.get(PrismaService);
+      await prisma.user.update({ where: { id: staff.userId }, data: { role: 'STAFF' } });
+      const login = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email: staff.email, password: staff.password })
+        .expect(201);
+      await request(app.getHttpServer())
+        .post(`/api/v1/admin/${endpoint}`)
+        .set(authHeader(login.body.data.accessToken as string))
+        .expect(403);
+    });
+
+    it.each(endpoints)('rejects unauthenticated access for %s', async (endpoint) => {
+      await request(app.getHttpServer()).post(`/api/v1/admin/${endpoint}`).expect(401);
+    });
   });
 });

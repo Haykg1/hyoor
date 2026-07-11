@@ -4,14 +4,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { Availability, Property } from '@repo/database/client';
+import type { Availability, Prisma, Property } from '@repo/database/client';
 
 import { PrismaService } from '../database/prisma.service';
 import { HostProfilesService } from '../host-profiles/host-profiles.service';
 
 import { AvailabilityEntryDto } from './dto/availability-entry.dto';
 
-const BLOCKING_BOOKING_STATUSES = ['PENDING', 'CONFIRMED'] as const;
+const BLOCKING_BOOKING_STATUSES = ['AWAITING_PAYMENT', 'PENDING', 'CONFIRMED'] as const;
 const MAX_OPEN_RANGE_DAYS = 366;
 
 export interface AvailabilityRangeResponse {
@@ -171,13 +171,15 @@ export class AvailabilityService {
     from: string,
     to: string,
     excludeBookingId?: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<string[]> {
     await this.getPropertyOrThrow(propertyId);
     const fromDate = parseIsoDate(from, 'from');
     const toDate = parseIsoDate(to, 'to');
     validateDateRange(fromDate, toDate);
+    const client = tx ?? this.prisma;
     const blocked = new Set<string>();
-    const unavailableRows = await this.prisma.availability.findMany({
+    const unavailableRows = await client.availability.findMany({
       where: {
         propertyId,
         isAvailable: false,
@@ -193,6 +195,7 @@ export class AvailabilityService {
       fromDate,
       toDate,
       excludeBookingId,
+      tx,
     );
     for (const iso of bookedDates) blocked.add(iso);
     return [...blocked].sort();
@@ -208,8 +211,10 @@ export class AvailabilityService {
     fromDate: Date,
     toDate: Date,
     excludeBookingId?: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<Set<string>> {
-    const bookings = await this.prisma.booking.findMany({
+    const client = tx ?? this.prisma;
+    const bookings = await client.booking.findMany({
       where: {
         propertyId,
         status: { in: [...BLOCKING_BOOKING_STATUSES] },
@@ -230,9 +235,15 @@ export class AvailabilityService {
     return blocked;
   }
 
-  async blockDatesForBooking(propertyId: string, checkIn: Date, checkOut: Date): Promise<void> {
+  async blockDatesForBooking(
+    propertyId: string,
+    checkIn: Date,
+    checkOut: Date,
+    tx?: Prisma.TransactionClient,
+  ): Promise<void> {
+    const client = tx ?? this.prisma;
     for (const date of eachNightBetween(checkIn, checkOut)) {
-      await this.prisma.availability.upsert({
+      await client.availability.upsert({
         where: { propertyId_date: { propertyId, date } },
         create: { propertyId, date, isAvailable: false },
         update: { isAvailable: false },
@@ -240,9 +251,15 @@ export class AvailabilityService {
     }
   }
 
-  async unblockDatesForBooking(propertyId: string, checkIn: Date, checkOut: Date): Promise<void> {
+  async unblockDatesForBooking(
+    propertyId: string,
+    checkIn: Date,
+    checkOut: Date,
+    tx?: Prisma.TransactionClient,
+  ): Promise<void> {
+    const client = tx ?? this.prisma;
     for (const date of eachNightBetween(checkIn, checkOut)) {
-      await this.prisma.availability.upsert({
+      await client.availability.upsert({
         where: { propertyId_date: { propertyId, date } },
         create: { propertyId, date, isAvailable: true, priceOverride: null },
         update: { isAvailable: true },
@@ -255,6 +272,7 @@ export class AvailabilityService {
     checkIn: Date,
     checkOut: Date,
     excludeBookingId?: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<boolean> {
     await this.getPropertyOrThrow(propertyId);
     if (checkOut <= checkIn) {
@@ -265,6 +283,7 @@ export class AvailabilityService {
       formatIsoDate(checkIn),
       formatIsoDate(addDays(checkOut, -1)),
       excludeBookingId,
+      tx,
     );
     for (const date of eachNightBetween(checkIn, checkOut)) {
       if (blocked.includes(formatIsoDate(date))) {
@@ -272,6 +291,16 @@ export class AvailabilityService {
       }
     }
     return true;
+  }
+
+  /**
+   * Serializes booking-creation/confirmation transactions for a single property via a
+   * Postgres advisory lock (auto-released on commit/rollback). Must be called first inside
+   * the transaction, before re-checking availability, so a concurrent request for the same
+   * property blocks here instead of racing past the availability check.
+   */
+  async acquirePropertyLock(propertyId: string, tx: Prisma.TransactionClient): Promise<void> {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${propertyId}))`;
   }
 
   private async getPropertyOrThrow(propertyId: string): Promise<Property> {

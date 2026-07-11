@@ -9,10 +9,14 @@ import { HttpExceptionFilter } from '../../src/common/filters/http-exception.fil
 import { PrismaService } from '../../src/database/prisma.service';
 import { GeocodingService } from '../../src/geocoding/geocoding.service';
 import { MailerService } from '../../src/mail/mailer.service';
+import { StripeCheckoutService } from '../../src/payments/stripe/stripe-checkout.service';
+import { StripeConnectService } from '../../src/payments/stripe/stripe-connect.service';
 import { RedisService } from '../../src/redis/redis.service';
 import { StorageService } from '../../src/storage/storage.service';
 import { MockRedisService } from '../helpers/mock-redis.service';
 import { MockStorageService } from '../helpers/mock-storage.service';
+import { MockStripeCheckoutService } from '../helpers/mock-stripe-checkout.service';
+import { MockStripeConnectService } from '../helpers/mock-stripe-connect.service';
 import { registerHostUser, sampleProperty } from '../helpers/property-test.helper';
 import type { RegisteredHostUser } from '../helpers/property-test.helper';
 import { resetE2eDatabase } from '../helpers/reset-database';
@@ -102,6 +106,10 @@ describe('Properties bulk import (e2e)', () => {
       .useValue(mockGeocoding)
       .overrideProvider(MailerService)
       .useValue(mockMailer)
+      .overrideProvider(StripeConnectService)
+      .useClass(MockStripeConnectService)
+      .overrideProvider(StripeCheckoutService)
+      .useClass(MockStripeCheckoutService)
       .compile();
 
     app = module.createNestApplication();
@@ -121,12 +129,14 @@ describe('Properties bulk import (e2e)', () => {
 
   beforeEach(async () => {
     await resetE2eDatabase(prisma);
-    capturedEmails.length = 0;
     redis.clearKv();
-    mockMailer.send.mockClear();
     mockGeocoding.searchPlaces.mockResolvedValue([VALID_GEOCODE]);
     mockGeocoding.resolveAddressLabels.mockResolvedValue({ en: '10 Tamanyan St' });
     host = await registerHostUser(app);
+    // Clear only after setup, so the verification OTP email sent by registerHostUser()
+    // doesn't leak into a test's own mailer assertions.
+    capturedEmails.length = 0;
+    mockMailer.send.mockClear();
   });
 
   afterAll(async () => {
@@ -141,10 +151,10 @@ describe('Properties bulk import (e2e)', () => {
         .attach('file', buildCsvBuffer(), { filename: 'import.csv', contentType: 'text/csv' })
         .expect(201);
 
-      expect(res.body.previewId).toBeDefined();
-      expect(res.body.summary.total).toBe(1);
-      expect(res.body.summary.error).toBe(0);
-      expect(res.body.rows[0].status).toMatch(/valid|fixed/);
+      expect(res.body.data.previewId).toBeDefined();
+      expect(res.body.data.summary.total).toBe(1);
+      expect(res.body.data.summary.error).toBe(0);
+      expect(res.body.data.rows[0].status).toMatch(/valid|fixed/);
     });
 
     it('marks row as error when address cannot be geocoded', async () => {
@@ -156,9 +166,9 @@ describe('Properties bulk import (e2e)', () => {
         .attach('file', buildCsvBuffer(), { filename: 'import.csv', contentType: 'text/csv' })
         .expect(201);
 
-      expect(res.body.summary.error).toBe(1);
-      expect(res.body.rows[0].status).toBe('error');
-      expect(res.body.rows[0].errors[0]).toContain('could not be resolved');
+      expect(res.body.data.summary.error).toBe(1);
+      expect(res.body.data.rows[0].status).toBe('error');
+      expect(res.body.data.rows[0].errors[0]).toContain('could not be resolved');
     });
 
     it('marks second row with same address as duplicate_in_file', async () => {
@@ -197,8 +207,8 @@ describe('Properties bulk import (e2e)', () => {
         .attach('file', csv, { filename: 'import.csv', contentType: 'text/csv' })
         .expect(201);
 
-      expect(res.body.summary.total).toBe(2);
-      const errorRow = res.body.rows.find((r: { status: string }) => r.status === 'error');
+      expect(res.body.data.summary.total).toBe(2);
+      const errorRow = res.body.data.rows.find((r: { status: string }) => r.status === 'error');
       expect(errorRow).toBeDefined();
       expect(errorRow.errors[0]).toContain('Duplicate');
     });
@@ -228,7 +238,7 @@ describe('Properties bulk import (e2e)', () => {
         .attach('file', buildCsvBuffer(), { filename: 'import.csv', contentType: 'text/csv' })
         .expect(201);
 
-      const { previewId } = analyzeRes.body as { previewId: string };
+      const { previewId } = analyzeRes.body.data as { previewId: string };
 
       const confirmRes = await request(app.getHttpServer())
         .post('/api/v1/properties/bulk-import/confirm')
@@ -236,8 +246,8 @@ describe('Properties bulk import (e2e)', () => {
         .send({ previewId })
         .expect(202);
 
-      expect(confirmRes.body.jobId).toBeDefined();
-      expect(confirmRes.body.status).toBe('processing');
+      expect(confirmRes.body.data.jobId).toBeDefined();
+      expect(confirmRes.body.data.status).toBe('processing');
 
       // Wait briefly for background job to run
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -258,7 +268,7 @@ describe('Properties bulk import (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/v1/properties/bulk-import/confirm')
         .set(authHeader(host.accessToken))
-        .send({ previewId: (analyzeRes.body as { previewId: string }).previewId })
+        .send({ previewId: (analyzeRes.body.data as { previewId: string }).previewId })
         .expect(202);
 
       await new Promise((resolve) => setTimeout(resolve, 600));
@@ -298,10 +308,10 @@ describe('Properties bulk import (e2e)', () => {
       const confirmRes = await request(app.getHttpServer())
         .post('/api/v1/properties/bulk-import/confirm')
         .set(authHeader(host.accessToken))
-        .send({ previewId: (analyzeRes.body as { previewId: string }).previewId })
+        .send({ previewId: (analyzeRes.body.data as { previewId: string }).previewId })
         .expect(202);
 
-      const { jobId } = confirmRes.body as { jobId: string };
+      const { jobId } = confirmRes.body.data as { jobId: string };
       await new Promise((resolve) => setTimeout(resolve, 600));
 
       const jobRes = await request(app.getHttpServer())
@@ -310,7 +320,7 @@ describe('Properties bulk import (e2e)', () => {
         .expect(200);
 
       expect(['processing', 'completed', 'completed_with_email_error']).toContain(
-        jobRes.body.status,
+        jobRes.body.data.status,
       );
     });
 
@@ -350,7 +360,7 @@ describe('Properties bulk import (e2e)', () => {
         })
         .expect(201);
 
-      const row = res.body.rows[0];
+      const row = res.body.data.rows[0];
       expect(row.status).toMatch(/valid|fixed/);
       expect(row.normalized.propertyType).toBe('APARTMENT');
       const fix = row.fixes.find((f: { field: string }) => f.field === 'propertyType');
@@ -367,7 +377,7 @@ describe('Properties bulk import (e2e)', () => {
         })
         .expect(201);
 
-      const row = res.body.rows[0];
+      const row = res.body.data.rows[0];
       expect(row.normalized.title).toBeTruthy();
       expect(row.normalized.title).toContain('Tamanyan');
     });
@@ -382,7 +392,7 @@ describe('Properties bulk import (e2e)', () => {
         })
         .expect(201);
 
-      const row = res.body.rows[0];
+      const row = res.body.data.rows[0];
       expect(row.normalized.description).toBeTruthy();
       const descFix = row.fixes.find((f: { field: string }) => f.field === 'description');
       expect(descFix).toBeDefined();
@@ -398,7 +408,7 @@ describe('Properties bulk import (e2e)', () => {
         })
         .expect(201);
 
-      const row = res.body.rows[0];
+      const row = res.body.data.rows[0];
       expect(row.normalized.cleaningFee).toBe(0);
       expect(row.normalized.securityDeposit).toBe(0);
     });
@@ -421,7 +431,7 @@ describe('Properties bulk import (e2e)', () => {
         )
         .expect(201);
 
-      const row = res.body.rows[0];
+      const row = res.body.data.rows[0];
       expect(row.normalized.title).toBe('My Custom Title');
       expect(row.normalized.description).toBe('Custom desc');
       expect(row.normalized.propertyType).toBe('HOUSE');
@@ -439,7 +449,7 @@ describe('Properties bulk import (e2e)', () => {
         })
         .expect(201);
 
-      const { previewId } = analyzeRes.body as { previewId: string };
+      const { previewId } = analyzeRes.body.data as { previewId: string };
 
       await request(app.getHttpServer())
         .post('/api/v1/properties/bulk-import/confirm')
@@ -453,7 +463,7 @@ describe('Properties bulk import (e2e)', () => {
         where: { host: { userId: host.userId } },
       });
       expect(properties.length).toBeGreaterThan(0);
-      const created = properties[0];
+      const created = properties[0]!;
       expect(created.status).toBe('DRAFT');
       expect(Number(created.cleaningFee)).toBe(0);
       expect(Number(created.securityDeposit)).toBe(0);

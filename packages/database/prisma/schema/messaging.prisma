@@ -6,15 +6,26 @@ enum MessageStatus {
   READ
 }
 
-model Conversation {
-  id        String   @id @default(cuid())
-  bookingId String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum MessageKind {
+  TEXT
+  PROPERTY_CARD
+}
 
-  booking  Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+model Conversation {
+  id         String   @id @default(cuid())
+  guestId    String
+  hostUserId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  guest    User      @relation("GuestConversations", fields: [guestId], references: [id], onDelete: Cascade)
+  host     User      @relation("HostConversations", fields: [hostUserId], references: [id], onDelete: Cascade)
   messages Message[]
 
+  @@unique([guestId, hostUserId])
+  @@index([guestId])
+  @@index([hostUserId])
+  @@index([updatedAt])
   @@map("conversations")
 }
 
@@ -23,14 +34,20 @@ model Message {
   conversationId String
   senderId       String
   body           String
+  kind           MessageKind   @default(TEXT)
+  propertyId     String?
   status         MessageStatus @default(SENT)
   readAt         DateTime?
   createdAt      DateTime      @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Restrict)
+  property     Property?    @relation(fields: [propertyId], references: [id], onDelete: SetNull)
 
+  @@unique([conversationId, propertyId])
   @@index([conversationId])
   @@index([senderId])
+  @@index([propertyId])
+  @@index([createdAt])
   @@map("messages")
 }

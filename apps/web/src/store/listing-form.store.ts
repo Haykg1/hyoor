@@ -164,6 +164,7 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
               cleaningFee: property.cleaningFee ?? 0,
               securityDeposit: property.securityDeposit ?? 0,
               cancellationPolicy: parseCancellationPolicy(property.cancellationPolicy),
+              nonRefundablePercent: property.nonRefundablePercent ?? 0,
               minNights: property.minNights,
               maxNights: property.maxNights ?? undefined,
               checkInTime: normalizeTimeForInput(property.checkInTime, '15:00'),

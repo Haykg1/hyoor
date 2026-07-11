@@ -18,6 +18,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import type { SecurityDepositClaim } from '@repo/database/client';
 import type { BookingQuoteResult, PaginatedResponse } from '@repo/shared';
 
 import type { RequestUser } from '../auth/decorators/current-user.decorator';
@@ -27,13 +28,21 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
 import { WRITE_THROTTLE } from '../common/throttle/throttle.constants';
+import { DepositClaimsService } from '../deposit-claims/deposit-claims.service';
+import { CreateDepositClaimDto } from '../deposit-claims/dto/create-deposit-claim.dto';
 import { CheckoutDto } from '../payments/dto/checkout.dto';
 import type { CheckoutInitResult } from '../payments/payment-provider.interface';
 import { PaymentsService } from '../payments/payments.service';
+import type {
+  ConfirmPaymentResult,
+  SetupIntentResult,
+} from '../payments/stripe/stripe-checkout.service';
+import { StripeCheckoutService } from '../payments/stripe/stripe-checkout.service';
 
 import { BookingsService, type BookingDetail } from './bookings.service';
 import { BookingQuoteDto } from './dto/booking-quote.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
+import { ConfirmStripePaymentDto } from './dto/confirm-stripe-payment.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { PaymentRefDto } from './dto/payment-ref.dto';
 import { QueryBookingsDto } from './dto/query-bookings.dto';
@@ -45,6 +54,8 @@ export class BookingsController {
   constructor(
     private readonly bookingsService: BookingsService,
     private readonly paymentsService: PaymentsService,
+    private readonly stripeCheckout: StripeCheckoutService,
+    private readonly depositClaims: DepositClaimsService,
   ) {}
 
   @Get('quote')
@@ -60,8 +71,10 @@ export class BookingsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('GUEST', 'HOST')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create an instant reservation for a property' })
-  @ApiCreatedResponse({ description: 'Booking created in CONFIRMED status' })
+  @ApiOperation({ summary: 'Create a reservation and lock its dates pending payment' })
+  @ApiCreatedResponse({
+    description: 'Booking created in AWAITING_PAYMENT status; dates locked for 15 minutes',
+  })
   @ApiStandardErrors({ conflict: true })
   create(@CurrentUser() user: RequestUser, @Body() dto: CreateBookingDto): Promise<BookingDetail> {
     return this.bookingsService.create(user.userId, dto);
@@ -167,5 +180,55 @@ export class BookingsController {
     @Body() dto: CheckoutDto,
   ): Promise<CheckoutInitResult> {
     return this.paymentsService.initiateCheckout(id, user.userId, dto.provider);
+  }
+
+  @Post(':id/payment/setup-intent')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Create a Stripe SetupIntent to collect the guest card for this booking',
+  })
+  @ApiOkResponse({ description: 'SetupIntent client secret for Stripe Elements' })
+  @ApiStandardErrors({ notFound: true })
+  createStripeSetupIntent(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+  ): Promise<SetupIntentResult> {
+    return this.stripeCheckout.createSetupIntent(id, user.userId);
+  }
+
+  @Post(':id/payment/confirm')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Authorize the rent + security deposit holds for this booking with the given payment method',
+  })
+  @ApiOkResponse({ description: 'CONFIRMED, or REQUIRES_ACTION with a client secret for 3DS' })
+  @ApiStandardErrors({ notFound: true })
+  confirmStripePayment(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+    @Body() dto: ConfirmStripePaymentDto,
+  ): Promise<ConfirmPaymentResult> {
+    return this.stripeCheckout.confirmBookingPayment(id, user.userId, dto.paymentMethodId);
+  }
+
+  @Post(':id/deposit-claim')
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'File a security-deposit damage claim for a completed stay' })
+  @ApiOkResponse({ description: 'Claim created in PENDING status, awaiting admin review' })
+  @ApiStandardErrors({ notFound: true, conflict: true })
+  fileDepositClaim(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+    @Body() dto: CreateDepositClaimDto,
+  ): Promise<SecurityDepositClaim> {
+    return this.depositClaims.submit(id, user.userId, dto);
   }
 }

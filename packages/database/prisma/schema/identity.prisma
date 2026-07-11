@@ -13,19 +13,22 @@ enum UserRole {
 }
 
 model User {
-  id              String   @id @default(cuid())
-  email           String   @unique
-  passwordHash    String?
-  role            UserRole @default(GUEST)
-  isEmailVerified Boolean  @default(false)
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String   @id @default(cuid())
+  email            String   @unique
+  passwordHash     String?
+  role             UserRole @default(GUEST)
+  isEmailVerified  Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  stripeCustomerId String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   profile                UserProfile?
   hostProfile            HostProfile?
   oauthAccounts          OAuthAccount[]
   bookings               Booking[]               @relation("GuestBookings")
+  guestConversations     Conversation[]          @relation("GuestConversations")
+  hostConversations      Conversation[]          @relation("HostConversations")
   sentMessages           Message[]               @relation("SentMessages")
   notifications          Notification[]
   reviewsWritten         Review[]                @relation("ReviewAuthor")

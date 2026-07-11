@@ -3,9 +3,9 @@ import request from 'supertest';
 
 import { PrismaService } from '../../src/database/prisma.service';
 import { createTestApp, type TestAppContext } from '../helpers/create-test-app';
-import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
 import { createHostProperty, registerHostUser } from '../helpers/property-test.helper';
 import { resetE2eDatabase } from '../helpers/reset-database';
+import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
 
 describe('Availability (e2e)', () => {
   let app: INestApplication;
@@ -33,7 +33,43 @@ describe('Availability (e2e)', () => {
       .expect(200);
     expect(response.body.data.propertyId).toBe(property.id);
     expect(response.body.data.basePricePerNight).toBe(25000);
-    expect(response.body.data.entries).toEqual([]);
+    expect(response.body.data.entries).toEqual([
+      {
+        date: '2025-06-01',
+        isAvailable: true,
+        isBlockedByBooking: false,
+        priceOverride: null,
+        effectivePricePerNight: 25000,
+      },
+      {
+        date: '2025-06-02',
+        isAvailable: true,
+        isBlockedByBooking: false,
+        priceOverride: null,
+        effectivePricePerNight: 25000,
+      },
+      {
+        date: '2025-06-03',
+        isAvailable: true,
+        isBlockedByBooking: false,
+        priceOverride: null,
+        effectivePricePerNight: 25000,
+      },
+      {
+        date: '2025-06-04',
+        isAvailable: true,
+        isBlockedByBooking: false,
+        priceOverride: null,
+        effectivePricePerNight: 25000,
+      },
+      {
+        date: '2025-06-05',
+        isAvailable: true,
+        isBlockedByBooking: false,
+        priceOverride: null,
+        effectivePricePerNight: 25000,
+      },
+    ]);
   });
 
   it('bulk upserts availability as property owner', async () => {

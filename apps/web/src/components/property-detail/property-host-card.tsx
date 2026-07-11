@@ -1,12 +1,22 @@
+'use client';
+
 import type { PublicHostProfile } from '@repo/shared';
 import { SPOKEN_LANGUAGES } from '@repo/shared';
-import { Languages, ShieldCheck } from 'lucide-react';
+import { Languages, Loader2, MessageSquare, ShieldCheck } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { usePathname, useRouter } from '@/i18n/navigation';
+import { ApiError } from '@/lib/api';
+import { findOrCreateConversation } from '@/lib/api/messaging';
+import { useAuthStore } from '@/store/auth.store';
 
 interface PropertyHostCardProps {
   host: PublicHostProfile;
+  propertyId: string;
 }
 
 function initials(name: string): string {
@@ -18,8 +28,31 @@ function initials(name: string): string {
     .slice(0, 2);
 }
 
-export function PropertyHostCard({ host }: PropertyHostCardProps): React.JSX.Element {
+export function PropertyHostCard({ host, propertyId }: PropertyHostCardProps): React.JSX.Element {
   const t = useTranslations('property_detail.host');
+  const tMessaging = useTranslations('messaging');
+  const user = useAuthStore((s) => s.user);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [starting, setStarting] = useState(false);
+  const canChat = user?.role === 'GUEST';
+  async function handleChat(): Promise<void> {
+    if (!user) {
+      router.push(`/auth/login?returnUrl=${encodeURIComponent(pathname)}`);
+      return;
+    }
+    if (!canChat) return;
+    setStarting(true);
+    try {
+      const conversation = await findOrCreateConversation(propertyId);
+      router.push(`/messages?c=${conversation.id}`);
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : tMessaging('start_chat_error');
+      toast.error(message);
+    } finally {
+      setStarting(false);
+    }
+  }
   return (
     <section className="space-y-3 border-b border-border py-6">
       <h2 className="text-lg font-semibold">{t('title')}</h2>
@@ -67,6 +100,22 @@ export function PropertyHostCard({ host }: PropertyHostCardProps): React.JSX.Ele
           </div>
         </div>
       )}
+      {canChat || !user ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-2 gap-2"
+          disabled={starting}
+          onClick={() => void handleChat()}
+        >
+          {starting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <MessageSquare className="h-4 w-4" />
+          )}
+          {t('chat_with_host')}
+        </Button>
+      ) : null}
     </section>
   );
 }

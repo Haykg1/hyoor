@@ -156,6 +156,34 @@ export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="nonRefundablePercent"
+            render={({ field }) => {
+              const isNonRefundable = form.watch('cancellationPolicy') === 'NON_REFUNDABLE';
+              return (
+                <FormItem>
+                  <FormLabel>{t('non_refundable_percent')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      disabled={isNonRefundable}
+                      value={isNonRefundable ? 100 : (field.value ?? 0)}
+                      onChange={(e) =>
+                        field.onChange(Math.min(100, Math.max(0, Number(e.target.value) || 0)))
+                      }
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    {t('non_refundable_percent_hint')}
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
         </div>
         <div className="space-y-6 border-t border-border pt-6">
           <h3 className="text-sm font-semibold">{t('rules_section')}</h3>

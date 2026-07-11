@@ -34,11 +34,17 @@ export const sampleProperty = {
   propertyType: 'APARTMENT',
   city: 'Yerevan',
   country: 'AM',
+  street: 'Azatutyan Street',
+  buildingNumber: '11',
+  placeKind: 'house',
+  latitude: 40.026135,
+  longitude: 44.416256,
   maxGuests: 2,
   bedrooms: 1,
   beds: 1,
   bathrooms: 1,
   pricePerNight: 25000,
+  currency: 'USD',
   cancellationPolicy: 'MODERATE',
 };
 
@@ -96,6 +102,19 @@ export async function createActivePropertyDirect(
   return { id: property.id };
 }
 
+export async function createGuestHostConversation(
+  app: INestApplication,
+  guest: RegisteredUser,
+  propertyId: string,
+): Promise<{ conversationId: string }> {
+  const response = await request(app.getHttpServer())
+    .post('/api/v1/messaging/conversations')
+    .set(authHeader(guest.accessToken))
+    .send({ propertyId })
+    .expect(201);
+  return { conversationId: response.body.data.id as string };
+}
+
 export async function createGuestBooking(
   app: INestApplication,
   host: RegisteredHostUser,
@@ -105,8 +124,8 @@ export async function createGuestBooking(
     checkOut: string;
     guestCount: number;
   }> = {},
-): Promise<{ bookingId: string; conversationId: string; propertyId: string }> {
-  const property = await createActiveHostProperty(app, host);
+): Promise<{ bookingId: string; propertyId: string }> {
+  const property = await createActivePropertyDirect(app, host);
   const response = await request(app.getHttpServer())
     .post('/api/v1/bookings')
     .set(authHeader(guest.accessToken))
@@ -119,7 +138,6 @@ export async function createGuestBooking(
     .expect(201);
   return {
     bookingId: response.body.data.id as string,
-    conversationId: response.body.data.conversationId as string,
     propertyId: property.id,
   };
 }
@@ -133,7 +151,7 @@ export async function createCompletedGuestBooking(
     checkOut: string;
     guestCount: number;
   }> = {},
-): Promise<{ bookingId: string; conversationId: string; propertyId: string }> {
+): Promise<{ bookingId: string; propertyId: string }> {
   const booking = await createGuestBooking(app, host, guest, overrides);
   const prisma = app.get(PrismaService);
   await prisma.booking.update({

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { CreatePropertyInput, PropertyTitleLabels } from '@repo/shared';
-import { CancellationPolicies, PropertyTypes } from '@repo/shared';
+import { CancellationPolicies, HostSettlementCurrencies, PropertyTypes } from '@repo/shared';
 import { MAX_FEATURED_POIS } from '@repo/shared';
 import { Type } from 'class-transformer';
 import {
@@ -15,6 +15,7 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  Max,
   MaxLength,
   Min,
   ValidateNested,
@@ -42,6 +43,7 @@ class TitleLabelsDto {
 
 export const PROPERTY_TYPES = PropertyTypes;
 export const CANCELLATION_POLICIES = CancellationPolicies;
+export const HOST_SETTLEMENT_CURRENCIES = HostSettlementCurrencies;
 
 export class CreatePropertyDto implements CreatePropertyInput {
   @ApiProperty({ example: 'Cascade View Apartment', maxLength: 200 })
@@ -132,6 +134,20 @@ export class CreatePropertyDto implements CreatePropertyInput {
   @IsIn(CANCELLATION_POLICIES)
   cancellationPolicy!: (typeof CANCELLATION_POLICIES)[number];
 
+  @ApiPropertyOptional({
+    example: 10,
+    minimum: 0,
+    maximum: 100,
+    description:
+      'Percent of the rent kept (not refunded) when a guest cancels. Ignored (treated as 100) when cancellationPolicy is NON_REFUNDABLE.',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  @Type(() => Number)
+  nonRefundablePercent?: number;
+
   @ApiPropertyOptional({ example: 'AM', maxLength: 2 })
   @IsOptional()
   @IsString()
@@ -195,11 +211,9 @@ export class CreatePropertyDto implements CreatePropertyInput {
   @Type(() => Number)
   longitude?: number;
 
-  @ApiPropertyOptional({ example: 'AMD', maxLength: 3 })
-  @IsOptional()
-  @IsString()
-  @MaxLength(3)
-  currency?: string;
+  @ApiProperty({ enum: HOST_SETTLEMENT_CURRENCIES, example: 'USD' })
+  @IsIn(HOST_SETTLEMENT_CURRENCIES)
+  currency!: (typeof HOST_SETTLEMENT_CURRENCIES)[number];
 
   @ApiPropertyOptional({ example: 5000, minimum: 0 })
   @IsOptional()

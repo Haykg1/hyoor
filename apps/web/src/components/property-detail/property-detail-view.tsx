@@ -49,7 +49,7 @@ export async function PropertyDetailView({
           <PropertyDescription description={property.description} />
           <PropertyAmenities amenities={property.amenities} />
           <PropertyNearbyPlaces property={property} />
-          <PropertyHostCard host={property.host} />
+          <PropertyHostCard host={property.host} propertyId={property.id} />
           {property.latitude !== null && property.longitude !== null && (
             <PropertyMap
               latitude={property.latitude}

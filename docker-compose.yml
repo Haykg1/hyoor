@@ -25,6 +25,32 @@ services:
       timeout: 5s
       retries: 5
 
+  localstack:
+    image: gresau/localstack-persist:4
+    restart: unless-stopped
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+    environment:
+      SERVICES: s3
+      DEBUG: 0
+      PERSIST_DEFAULT: 0
+      PERSIST_S3: 1
+      AWS_DEFAULT_REGION: eu-central-1
+      LOCALSTACK_S3_BUCKETS: properties avatars
+      LOCALSTACK_HOST: localhost:4566
+      DISABLE_CUSTOM_CORS_S3: 1
+      EXTRA_CORS_ALLOWED_ORIGINS: http://localhost:3000
+    volumes:
+      - localstack_data:/persisted-data
+      - ./scripts/localstack-init.sh:/etc/localstack/init/ready.d/init.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "awslocal s3api list-buckets >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
   api:
     build:
       context: .
@@ -38,10 +64,13 @@ services:
       PORT: 3001
       FRONTEND_URL: http://localhost:3000
       REDIS_URL: redis://redis:6379
+      AWS_ENDPOINT_URL: http://localstack:4566
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      localstack:
         condition: service_healthy
     env_file:
       - apps/api/.env
@@ -61,3 +90,4 @@ services:
 
 volumes:
   postgres_data:
+  localstack_data:

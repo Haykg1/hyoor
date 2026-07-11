@@ -8,13 +8,13 @@ import { CurrentUser, type RequestUser } from '../auth/decorators/current-user.d
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
 import { AI_SEARCH_THROTTLE } from '../common/throttle/throttle.constants';
+import { getRequestClientIp } from '../common/utils/request-ip';
 
 import { AiSearchQuotaService } from './ai-search-quota.service';
 import { AiSearchService } from './ai-search.service';
 import { AiSearchChatDto } from './dto/ai-search-chat.dto';
 import { getAiSearchOffTopicMessage } from './utils/chat-locale';
 import { isAiSearchOnTopic } from './utils/input-guard';
-import { getRequestClientIp } from './utils/request-ip';
 
 @ApiTags('ai-search')
 @Controller('ai-search')
