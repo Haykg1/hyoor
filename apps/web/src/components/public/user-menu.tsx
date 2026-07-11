@@ -1,6 +1,13 @@
 'use client';
 
-import { LayoutDashboard, LogOut, Plane, User as UserIcon } from 'lucide-react';
+import {
+  BarChart3,
+  LayoutDashboard,
+  LogOut,
+  MessageSquare,
+  Plane,
+  User as UserIcon,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -52,6 +59,7 @@ export function UserMenu({ variant = 'default' }: UserMenuProps = {}): React.JSX
   }
 
   const isHostLike = user.role === 'HOST' || user.role === 'ADMIN' || user.role === 'STAFF';
+  const isAdminLike = user.role === 'ADMIN' || user.role === 'STAFF';
 
   async function handleLogout(): Promise<void> {
     await logout();
@@ -90,10 +98,24 @@ export function UserMenu({ variant = 'default' }: UserMenuProps = {}): React.JSX
             </Link>
           </DropdownMenuItem>
         ) : null}
+        {isAdminLike ? (
+          <DropdownMenuItem asChild>
+            <Link href="/admin/stats" className="cursor-pointer">
+              <BarChart3 className="mr-2 h-4 w-4" />
+              {t('admin_stats')}
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuItem asChild>
           <Link href="/trips" className="cursor-pointer">
             <Plane className="mr-2 h-4 w-4" />
             {t('trips')}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/messages" className="cursor-pointer">
+            <MessageSquare className="mr-2 h-4 w-4" />
+            {t('messages')}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

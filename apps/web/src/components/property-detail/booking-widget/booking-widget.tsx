@@ -25,6 +25,7 @@ interface BookingWidgetProps {
     | 'titleLabels'
     | 'pricePerNight'
     | 'currency'
+    | 'displayPrice'
     | 'maxGuests'
     | 'minNights'
     | 'maxNights'
@@ -62,6 +63,7 @@ export function BookingWidget({ property }: BookingWidgetProps): React.JSX.Eleme
       <BookingPriceHeader
         pricePerNight={property.pricePerNight}
         currency={property.currency}
+        displayPrice={property.displayPrice}
         avgRating={property.avgRating}
         reviewCount={property.reviewCount}
       />
@@ -71,6 +73,8 @@ export function BookingWidget({ property }: BookingWidgetProps): React.JSX.Eleme
         checkInError={form.errors.checkIn}
         checkOutError={form.errors.checkOut}
         disabledDates={blockedDates}
+        minNights={property.minNights}
+        maxNights={property.maxNights}
         onCheckInChange={(v) => form.setField('checkIn', v)}
         onCheckOutChange={(v) => form.setField('checkOut', v)}
       />

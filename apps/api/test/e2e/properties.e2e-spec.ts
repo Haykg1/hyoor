@@ -187,7 +187,14 @@ describe('Properties (e2e)', () => {
     const createB = await request(app.getHttpServer())
       .post('/api/v1/properties')
       .set(authHeader(host.accessToken))
-      .send({ ...sampleProperty, title: 'Amenity B' })
+      .send({
+        ...sampleProperty,
+        title: 'Amenity B',
+        street: 'Azatutyan Street',
+        buildingNumber: '13',
+        latitude: 40.026267,
+        longitude: 44.416389,
+      })
       .expect(201);
     const prisma = app.get(PrismaService);
     await prisma.property.update({
@@ -338,7 +345,7 @@ describe('Properties (e2e)', () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
     const property = await createActivePropertyDirect(app, host);
-    await request(app.getHttpServer())
+    const create = await request(app.getHttpServer())
       .post('/api/v1/bookings')
       .set(authHeader(guest.accessToken))
       .send({
@@ -348,6 +355,11 @@ describe('Properties (e2e)', () => {
         guestCount: 2,
       })
       .expect(201);
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${create.body.data.id}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
     const response = await request(app.getHttpServer())
       .get('/api/v1/properties/my')
       .set(authHeader(host.accessToken))

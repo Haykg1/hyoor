@@ -1,15 +1,13 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '@repo/shared/constants';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
-export class GetMessagesDto {
-  @ApiPropertyOptional({ example: 1, minimum: 1, default: 1 })
+export class CursorPaginationDto {
+  @ApiPropertyOptional({ description: 'Opaque cursor from a previous page' })
   @IsOptional()
-  @IsInt()
-  @Min(1)
-  @Type(() => Number)
-  page?: number = 1;
+  @IsString()
+  cursor?: string;
 
   @ApiPropertyOptional({
     example: DEFAULT_PAGE_SIZE,

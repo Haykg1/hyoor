@@ -1,15 +1,18 @@
 // Bookings
 
 enum BookingStatus {
+  AWAITING_PAYMENT
   PENDING
   CONFIRMED
   CANCELLED_BY_GUEST
   CANCELLED_BY_HOST
+  PAYMENT_EXPIRED
   COMPLETED
   NO_SHOW
 }
 
 enum PaymentProvider {
+  STRIPE
   IDRAM
   ARCA
   CASH
@@ -19,43 +22,89 @@ enum PaymentStatus {
   UNPAID
   PENDING
   PAID
-  FAILED
+  AUTHORIZED
+  CAPTURED
+  PARTIALLY_REFUNDED
   REFUNDED
+  FAILED
+  CANCELLED
+}
+
+enum DepositStatus {
+  NONE
+  AUTHORIZED
+  RELEASED
+  CAPTURED
+  FAILED
+}
+
+enum PayoutStatus {
+  NONE
+  SCHEDULED
+  PAID
+  FAILED
+}
+
+enum SecurityDepositClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PaymentFailureCategory {
+  RENT_CAPTURE_FAILED
+  DEPOSIT_RELEASE_FAILED
+  DEPOSIT_CLAIM_TRANSFER_FAILED
+  PAYOUT_TRANSFER_FAILED
+  PAYMENT_LOCK_SWEEP_FAILED
+  CANCELLATION_CAPTURE_FAILED
 }
 
 model Booking {
-  id                      String           @id @default(cuid())
-  propertyId              String
-  guestId                 String
-  status                  BookingStatus    @default(PENDING)
-  checkIn                 DateTime         @db.Date
-  checkOut                DateTime         @db.Date
-  guestCount              Int
-  specialRequests         String?
-  currency                String
-  nightlyRate             Int
-  nightsCount             Int
-  cleaningFee             Int              @default(0)
-  securityDeposit         Int              @default(0)
-  discountAmount          Int              @default(0)
-  promotionId             String?
-  totalAmount             Int
-  paymentProvider         PaymentProvider?
-  paymentStatus           PaymentStatus    @default(UNPAID)
-  paymentInitiatedAt      DateTime?
-  paymentCompletedAt      DateTime?
-  externalPaymentRef      String?
-  cancellationReason      String?
-  cancelledAt             DateTime?
-  guestInstructionsSentAt DateTime?
-  createdAt               DateTime         @default(now())
-  updatedAt               DateTime         @updatedAt
+  id                           String           @id @default(cuid())
+  propertyId                   String
+  guestId                      String
+  status                       BookingStatus    @default(PENDING)
+  checkIn                      DateTime         @db.Date
+  checkOut                     DateTime         @db.Date
+  guestCount                   Int
+  specialRequests              String?
+  currency                     String
+  nightlyRate                  Int
+  nightsCount                  Int
+  cleaningFee                  Int              @default(0)
+  securityDeposit              Int              @default(0)
+  discountAmount               Int              @default(0)
+  promotionId                  String?
+  totalAmount                  Int
+  paymentProvider              PaymentProvider?
+  paymentStatus                PaymentStatus    @default(UNPAID)
+  paymentInitiatedAt           DateTime?
+  paymentCompletedAt           DateTime?
+  externalPaymentRef           String?
+  paymentLockExpiresAt         DateTime?
+  stripePaymentIntentId        String?
+  stripeDepositPaymentIntentId String?
+  depositStatus                DepositStatus    @default(NONE)
+  capturedAt                   DateTime?
+  platformFeeAmount            Int?
+  hostPayoutAmount             Int?
+  stripeTransferId             String?
+  payoutStatus                 PayoutStatus     @default(NONE)
+  payoutScheduledAt            DateTime?
+  refundedAmount               Int              @default(0)
+  cancellationReason           String?
+  cancelledAt                  DateTime?
+  guestInstructionsSentAt      DateTime?
+  createdAt                    DateTime         @default(now())
+  updatedAt                    DateTime         @updatedAt
 
-  property     Property           @relation(fields: [propertyId], references: [id], onDelete: Restrict)
-  guest        User               @relation("GuestBookings", fields: [guestId], references: [id], onDelete: Restrict)
-  promotion    PropertyPromotion? @relation(fields: [promotionId], references: [id], onDelete: SetNull)
-  conversation Conversation?
-  reviews      Review[]
+  property             Property              @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  guest                User                  @relation("GuestBookings", fields: [guestId], references: [id], onDelete: Restrict)
+  promotion            PropertyPromotion?    @relation(fields: [promotionId], references: [id], onDelete: SetNull)
+  reviews              Review[]
+  securityDepositClaim SecurityDepositClaim?
+  paymentFailures      PaymentFailure[]
 
   @@index([propertyId])
   @@index([promotionId])
@@ -64,5 +113,46 @@ model Booking {
   @@index([checkOut])
   @@index([status])
   @@index([paymentStatus])
+  @@index([paymentLockExpiresAt])
+  @@index([payoutStatus])
   @@map("bookings")
+}
+
+model SecurityDepositClaim {
+  id               String                     @id @default(cuid())
+  bookingId        String                     @unique
+  hostUserId       String
+  amount           Int
+  reason           String                     @db.Text
+  evidenceKeys     String[]                   @default([])
+  status           SecurityDepositClaimStatus @default(PENDING)
+  reviewedByUserId String?
+  reviewNote       String?
+  stripeTransferId String?
+  createdAt        DateTime                   @default(now())
+  reviewedAt       DateTime?
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("security_deposit_claims")
+}
+
+model PaymentFailure {
+  id               String                 @id @default(cuid())
+  bookingId        String
+  category         PaymentFailureCategory
+  message          String                 @db.Text
+  stripeErrorCode  String?
+  resolved         Boolean                @default(false)
+  resolvedAt       DateTime?
+  resolvedByUserId String?
+  createdAt        DateTime               @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([category])
+  @@index([resolved])
+  @@map("payment_failures")
 }

@@ -10,7 +10,7 @@ services:
       - redis_data:/data
 
   localstack:
-    image: localstack/localstack:4
+    image: gresau/localstack-persist:4
     restart: unless-stopped
     ports:
       - "4566:4566"
@@ -18,14 +18,15 @@ services:
     environment:
       SERVICES: s3
       DEBUG: 0
-      PERSISTENCE: 1
+      PERSIST_DEFAULT: 0
+      PERSIST_S3: 1
       AWS_DEFAULT_REGION: eu-central-1
       LOCALSTACK_S3_BUCKETS: properties avatars
       LOCALSTACK_HOST: localhost:4566
       DISABLE_CUSTOM_CORS_S3: 1
       EXTRA_CORS_ALLOWED_ORIGINS: http://localhost:3000
     volumes:
-      - localstack_data:/var/lib/localstack
+      - ./localstack-data:/persisted-data
       - ./scripts/localstack-init.sh:/etc/localstack/init/ready.d/init.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "awslocal s3api list-buckets >/dev/null 2>&1"]
@@ -71,5 +72,4 @@ services:
     command: pnpm --filter web dev
 
 volumes:
-  localstack_data:
   redis_data:

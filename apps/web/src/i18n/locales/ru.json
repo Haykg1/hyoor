@@ -76,6 +76,7 @@
     "sign_up": "Регистрация",
     "logout": "Выйти",
     "account": "Аккаунт",
+    "admin_stats": "Статистика платформы",
     "favorites": "Избранное",
     "menu": "Меню",
     "notifications": "Уведомления"
@@ -300,10 +301,12 @@
   },
   "booking": {
     "status": {
+      "AWAITING_PAYMENT": "Ожидает оплаты",
       "PENDING": "Ожидает",
       "CONFIRMED": "Подтверждено",
       "CANCELLED_BY_GUEST": "Отменено",
       "CANCELLED_BY_HOST": "Отменено хозяином",
+      "PAYMENT_EXPIRED": "Срок оплаты истёк",
       "COMPLETED": "Завершено",
       "NO_SHOW": "Не явился"
     },
@@ -320,6 +323,9 @@
     "per_night": "/ ночь",
     "night": "{count, plural, =1 {1 ночь} few {# ночи} other {# ночей}}",
     "select_dates_hint": "Выберите даты, чтобы увидеть итоговую цену",
+    "min_nights_hint": "Минимальный срок: {min} ночей",
+    "max_nights_hint": "Максимальный срок: {max} ночей",
+    "min_max_nights_hint": "Срок проживания: {min}–{max} ночей",
     "guests": "Гости",
     "guests_max": "Максимум {max} гостей",
     "book_now": "Забронировать",
@@ -355,8 +361,49 @@
     "confirmation": {
       "title": "Бронирование подтверждено!",
       "subtitle": "Ваше проживание забронировано. Мы отправили вам подтверждение.",
-      "continue_payment": "Перейти к оплате (скоро)"
+      "continue_payment": "Перейти к оплате"
     }
+  },
+  "payment": {
+    "title": "Завершите оплату",
+    "subtitle": "Даты забронированы, пока вы оплачиваете.",
+    "time_remaining": "Даты удержаны ещё {time}",
+    "total_due": "Сумма к оплате",
+    "method_label": "Способ оплаты",
+    "method": {
+      "STRIPE": "Банковская карта",
+      "ARCA": "ArCa",
+      "CASH": "Наличные",
+      "IDRAM": "Idram"
+    },
+    "coming_soon": "Скоро",
+    "pay_button": "Оплатить",
+    "paying": "Обработка…",
+    "success_toast": "Оплата прошла успешно — бронирование подтверждено!",
+    "error_generic": "При обработке платежа произошла ошибка. Пожалуйста, попробуйте снова.",
+    "expired_title": "Срок оплаты истёк",
+    "expired_description": "Срок оплаты этого бронирования истёк, даты были освобождены. Пожалуйста, создайте новое бронирование.",
+    "back_home": "На главную"
+  },
+  "host_onboarding": {
+    "title": "Стать хозяином",
+    "subtitle": "Расскажите немного о себе, чтобы начать размещать объекты.",
+    "host_type_label": "Тип хозяина",
+    "individual": "Физическое лицо",
+    "company": "Компания",
+    "company_name_label": "Название компании",
+    "company_name_placeholder": "напр. RentStar LLC",
+    "company_name_required": "Название компании обязательно для компаний",
+    "description_label": "О вас как о хозяине (необязательно)",
+    "description_placeholder": "Расскажите о себе, стиле приёма гостей и чего им ожидать…",
+    "submit": "Создать профиль хозяина",
+    "submitting": "Создание…",
+    "error_generic": "Что-то пошло не так. Попробуйте ещё раз.",
+    "success_title": "Теперь вы хозяин!",
+    "success_subtitle": "Настройте выплаты через Stripe, чтобы получать платежи от гостей напрямую на свой банковский счёт, или пропустите этот шаг и сделайте это позже в настройках аккаунта.",
+    "setup_payouts_button": "Настроить выплаты сейчас",
+    "skip_button": "Пропустить",
+    "skip_hint": "Вы всегда можете настроить выплаты позже на странице своего аккаунта."
   },
   "property_detail": {
     "back": "Назад",
@@ -383,7 +430,9 @@
       "title": "Хозяин",
       "individual": "Частное лицо",
       "company": "Компания",
-      "verified": "Личность подтверждена"
+      "verified": "Личность подтверждена",
+      "speaks": "Говорит",
+      "chat_with_host": "Написать хозяину"
     },
     "where": {
       "title": "Где вы будете"
@@ -578,6 +627,7 @@
       "disable_confirm": "Объект будет скрыт от гостей.",
       "enabling": "Включение…",
       "disabling": "Отключение…",
+      "payment_failures_link": "Сбои платежей",
       "tabs": {
         "all_properties": "Все объекты"
       }
@@ -821,17 +871,19 @@
     "pricing_rules": {
       "pricing_section": "Цена",
       "rules_section": "Правила дома",
-      "price_per_night": "Цена за ночь (AMD)",
-      "price_placeholder": "напр. 25000",
+      "price_per_night": "Цена за ночь (USD)",
+      "price_placeholder": "напр. 250",
       "price_required": "Укажите цену больше нуля",
-      "cleaning_fee": "Уборка (AMD)",
-      "cleaning_placeholder": "напр. 5000",
-      "security_deposit": "Залог (AMD)",
-      "deposit_placeholder": "напр. 50000",
+      "cleaning_fee": "Уборка (USD)",
+      "cleaning_placeholder": "напр. 50",
+      "security_deposit": "Залог (USD)",
+      "deposit_placeholder": "напр. 500",
       "min_nights": "Минимум ночей",
       "max_nights": "Максимум ночей",
       "max_nights_placeholder": "Необязательно",
       "cancellation_policy": "Политика отмены",
+      "non_refundable_percent": "Невозвратный процент",
+      "non_refundable_percent_hint": "Процент от арендной платы, удерживаемый при отмене гостем; остальное возвращается. Игнорируется (всегда 100%) при политике «Невозвратный».",
       "check_in_time": "Время заезда",
       "check_out_time": "Время выезда",
       "quiet_hours_start": "Начало тихих часов",
@@ -998,6 +1050,28 @@
       "saving": "Сохранение…",
       "save_success": "Профиль хозяина сохранён."
     },
+    "payouts": {
+      "title": "Выплаты",
+      "subtitle": "Настройте Stripe, чтобы получать платежи от гостей напрямую на свой банковский счёт.",
+      "status_not_started": "Не настроено",
+      "status_action_needed": "Требуется действие",
+      "status_ready": "Готово к получению выплат",
+      "start_setup": "Настроить выплаты",
+      "continue_setup": "Продолжить настройку",
+      "open_dashboard": "Открыть панель Stripe",
+      "loading": "Проверка статуса…",
+      "error": "Не удалось загрузить статус выплат. Попробуйте ещё раз.",
+      "return_onboarded": "Настройка Stripe отправлена — статус обновится после проверки.",
+      "return_refresh": "Срок ссылки для настройки истёк. Пожалуйста, начните настройку выплат заново.",
+      "back_to_dashboard": "Назад в панель управления"
+    },
+    "languages": {
+      "title": "Языки, на которых я говорю",
+      "subtitle": "Выберите все языки, на которых вы можете общаться.",
+      "save": "Сохранить языки",
+      "saving": "Сохранение…",
+      "save_success": "Языки сохранены."
+    },
     "personal": {
       "title": "Личная информация",
       "full_name": "Полное имя",
@@ -1069,5 +1143,110 @@
       "complete_profile_hint": "Подтвердите email и добавьте телефон в настройках, чтобы получить 10 AI-запросов в день.",
       "complete_profile_link": "Настройки аккаунта"
     }
+  },
+  "admin": {
+    "stats": {
+      "title": "Статистика платформы",
+      "subtitle": "Обзор пользователей, объявлений, бронирований и отзывов.",
+      "back_to_dashboard": "Назад в панель",
+      "loading": "Загрузка статистики…",
+      "error": "Не удалось загрузить статистику. Попробуйте снова.",
+      "cards": {
+        "total_users": "Пользователи",
+        "active_users": "{count} активных",
+        "total_properties": "Объекты",
+        "total_bookings": "Бронирования",
+        "reviews": "Отзывы",
+        "avg_rating": "Средняя {rating}"
+      },
+      "breakdown": {
+        "users_by_role": "Пользователи по ролям",
+        "properties_by_status": "Объекты по статусу",
+        "bookings_by_status": "Бронирования по статусу"
+      },
+      "roles": {
+        "GUEST": "Гость",
+        "HOST": "Хозяин",
+        "ADMIN": "Админ",
+        "STAFF": "Сотрудник"
+      },
+      "timeseries": {
+        "title": "Динамика",
+        "loading": "Загрузка графика…",
+        "empty": "Нет данных за этот период.",
+        "error": "Не удалось загрузить данные динамики.",
+        "metrics": {
+          "bookings": "Бронирования",
+          "users": "Пользователи",
+          "revenue": "Выручка"
+        },
+        "ranges": {
+          "day": "День",
+          "week": "Неделя",
+          "month": "Месяц"
+        }
+      }
+    },
+    "payment_failures": {
+      "title": "Сбои платежей",
+      "subtitle": "Ошибки платежей в процессе транзакции, требующие внимания администратора — списание, выплата, депозит и отмена.",
+      "back_to_dashboard": "Назад в панель",
+      "empty_state": "Нет сбоев платежей, соответствующих фильтрам.",
+      "resolve_button": "Отметить решённым",
+      "resolved_badge": "Решено",
+      "unresolved_badge": "Не решено",
+      "table": {
+        "created_at": "Время",
+        "category": "Категория",
+        "booking": "Бронирование",
+        "property": "Объект",
+        "guest": "Гость",
+        "host": "Хозяин",
+        "message": "Ошибка",
+        "resolved": "Статус"
+      },
+      "pagination": {
+        "page_of": "Страница {page} из {totalPages} (всего {total})"
+      },
+      "filters": {
+        "search_placeholder": "Поиск по гостю, хозяину или объекту…",
+        "category": "Категория",
+        "all_categories": "Все категории",
+        "resolved": "Решено",
+        "all_statuses": "Все статусы",
+        "unresolved": "Не решено",
+        "reset": "Сбросить",
+        "booking_id": "ID бронирования",
+        "property_id": "ID объекта",
+        "host_id": "ID хозяина",
+        "guest_id": "ID гостя",
+        "category_values": {
+          "RENT_CAPTURE_FAILED": "Ошибка списания аренды",
+          "DEPOSIT_RELEASE_FAILED": "Ошибка возврата депозита",
+          "DEPOSIT_CLAIM_TRANSFER_FAILED": "Ошибка перевода по претензии на депозит",
+          "PAYOUT_TRANSFER_FAILED": "Ошибка выплаты",
+          "PAYMENT_LOCK_SWEEP_FAILED": "Ошибка очистки блокировки платежа",
+          "CANCELLATION_CAPTURE_FAILED": "Ошибка списания при отмене"
+        }
+      }
+    }
+  },
+  "messaging": {
+    "title": "Сообщения",
+    "empty_conversations": "Пока нет диалогов. Начните чат со страницы объявления.",
+    "select_conversation": "Выберите диалог, чтобы начать переписку",
+    "conversation": "Диалог",
+    "from": "Из {place}",
+    "no_messages_yet": "Пока нет сообщений",
+    "composer_placeholder": "Напишите сообщение…",
+    "send": "Отправить",
+    "loading": "Загрузка…",
+    "start_chat_error": "Не удалось начать чат. Попробуйте ещё раз.",
+    "sign_in_to_chat": "Войдите, чтобы написать хозяину",
+    "new_messages": "{count, plural, =1 {1 новое сообщение} other {# новых сообщений}}",
+    "scroll_to_bottom": "Вниз",
+    "safety_notice_title": "Оставайтесь на RentStar",
+    "safety_notice_body": "В целях безопасности не обменивайтесь номерами телефонов и другими контактами и всегда бронируйте и оплачивайте через RentStar — платежи вне приложения не защищены.",
+    "safety_notice_dismiss": "Скрыть"
   }
 }

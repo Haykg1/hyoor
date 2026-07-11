@@ -32,7 +32,14 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       return;
     }
     this.client = this.createConnection('client');
-    await this.client.connect();
+    try {
+      await this.client.connect();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(
+        `Redis client failed to connect on startup: ${message} — retrying with backoff in the background`,
+      );
+    }
   }
 
   async onModuleDestroy(): Promise<void> {

@@ -6,12 +6,12 @@ import { Star } from 'lucide-react';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { usePriceFormatter } from '@/hooks/use-price-formatter';
 import { Link } from '@/i18n/navigation';
 import { formatSuggestedStayRange } from '@/lib/ai-search/filters-display';
 import { PROPERTY_PLACEHOLDER_IMAGE } from '@/lib/constants/property-placeholder';
 
 import { FavoriteButton } from './favorite-button';
+import { PropertyPriceDisplay } from './property-price-display';
 
 interface PropertyCardProps {
   property: PropertySummary | AiSearchPropertyResult;
@@ -41,7 +41,6 @@ export function PropertyCard({
   const locale = useLocale();
   const t = useTranslations('property_card');
   const tc = useTranslations('property_card.categories');
-  const { formatAmd } = usePriceFormatter();
   const ratingLabel = property.avgRating !== undefined ? property.avgRating.toFixed(1) : '—';
   const address = getLocalizedAddress(property.addressLabels, locale, {
     city: property.city,
@@ -85,10 +84,16 @@ export function PropertyCard({
             </p>
           ) : null}
           <div className="flex items-center justify-between">
-            <div>
-              <span className="font-bold text-foreground">{formatAmd(property.pricePerNight)}</span>
-              <span className="ml-1 text-xs text-muted-foreground">{t('per_night')}</span>
-            </div>
+            <PropertyPriceDisplay
+              pricePerNight={property.pricePerNight}
+              currency={property.currency}
+              displayPrice={property.displayPrice}
+              suffix={
+                <span className="ml-1 text-xs font-normal text-muted-foreground">
+                  {t('per_night')}
+                </span>
+              }
+            />
             <span className="text-xs text-muted-foreground">
               {t('bedrooms', { count: property.bedrooms })} ·{' '}
               {t('guests_max', { count: property.maxGuests })}

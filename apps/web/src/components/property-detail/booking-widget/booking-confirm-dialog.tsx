@@ -35,7 +35,7 @@ function formatPrice(amount: number, currency: string): string {
     style: 'currency',
     currency,
     maximumFractionDigits: 0,
-  }).format(amount / 100);
+  }).format(amount);
 }
 
 function formatDate(iso: string): string {

@@ -42,3 +42,25 @@ export async function listMyBookings(
   const query = qs.toString();
   return api.get<PaginatedResponse<BookingDetail>>(`/bookings/my${query ? `?${query}` : ''}`);
 }
+
+export interface StripeSetupIntentResult {
+  clientSecret: string;
+}
+
+export interface StripeConfirmPaymentResult {
+  status: 'CONFIRMED' | 'REQUIRES_ACTION';
+  clientSecret?: string;
+}
+
+export async function createStripeSetupIntent(bookingId: string): Promise<StripeSetupIntentResult> {
+  return api.post<StripeSetupIntentResult>(`/bookings/${bookingId}/payment/setup-intent`);
+}
+
+export async function confirmStripePayment(
+  bookingId: string,
+  paymentMethodId: string,
+): Promise<StripeConfirmPaymentResult> {
+  return api.post<StripeConfirmPaymentResult>(`/bookings/${bookingId}/payment/confirm`, {
+    paymentMethodId,
+  });
+}

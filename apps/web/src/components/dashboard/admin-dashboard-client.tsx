@@ -1,8 +1,10 @@
 'use client';
 
+import { AlertTriangle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { useAdminListings } from '@/hooks/use-admin-listings';
+import { Link } from '@/i18n/navigation';
 
 import { AdminListingsPanel } from './admin-listings-panel';
 import { AdminListingsToolbar } from './admin-listings-toolbar';
@@ -45,9 +47,20 @@ export function AdminDashboardClient({
   const activeTabKey: TabKey = tab === 'disabled' ? 'disabled' : 'active';
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold sm:text-3xl">{t('admin.title')}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t('welcome', { name: welcomeName })}</p>
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold sm:text-3xl">{t('admin.title')}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t('welcome', { name: welcomeName })}
+          </p>
+        </div>
+        <Link
+          href="/admin/payment-failures"
+          className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent"
+        >
+          <AlertTriangle className="h-4 w-4" />
+          {t('admin.payment_failures_link')}
+        </Link>
       </div>
       <div className="mb-8">
         <HostDashboardStatsPanel stats={stats} />

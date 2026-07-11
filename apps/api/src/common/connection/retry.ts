@@ -6,6 +6,13 @@ export function retryBackoffMs(attempt: number): number {
   return Math.min(attempt * CONNECTION_RETRY_BASE_DELAY_MS, CONNECTION_RETRY_MAX_DELAY_MS);
 }
 
+export function exponentialBackoffMs(attempt: number): number {
+  return Math.min(
+    CONNECTION_RETRY_BASE_DELAY_MS * 2 ** (attempt - 1),
+    CONNECTION_RETRY_MAX_DELAY_MS,
+  );
+}
+
 export function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

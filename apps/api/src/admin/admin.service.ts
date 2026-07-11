@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import type {
   Booking,
   BookingStatus,
+  HostProfile,
   Property,
   PropertyPhoto,
   PropertyStatus,
@@ -196,7 +197,7 @@ export class AdminService {
         this.prisma.property.count({ where: { status: 'PENDING_REVIEW' } }),
         this.prisma.booking.count({ where: { status: 'PENDING' } }),
         this.prisma.booking.aggregate({
-          where: { paymentStatus: 'PAID' },
+          where: { paymentStatus: { in: ['PAID', 'CAPTURED'] } },
           _sum: { totalAmount: true },
         }),
       ]);
@@ -269,6 +270,20 @@ export class AdminService {
       throw new NotFoundException('Property not found');
     }
     return this.prisma.property.update({ where: { id }, data: { status } });
+  }
+
+  async setHostPlatformFee(
+    hostProfileId: string,
+    platformFeePercent: number | null | undefined,
+  ): Promise<HostProfile> {
+    const hostProfile = await this.prisma.hostProfile.findUnique({ where: { id: hostProfileId } });
+    if (!hostProfile) {
+      throw new NotFoundException('Host profile not found');
+    }
+    return this.prisma.hostProfile.update({
+      where: { id: hostProfileId },
+      data: { platformFeePercent: platformFeePercent ?? null },
+    });
   }
 
   private async safePresignedUrl(key: string): Promise<string | undefined> {
@@ -432,7 +447,7 @@ export class AdminService {
       return this.prisma.$queryRaw<Array<{ bucket: Date; value: bigint }>>`
         SELECT date_trunc(${trunc}, "paymentCompletedAt") AS bucket, SUM("totalAmount")::bigint AS value
         FROM "bookings"
-        WHERE "paymentStatus" = 'PAID'
+        WHERE "paymentStatus" IN ('PAID', 'CAPTURED')
           AND "paymentCompletedAt" IS NOT NULL
           AND "paymentCompletedAt" >= ${from}
           AND "paymentCompletedAt" < ${to}

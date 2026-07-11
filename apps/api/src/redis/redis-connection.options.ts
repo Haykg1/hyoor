@@ -1,9 +1,6 @@
 import type { Redis, RedisOptions } from 'ioredis';
 
-import {
-  CONNECTION_RETRY_BASE_DELAY_MS,
-  CONNECTION_RETRY_MAX_DELAY_MS,
-} from '../common/connection/retry';
+import { exponentialBackoffMs } from '../common/connection/retry';
 
 export const REDIS_MAX_RECONNECT_ATTEMPTS = 50;
 
@@ -16,7 +13,7 @@ export function buildRedisConnectionOptions(): RedisOptions {
       if (attempt > REDIS_MAX_RECONNECT_ATTEMPTS) {
         return null;
       }
-      return Math.min(attempt * CONNECTION_RETRY_BASE_DELAY_MS, CONNECTION_RETRY_MAX_DELAY_MS);
+      return exponentialBackoffMs(attempt);
     },
     reconnectOnError: (error: Error): boolean => {
       const message = error.message.toLowerCase();

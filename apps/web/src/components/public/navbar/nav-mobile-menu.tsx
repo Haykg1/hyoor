@@ -14,6 +14,7 @@ import { useAuthStore } from '@/store';
 
 import { NAV_LINKS } from './nav-desktop-links';
 import { NavFavoritesLink } from './nav-favorites-link';
+import { NavMessagesLink } from './nav-messages-link';
 import { NavNotificationBell } from './nav-notification-bell';
 
 export function NavMobileMenu(): React.JSX.Element {
@@ -53,6 +54,10 @@ export function NavMobileMenu(): React.JSX.Element {
             <div className="my-2 h-px bg-border" />
           </div>
           <NavFavoritesLink
+            className="rounded-md px-3 py-2 hover:bg-muted"
+            onNavigate={() => setOpen(false)}
+          />
+          <NavMessagesLink
             className="rounded-md px-3 py-2 hover:bg-muted"
             onNavigate={() => setOpen(false)}
           />

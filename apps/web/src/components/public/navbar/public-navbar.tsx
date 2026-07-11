@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation';
 import { NavActions } from './nav-actions';
 import { NavDesktopLinks } from './nav-desktop-links';
 import { NavFavoritesLink } from './nav-favorites-link';
+import { NavMessagesLink } from './nav-messages-link';
 import { NavMobileMenu } from './nav-mobile-menu';
 import { NavNotificationBell } from './nav-notification-bell';
 
@@ -17,6 +18,7 @@ export function PublicNavbar(): React.JSX.Element {
         <NavDesktopLinks className="hidden md:flex" />
         <div className="flex items-center gap-1">
           <NavFavoritesLink className="hidden md:inline-flex" />
+          <NavMessagesLink className="hidden md:inline-flex" />
           <NavNotificationBell className="hidden md:inline-flex" />
           <NavActions />
           <NavMobileMenu />

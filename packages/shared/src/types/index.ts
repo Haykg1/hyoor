@@ -13,6 +13,77 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
+export interface CursorPage<T> {
+  data: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+export type MessageStatus = 'SENT' | 'DELIVERED' | 'READ';
+export type MessageKind = 'TEXT' | 'PROPERTY_CARD';
+
+export interface MessagePropertyCard {
+  id: string;
+  title: string;
+  titleLabels?: PropertyTitleLabels | null;
+  slug: string;
+  propertyType: PropertyType;
+  city: string;
+  region: string | null;
+  country: string;
+  pricePerNight: number;
+  currency: string;
+  coverPhotoUrl?: string;
+  maxGuests: number;
+  bedrooms: number;
+  avgRating?: number;
+  reviewCount: number;
+  featured: boolean;
+  addressLabels?: PropertyAddressLabels | null;
+}
+
+export interface MessageView {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  body: string;
+  kind: MessageKind;
+  propertyId: string | null;
+  property: MessagePropertyCard | null;
+  status: MessageStatus;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface ConversationParticipantView {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  avatarUrl: string | null;
+  nationality: string | null;
+}
+
+export interface ConversationPreview {
+  id: string;
+  guestId: string;
+  hostUserId: string;
+  createdAt: string;
+  updatedAt: string;
+  otherParticipant: ConversationParticipantView;
+  lastMessage: MessageView | null;
+  unreadCount: number;
+}
+
+export interface ConversationDetail {
+  id: string;
+  guestId: string;
+  hostUserId: string;
+  createdAt: string;
+  updatedAt: string;
+  otherParticipant: ConversationParticipantView;
+  unreadCount: number;
+}
+
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
@@ -48,6 +119,11 @@ export interface AuthUser {
   role: UserRole;
 }
 
+/** Currency a host can actually price a listing in. Stripe transactions are USD-only —
+ * hosts do not choose a settlement currency. */
+export const HostSettlementCurrencies = ['USD'] as const;
+export type HostSettlementCurrency = (typeof HostSettlementCurrencies)[number];
+
 export const PropertyTypes = [
   'APARTMENT',
   'HOUSE',
@@ -58,6 +134,13 @@ export const PropertyTypes = [
   'OTHER',
 ] as const;
 export type PropertyType = (typeof PropertyTypes)[number];
+
+/** Cosmetic, non-charged guest-facing price estimate. `amount` is a rounded major-unit
+ * figure (e.g. `120` for "≈120 PLN"), unlike `pricePerNight` which stays in minor units. */
+export interface DisplayPrice {
+  amount: number;
+  currency: string;
+}
 
 export interface PropertySummary {
   id: string;
@@ -70,6 +153,7 @@ export interface PropertySummary {
   country: string;
   pricePerNight: number;
   currency: string;
+  displayPrice?: DisplayPrice | null;
   coverPhotoUrl?: string;
   maxGuests: number;
   bedrooms: number;
@@ -168,9 +252,11 @@ export interface PropertyDetail {
   bathrooms: number;
   currency: string;
   pricePerNight: number;
+  displayPrice?: DisplayPrice | null;
   cleaningFee: number | null;
   securityDeposit: number | null;
   cancellationPolicy: string;
+  nonRefundablePercent: number;
   minNights: number;
   maxNights: number | null;
   checkInTime: string | null;
@@ -267,11 +353,15 @@ export interface BookingDetail {
   currency: string;
   specialRequests: string | null;
   cancellationReason: string | null;
+  paymentProvider: string | null;
+  paymentStatus: string;
+  paymentLockExpiresAt: string | null;
+  depositStatus: string;
+  capturedAt: string | null;
   createdAt: string;
   updatedAt: string;
   property: BookingPropertySummary;
   guest: BookingGuestProfile;
-  conversationId: string | null;
   promotionSummary?: import('../dto/booking-quote').BookingPromotionSummary | null;
 }
 
@@ -316,4 +406,31 @@ export interface HostListingsResponse {
   limit: number;
   totalPages: number;
   stats: HostDashboardStats;
+}
+
+export const PaymentFailureCategories = [
+  'RENT_CAPTURE_FAILED',
+  'DEPOSIT_RELEASE_FAILED',
+  'DEPOSIT_CLAIM_TRANSFER_FAILED',
+  'PAYOUT_TRANSFER_FAILED',
+  'PAYMENT_LOCK_SWEEP_FAILED',
+  'CANCELLATION_CAPTURE_FAILED',
+] as const;
+export type PaymentFailureCategory = (typeof PaymentFailureCategories)[number];
+
+export interface AdminPaymentFailure {
+  id: string;
+  bookingId: string;
+  propertyId: string;
+  propertyTitle: string;
+  guestId: string;
+  guestName: string;
+  hostProfileId: string;
+  hostName: string;
+  category: PaymentFailureCategory;
+  message: string;
+  stripeErrorCode: string | null;
+  resolved: boolean;
+  resolvedAt: string | null;
+  createdAt: string;
 }

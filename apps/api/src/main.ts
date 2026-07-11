@@ -10,7 +10,7 @@ import { AppModule } from './app.module';
 import type { AppConfig } from './config/configuration';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
   const config = app.get<ConfigService<AppConfig, true>>(ConfigService);
   const trustProxy = config.get('security.trustProxy', { infer: true });
   const jsonBodyLimit = config.get('security.jsonBodyLimit', { infer: true });

@@ -215,7 +215,7 @@ export function useBookingForm({
         promoCode: values.promoCode.trim() || undefined,
       });
       setConfirmOpen(false);
-      router.push(`/${locale}/bookings/${booking.id}`);
+      router.push(`/${locale}/bookings/${booking.id}/payment`);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         if (err.status === 401) {

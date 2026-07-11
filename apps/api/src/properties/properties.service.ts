@@ -16,6 +16,7 @@ import type {
   PropertyStatus,
 } from '@repo/database/client';
 import type {
+  DisplayPrice,
   HostDashboardStats,
   HostListingsResponse,
   HostListingSummary,
@@ -42,6 +43,8 @@ import {
 } from '@repo/shared/utils';
 
 import { sanitizeGuestInstructionsHtml } from '../common/utils/sanitize-html';
+import type { CurrencyRates } from '../currency/currency.service';
+import { CurrencyService } from '../currency/currency.service';
 import { PrismaService } from '../database/prisma.service';
 import { GeocodingService } from '../geocoding/geocoding.service';
 import {
@@ -96,6 +99,7 @@ export interface PropertyDetail extends Omit<Property, 'addressLabels' | 'titleL
   addressLabels: PropertyAddressLabels | null;
   titleLabels: PropertyTitleLabels | null;
   featuredPois: PropertyFeaturedPoiView[];
+  displayPrice: DisplayPrice | null;
 }
 
 @Injectable()
@@ -107,7 +111,20 @@ export class PropertiesService {
     private readonly storage: StorageService,
     private readonly hostProfilesService: HostProfilesService,
     private readonly geocoding: GeocodingService,
+    private readonly currencyService: CurrencyService,
   ) {}
+
+  private buildDisplayPrice(
+    pricePerNight: number,
+    currency: string,
+    displayCurrency: string | undefined,
+    rates: CurrencyRates | null,
+  ): DisplayPrice | null {
+    if (!displayCurrency || !rates) return null;
+    const converted = this.currencyService.convert(pricePerNight, currency, displayCurrency, rates);
+    if (converted === null) return null;
+    return { amount: Math.round(converted), currency: displayCurrency };
+  }
 
   private async safePresignedUrl(key: string): Promise<string | undefined> {
     if (!this.storage.isConfigured) return undefined;
@@ -158,6 +175,8 @@ export class PropertiesService {
         bathrooms: new Prisma.Decimal(dto.bathrooms),
         pricePerNight: dto.pricePerNight,
         cancellationPolicy: dto.cancellationPolicy,
+        nonRefundablePercent:
+          dto.cancellationPolicy === 'NON_REFUNDABLE' ? 100 : (dto.nonRefundablePercent ?? 0),
         country: dto.country,
         region: dto.region,
         street: dto.street,
@@ -567,13 +586,16 @@ export class PropertiesService {
     return groups.map((g) => g.propertyId).filter((id): id is string => typeof id === 'string');
   }
 
-  async search(dto: SearchPropertiesDto): Promise<
+  async search(
+    dto: SearchPropertiesDto,
+    displayCurrency?: string,
+  ): Promise<
     PaginatedResponse<PropertySummary> & {
       suggestedDatesByPropertyId?: Record<string, FlexibleStayMatch>;
     }
   > {
     if (this.usesFlexibleDateSearch(dto)) {
-      return this.searchWithFlexibleDates(dto);
+      return this.searchWithFlexibleDates(dto, displayCurrency);
     }
     const page = dto.page ?? 1;
     const limit = dto.limit ?? DEFAULT_PAGE_SIZE;
@@ -581,9 +603,10 @@ export class PropertiesService {
     if ((dto.checkIn && !dto.checkOut) || (!dto.checkIn && dto.checkOut)) {
       throw new BadRequestException('Both checkIn and checkOut are required for date filtering');
     }
-    const [unavailablePropertyIds, ratedPropertyIds] = await Promise.all([
+    const [unavailablePropertyIds, ratedPropertyIds, rates] = await Promise.all([
       this.getUnavailablePropertyIds(dto.checkIn, dto.checkOut),
       this.getRatedPropertyIds(dto),
+      displayCurrency ? this.currencyService.getRates() : Promise.resolve(null),
     ]);
     if (ratedPropertyIds && ratedPropertyIds.length === 0) {
       return { data: [], total: 0, page, limit, totalPages: 1 };
@@ -601,7 +624,7 @@ export class PropertiesService {
       this.prisma.property.count({ where }),
     ]);
     const summaries = await Promise.all(
-      properties.map((property) => this.toPropertySummary(property)),
+      properties.map((property) => this.toPropertySummary(property, displayCurrency, rates)),
     );
     return { data: summaries, total, page, limit, totalPages: Math.ceil(total / limit) || 1 };
   }
@@ -644,7 +667,10 @@ export class PropertiesService {
     return { stayNights, availableFrom, availableTo };
   }
 
-  private async searchWithFlexibleDates(dto: SearchPropertiesDto): Promise<
+  private async searchWithFlexibleDates(
+    dto: SearchPropertiesDto,
+    displayCurrency?: string,
+  ): Promise<
     PaginatedResponse<PropertySummary> & {
       suggestedDatesByPropertyId: Record<string, FlexibleStayMatch>;
     }
@@ -652,7 +678,10 @@ export class PropertiesService {
     const page = dto.page ?? 1;
     const limit = dto.limit ?? DEFAULT_PAGE_SIZE;
     const { stayNights, availableFrom, availableTo } = this.validateFlexibleDateSearch(dto);
-    const ratedPropertyIds = await this.getRatedPropertyIds(dto);
+    const [ratedPropertyIds, rates] = await Promise.all([
+      this.getRatedPropertyIds(dto),
+      displayCurrency ? this.currencyService.getRates() : Promise.resolve(null),
+    ]);
     if (ratedPropertyIds && ratedPropertyIds.length === 0) {
       return { data: [], total: 0, page, limit, totalPages: 1, suggestedDatesByPropertyId: {} };
     }
@@ -687,7 +716,7 @@ export class PropertiesService {
       .map((id) => propertyById.get(id))
       .filter((property): property is NonNullable<typeof property> => property !== undefined);
     const summaries = await Promise.all(
-      orderedProperties.map((property) => this.toPropertySummary(property)),
+      orderedProperties.map((property) => this.toPropertySummary(property, displayCurrency, rates)),
     );
     const suggestedDatesByPropertyId: Record<string, FlexibleStayMatch> = {};
     for (const id of pageIds) {
@@ -805,7 +834,11 @@ export class PropertiesService {
     return matches;
   }
 
-  async findById(id: string, requestingUserId?: string): Promise<PropertyDetail> {
+  async findById(
+    id: string,
+    requestingUserId?: string,
+    displayCurrency?: string,
+  ): Promise<PropertyDetail> {
     const property = await this.prisma.property.findUnique({
       where: { id },
       include: {
@@ -841,6 +874,7 @@ export class PropertiesService {
     } = property;
     const latitude = property.latitude !== null ? Number(property.latitude) : null;
     const longitude = property.longitude !== null ? Number(property.longitude) : null;
+    const rates = displayCurrency ? await this.currencyService.getRates() : null;
     return {
       ...propertyRest,
       photos,
@@ -850,6 +884,12 @@ export class PropertiesService {
       addressLabels: this.parseAddressLabels(rawAddressLabels),
       titleLabels: this.parseTitleLabels(rawTitleLabels),
       featuredPois: this.buildFeaturedPois(property.featuredPoiIds, latitude, longitude),
+      displayPrice: this.buildDisplayPrice(
+        property.pricePerNight,
+        property.currency,
+        displayCurrency,
+        rates,
+      ),
     };
   }
 
@@ -902,6 +942,7 @@ export class PropertiesService {
       activeListings,
       upcomingReservations,
       pastReservations,
+      earningsAgg,
     ] = await Promise.all([
       this.prisma.property.findMany({
         where,
@@ -928,6 +969,13 @@ export class PropertiesService {
           OR: [{ status: 'COMPLETED' }, { status: 'CONFIRMED', checkOut: { lt: todayUtc } }],
         },
       }),
+      this.prisma.booking.aggregate({
+        where: {
+          property: { hostId: hostProfile.id },
+          payoutStatus: 'PAID',
+        },
+        _sum: { hostPayoutAmount: true },
+      }),
     ]);
     const data = await Promise.all(properties.map((p) => this.toHostListingSummary(p)));
     const stats: HostDashboardStats = {
@@ -936,7 +984,7 @@ export class PropertiesService {
       pendingRequests: 0,
       upcomingReservations,
       pastReservations,
-      totalEarnings: 0,
+      totalEarnings: earningsAgg._sum.hostPayoutAmount ?? 0,
     };
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) || 1, stats };
   }
@@ -992,6 +1040,10 @@ export class PropertiesService {
     }
     if (dto.title && dto.title !== property.title) {
       data.slug = await this.generateUniqueSlug(dto.title, property.id);
+    }
+    const nextPolicy = dto.cancellationPolicy ?? property.cancellationPolicy;
+    if (nextPolicy === 'NON_REFUNDABLE') {
+      data.nonRefundablePercent = 100;
     }
     return this.prisma.property.update({
       where: { id: property.id },
@@ -1328,6 +1380,8 @@ export class PropertiesService {
       reviews: { rating: number }[];
       _count: { reviews: number };
     },
+    displayCurrency?: string,
+    rates?: CurrencyRates | null,
   ): Promise<PropertySummary> {
     const coverPhoto = property.photos[0];
     const coverPhotoUrl = coverPhoto ? await this.safePresignedUrl(coverPhoto.key) : undefined;
@@ -1347,6 +1401,12 @@ export class PropertiesService {
       country: property.country,
       pricePerNight: property.pricePerNight,
       currency: property.currency,
+      displayPrice: this.buildDisplayPrice(
+        property.pricePerNight,
+        property.currency,
+        displayCurrency,
+        rates ?? null,
+      ),
       coverPhotoUrl,
       maxGuests: property.maxGuests,
       bedrooms: property.bedrooms,

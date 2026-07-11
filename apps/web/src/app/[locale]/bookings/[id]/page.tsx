@@ -10,14 +10,17 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { getBookingById } from '@/lib/api/bookings';
+
+const PAYABLE_STATUS = 'AWAITING_PAYMENT';
 
 function formatPrice(amount: number, currency: string): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
     maximumFractionDigits: 0,
-  }).format(amount / 100);
+  }).format(amount);
 }
 
 function formatDate(iso: string): string {
@@ -121,14 +124,18 @@ export default function BookingConfirmationPage(): React.JSX.Element {
         </CardContent>
       </Card>
 
-      <p className="mt-6 text-center text-sm text-muted-foreground">
-        Booking status:{' '}
-        <span className="font-medium capitalize">{booking.status.toLowerCase()}</span>
-      </p>
+      <div className="mt-6 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground">
+        Booking status: <StatusBadge status={booking.status} namespace="booking" />
+      </div>
 
-      <Button className="mt-6 w-full" disabled>
-        {t('continue_payment')}
-      </Button>
+      {booking.status === PAYABLE_STATUS && (
+        <Button
+          className="mt-6 w-full"
+          onClick={() => router.push(`/${locale}/bookings/${id}/payment`)}
+        >
+          {t('continue_payment')}
+        </Button>
+      )}
     </div>
   );
 }

@@ -24,7 +24,7 @@ describe('Bookings (e2e)', () => {
     await app.close();
   });
 
-  it('creates a CONFIRMED booking as guest', async () => {
+  it('creates an AWAITING_PAYMENT booking with a locked payment window', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
     const property = await createActivePropertyDirect(app, host);
@@ -33,16 +33,73 @@ describe('Bookings (e2e)', () => {
       .set(authHeader(guest.accessToken))
       .send({
         propertyId: property.id,
-        checkIn: '2025-07-10',
-        checkOut: '2025-07-13',
+        checkIn: '2027-07-10',
+        checkOut: '2027-07-13',
         guestCount: 2,
         specialRequests: 'Late check-in please',
       })
       .expect(201);
-    expect(response.body.data.status).toBe('CONFIRMED');
+    expect(response.body.data.status).toBe('AWAITING_PAYMENT');
+    expect(response.body.data.paymentProvider).toBe('STRIPE');
+    expect(response.body.data.paymentLockExpiresAt).toBeTruthy();
     expect(response.body.data.nightsCount).toBe(3);
-    expect(response.body.data.conversationId).toBeTruthy();
     expect(response.body.data.property.id).toBe(property.id);
+  });
+
+  it('rejects booking when the host has not finished Stripe payment setup', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    await prisma.hostProfile.update({
+      where: { id: host.hostProfileId },
+      data: { stripePayoutsEnabled: false },
+    });
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2027-07-10',
+        checkOut: '2027-07-13',
+        guestCount: 2,
+      })
+      .expect(400);
+    expect(response.body.success).toBe(false);
+  });
+
+  it('confirms Stripe payment and transitions the booking to CONFIRMED', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2027-07-20',
+        checkOut: '2027-07-23',
+        guestCount: 2,
+      })
+      .expect(201);
+    const bookingId = create.body.data.id as string;
+    const setupIntent = await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${bookingId}/payment/setup-intent`)
+      .set(authHeader(guest.accessToken))
+      .expect(200);
+    expect(setupIntent.body.data.clientSecret).toEqual(expect.any(String));
+    const confirm = await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${bookingId}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
+    expect(confirm.body.data.status).toBe('CONFIRMED');
+    const detail = await request(app.getHttpServer())
+      .get(`/api/v1/bookings/${bookingId}`)
+      .set(authHeader(guest.accessToken))
+      .expect(200);
+    expect(detail.body.data.status).toBe('CONFIRMED');
+    expect(detail.body.data.paymentStatus).toBe('AUTHORIZED');
   });
 
   it('blocks dates on calendar when booking is created', async () => {
@@ -54,17 +111,17 @@ describe('Bookings (e2e)', () => {
       .set(authHeader(guest.accessToken))
       .send({
         propertyId: property.id,
-        checkIn: '2025-07-10',
-        checkOut: '2025-07-13',
+        checkIn: '2027-07-10',
+        checkOut: '2027-07-13',
         guestCount: 2,
       })
       .expect(201);
-    expect(create.body.data.status).toBe('CONFIRMED');
+    expect(create.body.data.status).toBe('AWAITING_PAYMENT');
     const blocked = await request(app.getHttpServer())
       .get(`/api/v1/availability/${property.id}/blocked`)
-      .query({ from: '2025-07-01', to: '2025-07-31' })
+      .query({ from: '2027-07-01', to: '2027-07-31' })
       .expect(200);
-    expect(blocked.body.data.dates).toEqual(['2025-07-10', '2025-07-11', '2025-07-12']);
+    expect(blocked.body.data.dates).toEqual(['2027-07-10', '2027-07-11', '2027-07-12']);
   });
 
   it('cancels confirmed booking and unblocks dates', async () => {
@@ -76,13 +133,18 @@ describe('Bookings (e2e)', () => {
       .set(authHeader(guest.accessToken))
       .send({
         propertyId: property.id,
-        checkIn: '2025-08-01',
-        checkOut: '2025-08-04',
+        checkIn: '2027-08-01',
+        checkOut: '2027-08-04',
         guestCount: 2,
       })
       .expect(201);
     const bookingId = create.body.data.id as string;
-    expect(create.body.data.status).toBe('CONFIRMED');
+    expect(create.body.data.status).toBe('AWAITING_PAYMENT');
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${bookingId}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
     const cancel = await request(app.getHttpServer())
       .patch(`/api/v1/bookings/${bookingId}/cancel`)
       .set(authHeader(guest.accessToken))
@@ -91,9 +153,36 @@ describe('Bookings (e2e)', () => {
     expect(cancel.body.data.status).toBe('CANCELLED_BY_GUEST');
     const blocked = await request(app.getHttpServer())
       .get(`/api/v1/availability/${property.id}/blocked`)
-      .query({ from: '2025-08-01', to: '2025-08-10' })
+      .query({ from: '2027-08-01', to: '2027-08-10' })
       .expect(200);
     expect(blocked.body.data.dates).toEqual([]);
+  });
+
+  it('rejects cancelling a booking on or after its check-in date', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    const pastBooking = await prisma.booking.create({
+      data: {
+        propertyId: property.id,
+        guestId: guest.userId,
+        status: 'CONFIRMED',
+        checkIn: new Date('2020-01-01'),
+        checkOut: new Date('2020-01-03'),
+        guestCount: 2,
+        currency: 'AMD',
+        nightlyRate: 25000,
+        nightsCount: 2,
+        totalAmount: 50000,
+      },
+    });
+    const response = await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${pastBooking.id}/cancel`)
+      .set(authHeader(guest.accessToken))
+      .send({ reason: 'Too late' })
+      .expect(400);
+    expect(response.body.success).toBe(false);
   });
 
   it('rejects booking on inactive property', async () => {
@@ -144,6 +233,36 @@ describe('Bookings (e2e)', () => {
       })
       .expect(409);
     expect(response.body.success).toBe(false);
+  });
+
+  it('allows only one of two concurrent overlapping booking requests to succeed', async () => {
+    const host = await registerHostUser(app);
+    const guestA = await registerUser(app, { email: uniqueEmail('guest-concurrent-a') });
+    const guestB = await registerUser(app, { email: uniqueEmail('guest-concurrent-b') });
+    const property = await createActivePropertyDirect(app, host);
+    const bookingPayload = {
+      propertyId: property.id,
+      checkIn: '2025-10-01',
+      checkOut: '2025-10-04',
+      guestCount: 2,
+    };
+    const [responseA, responseB] = await Promise.all([
+      request(app.getHttpServer())
+        .post('/api/v1/bookings')
+        .set(authHeader(guestA.accessToken))
+        .send(bookingPayload),
+      request(app.getHttpServer())
+        .post('/api/v1/bookings')
+        .set(authHeader(guestB.accessToken))
+        .send(bookingPayload),
+    ]);
+    const statuses = [responseA.status, responseB.status].sort();
+    expect(statuses).toEqual([201, 409]);
+    const prisma = app.get(PrismaService);
+    const bookingsForProperty = await prisma.booking.findMany({
+      where: { propertyId: property.id },
+    });
+    expect(bookingsForProperty).toHaveLength(1);
   });
 
   it('allows guest to attach payment reference', async () => {

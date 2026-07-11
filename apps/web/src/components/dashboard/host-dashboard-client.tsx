@@ -46,7 +46,6 @@ export function HostDashboardClient({ welcomeName }: HostDashboardClientProps): 
     softDeleteListing,
     reactivateListing,
   } = useHostListings();
-
   const [dashboardTab, setDashboardTab] = useState<TabKey>('active');
   const activeTabKey: TabKey =
     dashboardTab === 'promotions'

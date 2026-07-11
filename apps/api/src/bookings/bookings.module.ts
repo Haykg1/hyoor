@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { AuthModule } from '../auth/auth.module';
 import { AvailabilityModule } from '../availability/availability.module';
+import { DepositClaimsModule } from '../deposit-claims/deposit-claims.module';
 import { HostProfilesModule } from '../host-profiles/host-profiles.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PaymentsModule } from '../payments/payments.module';
@@ -15,6 +16,7 @@ import { BookingsService } from './bookings.service';
   imports: [
     forwardRef(() => AuthModule),
     AvailabilityModule,
+    DepositClaimsModule,
     HostProfilesModule,
     NotificationsModule,
     PaymentsModule,

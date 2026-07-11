@@ -210,11 +210,6 @@ export function normalizeRow(raw: RawRow): RowNormalizationResult {
     normalized.country = 'AM';
   }
 
-  // Early propertyType default — authoritative pass happens in applyBulkRowDefaults after geocode
-  if (!normalized.propertyType) {
-    normalized.propertyType = 'APARTMENT';
-  }
-
   return { normalized, fixes };
 }
 
