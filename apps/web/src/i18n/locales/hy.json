@@ -77,6 +77,8 @@
     "logout": "Դուրս գալ",
     "account": "Հաշիվ",
     "admin_stats": "Հարթակի վիճակագրություն",
+    "admin_bookings": "Ամրագրումներ",
+    "admin_hosts": "Հյուրընկալողներ",
     "favorites": "Ընտրյալներ",
     "menu": "Մենյու",
     "notifications": "Ծանուցումներ"
@@ -628,6 +630,8 @@
       "enabling": "Միացվում է…",
       "disabling": "Անջատվում է…",
       "payment_failures_link": "Վճարման ձախողումներ",
+      "bookings_link": "Ամրագրումներ",
+      "hosts_link": "Հյուրընկալողներ",
       "tabs": {
         "all_properties": "Բոլոր գույքերը"
       }
@@ -1185,6 +1189,114 @@
           "week": "Շաբաթ",
           "month": "Ամիս"
         }
+      }
+    },
+    "bookings": {
+      "title": "Ամրագրումներ",
+      "subtitle": "Հարթակի բոլոր ամրագրումները՝ մուտքի ամսաթվեր, գումարներ և գիշերային գներ։",
+      "back_to_dashboard": "Վերադառնալ վահանակ",
+      "empty_state": "Ֆիլտրերին համապատասխան ամրագրումներ չկան։",
+      "retry_capture": "Կրկնել գանձումը",
+      "retry_payout": "Կրկնել վճարումը",
+      "retrying": "Կրկնվում է…",
+      "table": {
+        "check_in": "Մուտք",
+        "property": "Գույք",
+        "guest": "Հյուր",
+        "host": "Հյուրընկալող",
+        "status": "Կարգավիճակ",
+        "payment": "Վճարում",
+        "payout": "Ելքային վճարում",
+        "total": "Ընդամենը",
+        "nights": "{count, plural, one {# գիշեր} other {# գիշեր}}",
+        "nightly_breakdown": "Գինը ըստ գիշերների",
+        "toggle_nights": "Ցույց տալ գիշերային գները"
+      },
+      "pagination": {
+        "page_of": "Էջ {page} / {totalPages} (ընդամենը {total})"
+      },
+      "filters": {
+        "search_placeholder": "Փնտրել հյուր, հյուրընկալող կամ գույք…",
+        "status": "Կարգավիճակ",
+        "all_statuses": "Բոլոր կարգավիճակները",
+        "payment_status": "Վճարում",
+        "all_payment_statuses": "Բոլոր վճարման կարգավիճակները",
+        "payout_status": "Ելքային վճարում",
+        "all_payout_statuses": "Բոլոր ելքային կարգավիճակները",
+        "from": "Մուտք սկսած",
+        "to": "Մուտք մինչև",
+        "property_id": "Գույքի ID",
+        "guest_id": "Հյուրի ID",
+        "host_id": "Հյուրընկալողի ID",
+        "reset": "Զրոյացնել",
+        "payment_status_values": {
+          "UNPAID": "Չվճարված",
+          "PENDING": "Սպասման մեջ",
+          "PAID": "Վճարված",
+          "AUTHORIZED": "Հաստատված",
+          "CAPTURED": "Գանձված",
+          "PARTIALLY_REFUNDED": "Մասնակի վերադարձ",
+          "REFUNDED": "Վերադարձված",
+          "FAILED": "Ձախողված",
+          "CANCELLED": "Չեղարկված"
+        },
+        "payout_status_values": {
+          "NONE": "Չկա",
+          "SCHEDULED": "Պլանավորված",
+          "PAID": "Վճարված",
+          "FAILED": "Ձախողված"
+        }
+      }
+    },
+    "hosts": {
+      "title": "Հյուրընկալողներ",
+      "subtitle": "Հյուրընկալողների պրոֆիլներ և հարթակի վճարի անհատականացում։ Անհատական վճարը կիրառվում է միայն հետագա գանձումների վրա։",
+      "back_to_dashboard": "Վերադառնալ վահանակ",
+      "empty_state": "Ֆիլտրերին համապատասխան հյուրընկալողներ չկան։",
+      "type_individual": "Անհատ",
+      "type_company": "Ընկերություն",
+      "verified_yes": "Հաստատված",
+      "verified_no": "Չհաստատված",
+      "stripe_ready": "Վճարումները պատրաստ են",
+      "stripe_pending": "Վճարումները սպասում են",
+      "using_default": "լռելյայն",
+      "custom": "անհատական",
+      "using_default_value": "լռելյայն {percent}%",
+      "effective": "Կիրառելի {percent}%",
+      "save": "Պահել",
+      "saving": "Պահվում է…",
+      "clear": "Լռելյայն",
+      "fee_saved": "Հարթակի վճարը թարմացվել է",
+      "fee_cleared": "Հարթակի վճարը վերադարձել է լռելյայնին",
+      "fee_invalid": "Մուտքագրեք 0–100 միջակայքի վճար",
+      "fee_save_error": "Չհաջողվեց թարմացնել հարթակի վճարը",
+      "table": {
+        "host": "Հյուրընկալող",
+        "email": "Էլ. փոստ",
+        "type": "Տեսակ",
+        "properties": "Հայտարարություններ",
+        "verified": "Հաստատված",
+        "stripe": "Stripe",
+        "platform_fee": "Հարթակի վճար"
+      },
+      "pagination": {
+        "page_of": "Էջ {page}՝ {totalPages}-ից ({total} ընդամենը)"
+      },
+      "filters": {
+        "search_placeholder": "Որոնել անուն, ընկերություն կամ էլ. փոստ…",
+        "host_type": "Տեսակ",
+        "all_types": "Բոլոր տեսակները",
+        "type_individual": "Անհատ",
+        "type_company": "Ընկերություն",
+        "verified": "Հաստատված",
+        "all_verified": "Բոլորը",
+        "verified_yes": "Հաստատված",
+        "verified_no": "Չհաստատված",
+        "fee_override": "Հարթակի վճար",
+        "all_fees": "Բոլոր վճարները",
+        "custom_fee": "Անհատական",
+        "default_fee": "Լռելյայն",
+        "reset": "Վերակայել"
       }
     },
     "payment_failures": {

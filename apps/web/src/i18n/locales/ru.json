@@ -77,6 +77,8 @@
     "logout": "Выйти",
     "account": "Аккаунт",
     "admin_stats": "Статистика платформы",
+    "admin_bookings": "Бронирования",
+    "admin_hosts": "Хозяева",
     "favorites": "Избранное",
     "menu": "Меню",
     "notifications": "Уведомления"
@@ -628,6 +630,8 @@
       "enabling": "Включение…",
       "disabling": "Отключение…",
       "payment_failures_link": "Сбои платежей",
+      "bookings_link": "Бронирования",
+      "hosts_link": "Хозяева",
       "tabs": {
         "all_properties": "Все объекты"
       }
@@ -1185,6 +1189,114 @@
           "week": "Неделя",
           "month": "Месяц"
         }
+      }
+    },
+    "bookings": {
+      "title": "Бронирования",
+      "subtitle": "Все бронирования платформы — даты заезда, суммы и цены по ночам.",
+      "back_to_dashboard": "Назад в панель",
+      "empty_state": "Нет бронирований по выбранным фильтрам.",
+      "retry_capture": "Повторить списание",
+      "retry_payout": "Повторить выплату",
+      "retrying": "Повтор…",
+      "table": {
+        "check_in": "Заезд",
+        "property": "Объект",
+        "guest": "Гость",
+        "host": "Хозяин",
+        "status": "Статус",
+        "payment": "Оплата",
+        "payout": "Выплата",
+        "total": "Итого",
+        "nights": "{count, plural, one {# ночь} few {# ночи} other {# ночей}}",
+        "nightly_breakdown": "Цена по ночам",
+        "toggle_nights": "Показать цены по ночам"
+      },
+      "pagination": {
+        "page_of": "Страница {page} из {totalPages} (всего {total})"
+      },
+      "filters": {
+        "search_placeholder": "Поиск по гостю, хозяину или объекту…",
+        "status": "Статус",
+        "all_statuses": "Все статусы",
+        "payment_status": "Оплата",
+        "all_payment_statuses": "Все статусы оплаты",
+        "payout_status": "Выплата",
+        "all_payout_statuses": "Все статусы выплат",
+        "from": "Заезд с",
+        "to": "Заезд по",
+        "property_id": "ID объекта",
+        "guest_id": "ID гостя",
+        "host_id": "ID хозяина",
+        "reset": "Сбросить",
+        "payment_status_values": {
+          "UNPAID": "Не оплачено",
+          "PENDING": "Ожидание",
+          "PAID": "Оплачено",
+          "AUTHORIZED": "Авторизовано",
+          "CAPTURED": "Списано",
+          "PARTIALLY_REFUNDED": "Частичный возврат",
+          "REFUNDED": "Возврат",
+          "FAILED": "Ошибка",
+          "CANCELLED": "Отменено"
+        },
+        "payout_status_values": {
+          "NONE": "Нет",
+          "SCHEDULED": "Запланировано",
+          "PAID": "Выплачено",
+          "FAILED": "Ошибка"
+        }
+      }
+    },
+    "hosts": {
+      "title": "Хозяева",
+      "subtitle": "Профили хозяев и индивидуальные комиссии платформы. Кастомная комиссия действует только для будущих списаний аренды.",
+      "back_to_dashboard": "Назад в панель",
+      "empty_state": "Нет хозяев, соответствующих фильтрам.",
+      "type_individual": "Физлицо",
+      "type_company": "Компания",
+      "verified_yes": "Подтверждён",
+      "verified_no": "Не подтверждён",
+      "stripe_ready": "Выплаты готовы",
+      "stripe_pending": "Выплаты не готовы",
+      "using_default": "по умолчанию",
+      "custom": "индивидуальная",
+      "using_default_value": "по умолчанию {percent}%",
+      "effective": "Действует {percent}%",
+      "save": "Сохранить",
+      "saving": "Сохранение…",
+      "clear": "По умолчанию",
+      "fee_saved": "Комиссия платформы обновлена",
+      "fee_cleared": "Комиссия сброшена к значению по умолчанию",
+      "fee_invalid": "Укажите комиссию от 0 до 100",
+      "fee_save_error": "Не удалось обновить комиссию",
+      "table": {
+        "host": "Хозяин",
+        "email": "Email",
+        "type": "Тип",
+        "properties": "Объекты",
+        "verified": "Проверка",
+        "stripe": "Stripe",
+        "platform_fee": "Комиссия"
+      },
+      "pagination": {
+        "page_of": "Страница {page} из {totalPages} (всего {total})"
+      },
+      "filters": {
+        "search_placeholder": "Поиск по имени, компании или email…",
+        "host_type": "Тип хозяина",
+        "all_types": "Все типы",
+        "type_individual": "Физлицо",
+        "type_company": "Компания",
+        "verified": "Проверка",
+        "all_verified": "Все",
+        "verified_yes": "Подтверждён",
+        "verified_no": "Не подтверждён",
+        "fee_override": "Комиссия",
+        "all_fees": "Все комиссии",
+        "custom_fee": "Индивидуальная",
+        "default_fee": "По умолчанию",
+        "reset": "Сбросить"
       }
     },
     "payment_failures": {

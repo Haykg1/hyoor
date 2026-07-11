@@ -10,6 +10,7 @@ import { FavoritesHydrator } from '@/components/providers/favorites-hydrator';
 import { MessagingHydrator } from '@/components/providers/messaging-hydrator';
 import { NotificationsHydrator } from '@/components/providers/notifications-hydrator';
 import { ThemeProvider } from '@/components/providers/theme-provider';
+import { ViewTransitions } from '@/components/providers/view-transitions';
 import { Toaster } from '@/components/ui/sonner';
 import type { Locale } from '@/i18n/routing';
 import { routing } from '@/i18n/routing';
@@ -45,20 +46,22 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
-        <ThemeProvider>
-          <AuthProvider>
-            <FavoritesHydrator />
-            <NotificationsHydrator />
-            <MessagingHydrator />
-            <NextIntlClientProvider locale={locale} messages={messages}>
-              {children}
-              <Toaster richColors closeButton />
-            </NextIntlClientProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+    <ViewTransitions>
+      <html lang={locale} suppressHydrationWarning>
+        <body className={`${inter.variable} font-sans antialiased`}>
+          <ThemeProvider>
+            <AuthProvider>
+              <FavoritesHydrator />
+              <NotificationsHydrator />
+              <MessagingHydrator />
+              <NextIntlClientProvider locale={locale} messages={messages}>
+                {children}
+                <Toaster richColors closeButton />
+              </NextIntlClientProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ViewTransitions>
   );
 }

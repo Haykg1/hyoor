@@ -6,7 +6,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { Booking, BookingStatus, Prisma, Property } from '@repo/database/client';
+import type { Booking, BookingStatus, Property } from '@repo/database/client';
+import { Prisma } from '@repo/database/client';
 import type { BookingQuoteResult, PaginatedResponse } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 
@@ -169,6 +170,7 @@ export class BookingsService {
           currency: property.currency,
           nightlyRate: quote.nightlyRate,
           nightsCount,
+          nightlyBreakdown: quote.nightlyBreakdown as unknown as Prisma.InputJsonValue,
           cleaningFee: quote.cleaningFee,
           securityDeposit: quote.securityDeposit,
           discountAmount: quote.discountAmount,
@@ -473,9 +475,12 @@ export class BookingsService {
     });
     const rowByDate = new Map(availabilityRows.map((row) => [formatIsoDate(row.date), row]));
     let accommodationSubtotal = 0;
+    const nightlyBreakdown: { date: string; amount: number }[] = [];
     for (const night of nights) {
-      const row = rowByDate.get(formatIsoDate(night));
-      accommodationSubtotal += row?.priceOverride ?? property.pricePerNight;
+      const date = formatIsoDate(night);
+      const amount = rowByDate.get(date)?.priceOverride ?? property.pricePerNight;
+      nightlyBreakdown.push({ date, amount });
+      accommodationSubtotal += amount;
     }
     const nightlyRate = nightsCount > 0 ? Math.round(accommodationSubtotal / nightsCount) : 0;
     const resolved = await this.promotionsService.resolveBestPromotion({
@@ -497,6 +502,7 @@ export class BookingsService {
       currency: property.currency,
       nightsCount,
       nightlyRate,
+      nightlyBreakdown,
       accommodationSubtotal,
       discountAmount,
       discountedAccommodation,

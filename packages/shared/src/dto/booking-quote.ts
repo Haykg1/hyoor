@@ -17,6 +17,11 @@ export interface AppliedPromotionSummary {
   discountAmount: number | null;
 }
 
+export interface BookingNightPrice {
+  date: string;
+  amount: number;
+}
+
 export interface BookingQuoteResult {
   propertyId: string;
   checkIn: string;
@@ -24,6 +29,7 @@ export interface BookingQuoteResult {
   currency: string;
   nightsCount: number;
   nightlyRate: number;
+  nightlyBreakdown: BookingNightPrice[];
   accommodationSubtotal: number;
   discountAmount: number;
   discountedAccommodation: number;

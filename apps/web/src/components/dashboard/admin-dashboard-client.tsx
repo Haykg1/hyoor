@@ -54,13 +54,27 @@ export function AdminDashboardClient({
             {t('welcome', { name: welcomeName })}
           </p>
         </div>
-        <Link
-          href="/admin/payment-failures"
-          className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          {t('admin.payment_failures_link')}
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/hosts"
+            className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent"
+          >
+            {t('admin.hosts_link')}
+          </Link>
+          <Link
+            href="/admin/bookings"
+            className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent"
+          >
+            {t('admin.bookings_link')}
+          </Link>
+          <Link
+            href="/admin/payment-failures"
+            className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            {t('admin.payment_failures_link')}
+          </Link>
+        </div>
       </div>
       <div className="mb-8">
         <HostDashboardStatsPanel stats={stats} />
