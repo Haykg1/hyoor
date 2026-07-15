@@ -1,8 +1,14 @@
-import type { AiSearchExtractedFilters, SearchPropertiesToolArgs } from '@repo/shared';
+import type {
+  AiSearchExtractedFilters,
+  PoiDestination,
+  SearchPropertiesToolArgs,
+} from '@repo/shared';
 import type { PlaceResult } from '@repo/shared';
 import { resolveAiSearchDateFields, todayIsoUtc } from '@repo/shared';
 
 import { SearchPropertiesDto } from '../../properties/dto/search-properties.dto';
+
+export const NEAR_LANDMARK_RADIUS_KM = 1.2;
 
 export interface ResolvedLocation {
   locationLabel: string;
@@ -12,6 +18,7 @@ export interface ResolvedLocation {
   searchPlaceKind?: string;
   searchLatitude?: number;
   searchLongitude?: number;
+  searchRadiusKm?: number;
   region?: string;
   city?: string;
 }
@@ -28,6 +35,17 @@ export function placeToResolvedLocation(place: PlaceResult): ResolvedLocation {
     searchLongitude: place.lng,
     region: place.region ?? undefined,
     city: city ?? undefined,
+  };
+}
+
+export function destinationPoiToResolvedLocation(poi: PoiDestination): ResolvedLocation {
+  return {
+    locationLabel: poi.nameLabels.en,
+    searchPlaceKind: 'landmark',
+    searchLatitude: poi.latitude,
+    searchLongitude: poi.longitude,
+    searchRadiusKm: NEAR_LANDMARK_RADIUS_KM,
+    region: poi.region,
   };
 }
 
@@ -48,6 +66,10 @@ function setOptionalBoolean(query: URLSearchParams, key: string, value: boolean 
   if (value !== undefined) query.set(key, String(value));
 }
 
+function hasGeoCoords(location: ResolvedLocation): boolean {
+  return location.searchLatitude !== undefined && location.searchLongitude !== undefined;
+}
+
 export function buildSearchPathFromFilters(
   filters: AiSearchExtractedFilters,
   suggestedDates?: { checkIn: string; checkOut: string },
@@ -64,13 +86,15 @@ export function buildSearchPathFromFilters(
     today,
   );
   const query = new URLSearchParams();
-  if (filters.searchCity) query.set('searchCity', filters.searchCity);
+  const hasCoords = filters.searchLatitude !== undefined && filters.searchLongitude !== undefined;
+  if (!hasCoords && filters.searchCity) query.set('searchCity', filters.searchCity);
   if (filters.region) query.set('region', filters.region);
   if (filters.searchStreet) query.set('searchStreet', filters.searchStreet);
   if (filters.searchBuildingNumber) query.set('searchBuildingNumber', filters.searchBuildingNumber);
   if (filters.searchPlaceKind) query.set('searchPlaceKind', filters.searchPlaceKind);
   setOptionalNumber(query, 'searchLatitude', filters.searchLatitude);
   setOptionalNumber(query, 'searchLongitude', filters.searchLongitude);
+  setOptionalNumber(query, 'searchRadiusKm', filters.searchRadiusKm);
   if (sanitized.checkIn) query.set('checkIn', sanitized.checkIn);
   if (sanitized.checkOut) query.set('checkOut', sanitized.checkOut);
   if (filters.guests && filters.guests > 1) query.set('guests', String(filters.guests));
@@ -98,14 +122,20 @@ export function toExtractedFilters(
   location: ResolvedLocation,
 ): AiSearchExtractedFilters {
   const dates = resolveAiSearchDateFields(args, todayIsoUtc());
+  const geo = hasGeoCoords(location);
+  const searchRadiusKm =
+    args.searchRadiusKm ??
+    location.searchRadiusKm ??
+    (location.searchPlaceKind === 'landmark' ? NEAR_LANDMARK_RADIUS_KM : undefined);
   return {
     locationLabel: location.locationLabel,
-    searchCity: location.searchCity,
+    searchCity: geo ? undefined : location.searchCity,
     searchStreet: location.searchStreet,
     searchBuildingNumber: location.searchBuildingNumber,
     searchPlaceKind: location.searchPlaceKind,
     searchLatitude: location.searchLatitude,
     searchLongitude: location.searchLongitude,
+    searchRadiusKm,
     region: location.region,
     checkIn: dates.checkIn,
     checkOut: dates.checkOut,
@@ -145,15 +175,20 @@ export function toSearchPropertiesDto(
   location: ResolvedLocation,
 ): SearchPropertiesDto {
   const dates = resolveAiSearchDateFields(args, todayIsoUtc());
+  const geo = hasGeoCoords(location);
   const dto = new SearchPropertiesDto();
-  dto.searchCity = location.searchCity;
+  dto.searchCity = geo ? undefined : location.searchCity;
   dto.searchStreet = location.searchStreet;
   dto.searchBuildingNumber = location.searchBuildingNumber;
   dto.searchPlaceKind = location.searchPlaceKind;
   dto.searchLatitude = location.searchLatitude;
   dto.searchLongitude = location.searchLongitude;
+  dto.searchRadiusKm =
+    args.searchRadiusKm ??
+    location.searchRadiusKm ??
+    (location.searchPlaceKind === 'landmark' ? NEAR_LANDMARK_RADIUS_KM : undefined);
   dto.region = location.region;
-  dto.city = location.city;
+  dto.city = geo ? undefined : location.city;
   if (hasExactSearchDates(dates)) {
     dto.checkIn = dates.checkIn;
     dto.checkOut = dates.checkOut;

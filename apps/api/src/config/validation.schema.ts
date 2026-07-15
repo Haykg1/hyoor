@@ -52,6 +52,7 @@ export const validationSchema = Joi.object({
   REDIS_URL: Joi.string().allow('').optional(),
   CURRENCY_RATES_API_URL: Joi.string().allow('').optional(),
   CURRENCY_RATES_FETCH_ON_BOOT: Joi.string().valid('true', 'false').optional(),
+  POI_SEED_ON_BOOT: Joi.string().valid('true', 'false').optional(),
   TRUST_PROXY: Joi.string().valid('true', 'false').optional(),
   JSON_BODY_LIMIT: Joi.string().optional(),
   MAX_UPLOAD_BYTES: Joi.number().integer().min(1).optional(),

@@ -21,6 +21,7 @@ export interface AiSearchExtractedFilters {
   searchPlaceKind?: string;
   searchLatitude?: number;
   searchLongitude?: number;
+  searchRadiusKm?: number;
   region?: string;
   checkIn?: string;
   checkOut?: string;
@@ -74,6 +75,8 @@ export interface AiSearchQuota {
 
 export interface SearchPropertiesToolArgs {
   locationQuery?: string;
+  /** Optional explicit geo radius (km). Prefer for "near landmark" (~1.2). */
+  searchRadiusKm?: number;
   checkIn?: string;
   checkOut?: string;
   stayNights?: number;

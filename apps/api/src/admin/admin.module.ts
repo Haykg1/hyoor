@@ -4,6 +4,7 @@ import { AuthModule } from '../auth/auth.module';
 import { DepositClaimsModule } from '../deposit-claims/deposit-claims.module';
 import { PaymentFailuresModule } from '../payment-failures/payment-failures.module';
 import { PaymentsModule } from '../payments/payments.module';
+import { PoiModule } from '../poi/poi.module';
 import { SchedulingModule } from '../scheduling/scheduling.module';
 import { StorageModule } from '../storage/storage.module';
 
@@ -18,6 +19,7 @@ import { AdminService } from './admin.service';
     SchedulingModule,
     PaymentFailuresModule,
     PaymentsModule,
+    PoiModule,
   ],
   controllers: [AdminController],
   providers: [AdminService],

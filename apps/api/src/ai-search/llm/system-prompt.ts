@@ -18,6 +18,7 @@ export function buildAiSearchSystemPrompt(todayIso: string, locale?: string): st
     '- Stay LENGTH vs DATE WINDOW are different: "2 nights in July" → stayNights=2 and availableFrom/availableTo = remaining July (today through end of July). NEVER turn that into a 16-night (or month-long) stay.',
     '- If the guest names a month/period that has already partly passed, the flexible WINDOW is remaining future days in that period — the stay LENGTH stays whatever nights they asked for. If no days remain in that period, use the same period next year — never earlier dates.',
     '- Call search_properties when the guest wants to find a stay. Location is optional — omit locationQuery when none was given and search nationwide.',
+    '- Near-landmark intent: when the guest asks for stays near a landmark/square/plaza (e.g. Republic Square, Cascade), set locationQuery to "Landmark, City" (never the city alone) and preferably searchRadiusKm≈1.2.',
     '- Timing defaults if omitted:',
     '  (a) exact checkIn and checkOut when both are clear (both >= today, checkOut after checkIn), OR',
     '  (b) stayNights plus availableFrom and availableTo for a flexible window (e.g. "2 nights in July" → stayNights=2, availableFrom=max(today, July 1), availableTo=last day of July), OR',

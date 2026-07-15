@@ -1,4 +1,5 @@
 export * from './poi-city';
+export * from './poi-match';
 export * from './geo-distance';
 export * from './search-dates';
 export * from './property-type';

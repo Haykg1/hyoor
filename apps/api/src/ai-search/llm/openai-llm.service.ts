@@ -86,6 +86,7 @@ export class OpenAiLlmService extends LlmService {
     const toolCall = choice.message.tool_calls?.[0];
     if (toolCall?.type === 'function' && toolCall.function.name === SEARCH_PROPERTIES_TOOL_NAME) {
       const args = this.parseToolArgs(toolCall.function.arguments);
+      console.log('args', args);
       const message =
         choice.message.content?.trim() || 'Here are some places that match your search.';
       return {
@@ -268,6 +269,9 @@ export class OpenAiLlmService extends LlmService {
     const record = parsed as Record<string, unknown>;
     const args: SearchPropertiesToolArgs = {};
     if (typeof record.locationQuery === 'string') args.locationQuery = record.locationQuery.trim();
+    if (typeof record.searchRadiusKm === 'number' && record.searchRadiusKm > 0) {
+      args.searchRadiusKm = record.searchRadiusKm;
+    }
     if (typeof record.checkIn === 'string') args.checkIn = record.checkIn.trim();
     if (typeof record.checkOut === 'string') args.checkOut = record.checkOut.trim();
     if (typeof record.stayNights === 'number') args.stayNights = Math.floor(record.stayNights);

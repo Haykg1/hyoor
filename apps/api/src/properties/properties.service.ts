@@ -86,11 +86,13 @@ const DEFAULT_RADIUS_KM = 8;
 const DEFAULT_RADIUS_KM_BY_KIND: Record<string, number> = {
   house: 0.05,
   street: 0.7,
+  landmark: 1.2,
   metro: 1.5,
   district: 4,
   area: 5,
   locality: 8,
 };
+const GEO_DISTANCE_CANDIDATE_CAP = FLEXIBLE_SEARCH_CANDIDATE_CAP;
 const GEO_INELIGIBLE_KINDS = new Set(['province', 'country']);
 
 export interface PropertyPhotoView extends PropertyPhoto {
@@ -637,6 +639,44 @@ export class PropertiesService {
     return sortBy === 'topRated' || sortBy === 'mostReviewed';
   }
 
+  private usesGeoDistanceSort(dto: SearchPropertiesDto): boolean {
+    if (dto.searchLatitude === undefined || dto.searchLongitude === undefined) {
+      return false;
+    }
+    if (this.usesAggregateReviewSort(dto)) return false;
+    const sortBy = this.resolveSortBy(dto);
+    return sortBy === 'recommended';
+  }
+
+  private orderPropertyIdsByGeoDistance(
+    properties: {
+      id: string;
+      featured: boolean;
+      latitude: { toNumber(): number } | number | null;
+      longitude: { toNumber(): number } | number | null;
+    }[],
+    latitude: number,
+    longitude: number,
+  ): string[] {
+    const withCoords = properties.flatMap((property) => {
+      if (property.latitude == null || property.longitude == null) return [];
+      const lat =
+        typeof property.latitude === 'number' ? property.latitude : property.latitude.toNumber();
+      const lng =
+        typeof property.longitude === 'number' ? property.longitude : property.longitude.toNumber();
+      return [{ id: property.id, featured: property.featured, latitude: lat, longitude: lng }];
+    });
+    return withCoords
+      .sort((left, right) => {
+        if (left.featured !== right.featured) return left.featured ? -1 : 1;
+        return (
+          computeDistanceKm(latitude, longitude, left.latitude, left.longitude) -
+          computeDistanceKm(latitude, longitude, right.latitude, right.longitude)
+        );
+      })
+      .map((property) => property.id);
+  }
+
   private async orderPropertyIdsByReviewAggregate(
     properties: { id: string; featured: boolean }[],
     sortBy: 'topRated' | 'mostReviewed',
@@ -730,6 +770,34 @@ export class PropertiesService {
         select: { id: true, featured: true },
       });
       const orderedIds = await this.orderPropertyIdsByReviewAggregate(candidates, sortBy);
+      const total = orderedIds.length;
+      const pageIds = orderedIds.slice(skip, skip + limit);
+      const properties = await this.prisma.property.findMany({
+        where: { id: { in: pageIds } },
+        include: this.searchPropertyInclude(),
+      });
+      const propertyById = new Map(properties.map((property) => [property.id, property]));
+      const orderedProperties = pageIds
+        .map((id) => propertyById.get(id))
+        .filter((property): property is NonNullable<typeof property> => property !== undefined);
+      const summaries = await Promise.all(
+        orderedProperties.map((property) =>
+          this.toPropertySummary(property, displayCurrency, rates),
+        ),
+      );
+      return { data: summaries, total, page, limit, totalPages: Math.ceil(total / limit) || 1 };
+    }
+    if (this.usesGeoDistanceSort(dto)) {
+      const candidates = await this.prisma.property.findMany({
+        where,
+        select: { id: true, featured: true, latitude: true, longitude: true },
+        take: GEO_DISTANCE_CANDIDATE_CAP,
+      });
+      const orderedIds = this.orderPropertyIdsByGeoDistance(
+        candidates,
+        dto.searchLatitude as number,
+        dto.searchLongitude as number,
+      );
       const total = orderedIds.length;
       const pageIds = orderedIds.slice(skip, skip + limit);
       const properties = await this.prisma.property.findMany({
@@ -844,14 +912,20 @@ export class PropertiesService {
     const orderBy = this.buildOrderBy(dto);
     const candidates = await this.prisma.property.findMany({
       where,
-      orderBy,
+      orderBy: this.usesGeoDistanceSort(dto) ? undefined : orderBy,
       take: FLEXIBLE_SEARCH_CANDIDATE_CAP,
-      select: { id: true, featured: true },
+      select: { id: true, featured: true, latitude: true, longitude: true },
     });
     let candidateIds = candidates.map((row) => row.id);
     if (this.usesAggregateReviewSort(dto)) {
       const sortBy = this.resolveSortBy(dto) as 'topRated' | 'mostReviewed';
       candidateIds = await this.orderPropertyIdsByReviewAggregate(candidates, sortBy);
+    } else if (this.usesGeoDistanceSort(dto)) {
+      candidateIds = this.orderPropertyIdsByGeoDistance(
+        candidates,
+        dto.searchLatitude as number,
+        dto.searchLongitude as number,
+      );
     }
     const flexibleMatches = await this.findFlexibleAvailabilityForProperties(
       candidateIds,

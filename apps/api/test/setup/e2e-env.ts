@@ -18,6 +18,7 @@ process.env.AWS_S3_AVATARS_BUCKET = 'e2e-test-bucket';
 process.env.GOOGLE_CLIENT_ID = 'e2e-google-client-id';
 process.env.GOOGLE_CLIENT_SECRET = 'e2e-google-client-secret';
 process.env.REDIS_URL = 'redis://localhost:6379';
+process.env.POI_SEED_ON_BOOT = 'true';
 process.env.STRIPE_SECRET_KEY = 'sk_test_e2e_dummy_key';
 process.env.STRIPE_PUBLISHABLE_KEY = 'pk_test_e2e_dummy_key';
 process.env.STRIPE_WEBHOOK_SECRET = 'whsec_e2e_dummy_secret';

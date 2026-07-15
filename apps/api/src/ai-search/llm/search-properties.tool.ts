@@ -23,7 +23,14 @@ export function buildSearchPropertiesToolDefinition(): {
           locationQuery: {
             type: 'string',
             description:
-              'Optional city, region, or landmark in Armenia (e.g. Yerevan, Dilijan, Lake Sevan). Omit when the guest did not name a place.',
+              'Optional city, region, or landmark in Armenia. For "near X" landmark intent use "X, City" (e.g. "Republic Square, Yerevan") — never the city alone. Omit when the guest did not name a place.',
+          },
+          searchRadiusKm: {
+            type: 'number',
+            minimum: 0.1,
+            maximum: 50,
+            description:
+              'Optional geo radius in km around the resolved location. For near-landmark searches use about 1.2.',
           },
           checkIn: {
             type: 'string',

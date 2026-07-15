@@ -540,6 +540,41 @@ describe('Admin (e2e)', () => {
       .expect(400);
   });
 
+  describe('POI seed', () => {
+    it('rejects unauthenticated access', async () => {
+      await request(app.getHttpServer()).post('/api/v1/admin/poi/seed').expect(401);
+    });
+
+    it('rejects non-admin staff', async () => {
+      const staff = await registerUser(app, { email: uniqueEmail('staff-poi') });
+      const prisma = app.get(PrismaService);
+      await prisma.user.update({ where: { id: staff.userId }, data: { role: 'STAFF' } });
+      const login = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email: staff.email, password: staff.password })
+        .expect(201);
+      await request(app.getHttpServer())
+        .post('/api/v1/admin/poi/seed')
+        .set(authHeader(login.body.data.accessToken as string))
+        .expect(403);
+    });
+
+    it('allows admin to force-seed POIs', async () => {
+      const admin = await registerAdmin(app);
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/admin/poi/seed')
+        .set(authHeader(admin.accessToken))
+        .expect(201);
+      expect(response.body.data).toEqual(
+        expect.objectContaining({
+          metroDatasets: expect.any(Number),
+          destinationDatasets: expect.any(Number),
+          seededEntries: expect.any(Number),
+        }),
+      );
+    });
+  });
+
   describe('manual cron triggers', () => {
     const endpoints = [
       'cron/release-expired-deposit-holds',

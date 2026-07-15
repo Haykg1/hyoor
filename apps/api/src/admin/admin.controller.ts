@@ -19,6 +19,7 @@ import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
 import { DepositClaimsService } from '../deposit-claims/deposit-claims.service';
 import { ReviewDepositClaimDto } from '../deposit-claims/dto/review-deposit-claim.dto';
 import { PaymentFailuresService } from '../payment-failures/payment-failures.service';
+import { PoiSeedService, type PoiSeedResult } from '../poi/poi-seed.service';
 import { UpdatePropertyStatusDto } from '../properties/dto/update-property-status.dto';
 import { CheckinCaptureCronService } from '../scheduling/checkin-capture-cron.service';
 import { DepositReleaseCronService } from '../scheduling/deposit-release-cron.service';
@@ -59,6 +60,7 @@ export class AdminController {
     private readonly paymentLockSweeperCron: PaymentLockSweeperService,
     private readonly hostPayoutCron: HostPayoutCronService,
     private readonly paymentFailures: PaymentFailuresService,
+    private readonly poiSeedService: PoiSeedService,
   ) {}
 
   @Get('stats')
@@ -258,6 +260,15 @@ export class AdminController {
   async runScheduledPayouts(): Promise<{ message: string }> {
     await this.hostPayoutCron.runScheduledPayouts();
     return { message: 'runScheduledPayouts completed' };
+  }
+
+  @Post('poi/seed')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Force-seed curated POI GEO indexes into Redis (admin only)' })
+  @ApiOkResponse({ description: 'POI GEO datasets seeded' })
+  @ApiStandardErrors()
+  seedPois(): Promise<PoiSeedResult> {
+    return this.poiSeedService.forceSeed();
   }
 
   @Get('payment-failures')

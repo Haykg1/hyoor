@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import type { AiSearchPropertyResult } from '@repo/shared';
 import type { AiSearchChatResponse, AiSearchMessage } from '@repo/shared';
-import { inferPropertyTypeFromText, localeToYandexLang, todayIsoUtc } from '@repo/shared';
+import {
+  findDestinationPoiByQuery,
+  inferPropertyTypeFromText,
+  localeToYandexLang,
+  todayIsoUtc,
+} from '@repo/shared';
 
 import { GeocodingService } from '../geocoding/geocoding.service';
 import { PropertiesService } from '../properties/properties.service';
@@ -10,6 +15,7 @@ import type { LlmCompletionResult } from './llm/llm.service';
 import { LlmService } from './llm/llm.service';
 import {
   buildSearchPathFromFilters,
+  destinationPoiToResolvedLocation,
   fallbackResolvedLocation,
   placeToResolvedLocation,
   toExtractedFilters,
@@ -66,7 +72,7 @@ export class AiSearchService {
     }
     const locationQuery = args.locationQuery?.trim();
     const location = locationQuery
-      ? await this.resolveLocation(locationQuery, locale)
+      ? await this.resolveLocation(locationQuery, locale, lastUser)
       : fallbackResolvedLocation('');
     const filters = toExtractedFilters(args, location);
     if (!locationQuery) {
@@ -116,7 +122,17 @@ export class AiSearchService {
     };
   }
 
-  private async resolveLocation(locationQuery: string, locale: string): Promise<ResolvedLocation> {
+  private async resolveLocation(
+    locationQuery: string,
+    locale: string,
+    lastUserMessage?: string,
+  ): Promise<ResolvedLocation> {
+    const curated =
+      findDestinationPoiByQuery(locationQuery) ??
+      (lastUserMessage ? findDestinationPoiByQuery(lastUserMessage) : null);
+    if (curated) {
+      return destinationPoiToResolvedLocation(curated);
+    }
     try {
       const places = await this.geocodingService.searchPlaces(
         locationQuery,
