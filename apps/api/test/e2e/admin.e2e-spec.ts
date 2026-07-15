@@ -148,6 +148,107 @@ describe('Admin (e2e)', () => {
     expect(response.body.data.activeListings).toBeGreaterThanOrEqual(1);
   });
 
+  it('sums platform fees for trailing 30 days, not totalAmount', async () => {
+    const admin = await registerAdmin(app);
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActiveHostProperty(app, host);
+    const prisma = app.get(PrismaService);
+    const now = new Date();
+    const recent = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+    const old = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+    await prisma.booking.create({
+      data: {
+        propertyId: property.id,
+        guestId: guest.userId,
+        status: 'COMPLETED',
+        checkIn: recent,
+        checkOut: new Date(recent.getTime() + 3 * 24 * 60 * 60 * 1000),
+        guestCount: 2,
+        currency: 'USD',
+        nightlyRate: 10000,
+        nightsCount: 2,
+        totalAmount: 25000,
+        paymentStatus: 'CAPTURED',
+        paymentCompletedAt: recent,
+        platformFeeAmount: 2000,
+        hostPayoutAmount: 18000,
+      },
+    });
+    await prisma.booking.create({
+      data: {
+        propertyId: property.id,
+        guestId: guest.userId,
+        status: 'COMPLETED',
+        checkIn: old,
+        checkOut: new Date(old.getTime() + 3 * 24 * 60 * 60 * 1000),
+        guestCount: 2,
+        currency: 'USD',
+        nightlyRate: 10000,
+        nightsCount: 2,
+        totalAmount: 50000,
+        paymentStatus: 'CAPTURED',
+        paymentCompletedAt: old,
+        platformFeeAmount: 9000,
+        hostPayoutAmount: 41000,
+      },
+    });
+    const response = await request(app.getHttpServer())
+      .get('/api/v1/admin/dashboard/stats')
+      .query({ preset: 'last_30_days' })
+      .set(authHeader(admin.accessToken))
+      .expect(200);
+    expect(response.body.data.totalEarnings).toBe(2000);
+    expect(response.body.data.earningsCurrency).toBe('USD');
+    expect(response.body.data.earningsFrom).toBeDefined();
+    expect(response.body.data.earningsTo).toBeDefined();
+    const yearResponse = await request(app.getHttpServer())
+      .get('/api/v1/admin/dashboard/stats')
+      .query({ preset: 'last_year' })
+      .set(authHeader(admin.accessToken))
+      .expect(200);
+    expect(yearResponse.body.data.totalEarnings).toBe(11000);
+  });
+
+  it('returns revenue timeseries as platform fee sum', async () => {
+    const admin = await registerAdmin(app);
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActiveHostProperty(app, host);
+    const prisma = app.get(PrismaService);
+    const paidAt = new Date();
+    await prisma.booking.create({
+      data: {
+        propertyId: property.id,
+        guestId: guest.userId,
+        status: 'COMPLETED',
+        checkIn: paidAt,
+        checkOut: new Date(paidAt.getTime() + 2 * 24 * 60 * 60 * 1000),
+        guestCount: 2,
+        currency: 'USD',
+        nightlyRate: 10000,
+        nightsCount: 1,
+        totalAmount: 15000,
+        paymentStatus: 'CAPTURED',
+        paymentCompletedAt: paidAt,
+        platformFeeAmount: 1500,
+        hostPayoutAmount: 8500,
+      },
+    });
+    const from = new Date(paidAt.getTime() - 24 * 60 * 60 * 1000).toISOString();
+    const to = new Date(paidAt.getTime() + 24 * 60 * 60 * 1000).toISOString();
+    const response = await request(app.getHttpServer())
+      .get('/api/v1/admin/stats/timeseries')
+      .query({ metric: 'revenue', range: 'day', from, to })
+      .set(authHeader(admin.accessToken))
+      .expect(200);
+    const total = (response.body.data.data as Array<{ value: number }>).reduce(
+      (sum, row) => sum + row.value,
+      0,
+    );
+    expect(total).toBe(1500);
+  });
+
   it('changes property status', async () => {
     const admin = await registerAdmin(app);
     const host = await registerHostUser(app);
@@ -206,6 +307,42 @@ describe('Admin (e2e)', () => {
     expect(row.canRetryPayout).toBe(false);
   });
 
+  it('filters bookings by booking id in search', async () => {
+    const admin = await registerAdmin(app);
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActiveHostProperty(app, host);
+    const created = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2025-09-01',
+        checkOut: '2025-09-03',
+        guestCount: 1,
+      })
+      .expect(201);
+    const bookingId = created.body.data.id as string;
+    const other = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2025-09-10',
+        checkOut: '2025-09-12',
+        guestCount: 1,
+      })
+      .expect(201);
+    const response = await request(app.getHttpServer())
+      .get('/api/v1/admin/bookings')
+      .query({ search: bookingId })
+      .set(authHeader(admin.accessToken))
+      .expect(200);
+    expect(response.body.data.total).toBe(1);
+    expect(response.body.data.data[0].id).toBe(bookingId);
+    expect(response.body.data.data[0].id).not.toBe(other.body.data.id);
+  });
+
   it('lists hosts with effective platform fee', async () => {
     const admin = await registerAdmin(app);
     const host = await registerHostUser(app);
@@ -230,6 +367,45 @@ describe('Admin (e2e)', () => {
     expect(row.platformFeePercent).toBeNull();
     expect(row.effectivePlatformFeePercent).toBe(row.defaultPlatformFeePercent);
     expect(row.propertyCount).toBeGreaterThanOrEqual(1);
+  });
+
+  it('filters hosts by verification status', async () => {
+    const admin = await registerAdmin(app);
+    const unverified = await registerHostUser(app);
+    const verified = await registerHostUser(app);
+    const prisma = app.get(PrismaService);
+    await prisma.hostProfile.update({
+      where: { id: verified.hostProfileId },
+      data: { isVerified: true },
+    });
+    const verifiedOnly = await request(app.getHttpServer())
+      .get('/api/v1/admin/hosts')
+      .query({ isVerified: 'true' })
+      .set(authHeader(admin.accessToken))
+      .expect(200);
+    expect(
+      verifiedOnly.body.data.data.every((h: { isVerified: boolean }) => h.isVerified === true),
+    ).toBe(true);
+    expect(
+      verifiedOnly.body.data.data.some((h: { id: string }) => h.id === verified.hostProfileId),
+    ).toBe(true);
+    expect(
+      verifiedOnly.body.data.data.some((h: { id: string }) => h.id === unverified.hostProfileId),
+    ).toBe(false);
+    const unverifiedOnly = await request(app.getHttpServer())
+      .get('/api/v1/admin/hosts')
+      .query({ isVerified: 'false' })
+      .set(authHeader(admin.accessToken))
+      .expect(200);
+    expect(
+      unverifiedOnly.body.data.data.every((h: { isVerified: boolean }) => h.isVerified === false),
+    ).toBe(true);
+    expect(
+      unverifiedOnly.body.data.data.some((h: { id: string }) => h.id === unverified.hostProfileId),
+    ).toBe(true);
+    expect(
+      unverifiedOnly.body.data.data.some((h: { id: string }) => h.id === verified.hostProfileId),
+    ).toBe(false);
   });
 
   it('sets and clears host platform fee override', async () => {

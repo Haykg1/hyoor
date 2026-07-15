@@ -9,13 +9,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { PROPERTY_PLACEHOLDER_IMAGE } from '@/lib/constants/property-placeholder';
-import {
-  LIGHTBOX_PHOTO_TRANSITION_NAME,
-  lightboxPhotoTransitionStyle,
-  propertyImageTransitionStyle,
-  viewTransitionsSupported,
-  withViewTransition,
-} from '@/lib/constants/view-transitions';
+import { propertyImageTransitionStyle } from '@/lib/constants/view-transitions';
 import { cn } from '@/lib/utils';
 
 interface PropertyGalleryProps {
@@ -30,11 +24,6 @@ interface OutgoingPhoto {
   direction: 'next' | 'prev';
 }
 
-/**
- * Warms the browser cache with the full-size photo before a lightbox transition starts,
- * so the view-transition snapshot isn't taken against a still-loading (blank) image.
- * Times out quickly on slow networks rather than making the click feel unresponsive.
- */
 async function preloadImage(url: string): Promise<void> {
   const image = new window.Image();
   image.src = url;
@@ -63,36 +52,16 @@ export function PropertyGallery({
   const isOpen = lightboxIndex !== null;
   const activePhoto =
     lightboxIndex !== null ? (photos[lightboxIndex]?.url ?? PROPERTY_PLACEHOLDER_IMAGE) : null;
-  const openLightbox = (index: number, thumb: HTMLElement | null): void => {
+  const openLightbox = (index: number): void => {
     const url = photos[index]?.url ?? PROPERTY_PLACEHOLDER_IMAGE;
     void preloadImage(url).then(() => {
-      const previousName = thumb?.style.getPropertyValue('view-transition-name') ?? '';
-      thumb?.style.setProperty('view-transition-name', LIGHTBOX_PHOTO_TRANSITION_NAME);
-      withViewTransition(
-        () => {
-          // Exclude the thumbnail from the new snapshot: restoring its page-transition
-          // name here would make it re-enter as its own group, drawn above the modal.
-          thumb?.style.setProperty('view-transition-name', 'none');
-          setOutgoing(null);
-          setLightboxIndex(index);
-        },
-        () => thumb?.style.setProperty('view-transition-name', previousName),
-      );
+      setOutgoing(null);
+      setLightboxIndex(index);
     });
   };
   const closeLightbox = (): void => {
-    if (lightboxIndex === null) return;
-    const thumb = document.querySelector<HTMLElement>(`[data-lightbox-thumb="${lightboxIndex}"]`);
-    const previousName = thumb?.style.getPropertyValue('view-transition-name') ?? '';
-    thumb?.style.setProperty('view-transition-name', 'none');
-    withViewTransition(
-      () => {
-        thumb?.style.setProperty('view-transition-name', LIGHTBOX_PHOTO_TRANSITION_NAME);
-        setOutgoing(null);
-        setLightboxIndex(null);
-      },
-      () => thumb?.style.setProperty('view-transition-name', previousName),
-    );
+    setOutgoing(null);
+    setLightboxIndex(null);
   };
   const changePhoto = useCallback(
     (direction: 'next' | 'prev') => {
@@ -145,8 +114,7 @@ export function PropertyGallery({
           <div
             className="relative col-span-1 h-64 cursor-pointer md:col-span-2 md:row-span-2 md:h-auto"
             style={{ minHeight: 320, ...propertyImageTransitionStyle(propertyId) }}
-            data-lightbox-thumb={0}
-            onClick={(event) => openLightbox(0, event.currentTarget)}
+            onClick={() => openLightbox(0)}
           >
             <Image
               src={cover}
@@ -161,8 +129,7 @@ export function PropertyGallery({
             <div
               key={photo.id ?? i}
               className="relative hidden h-36 cursor-pointer md:block md:h-auto"
-              data-lightbox-thumb={i + 1}
-              onClick={(event) => openLightbox(i + 1, event.currentTarget)}
+              onClick={() => openLightbox(i + 1)}
             >
               <Image
                 src={photo.url}
@@ -179,7 +146,7 @@ export function PropertyGallery({
             size="sm"
             variant="secondary"
             className="absolute bottom-3 right-3 gap-1.5 shadow"
-            onClick={() => openLightbox(0, document.querySelector('[data-lightbox-thumb="0"]'))}
+            onClick={() => openLightbox(0)}
           >
             <Camera className="h-4 w-4" />
             {t('gallery.show_all', { count: photos.length })}
@@ -188,13 +155,7 @@ export function PropertyGallery({
       </div>
 
       <Dialog open={isOpen} onOpenChange={(open) => !open && closeLightbox()}>
-        <DialogContent
-          className={cn(
-            'max-w-4xl overflow-hidden border-0 bg-black/90 p-2 duration-500 ease-out',
-            viewTransitionsSupported() &&
-              'data-[state=closed]:animate-none data-[state=open]:animate-none',
-          )}
-        >
+        <DialogContent className="max-w-4xl overflow-hidden border-0 bg-black/90 p-2 duration-0 data-[state=closed]:animate-none data-[state=open]:animate-none">
           <button
             type="button"
             onClick={closeLightbox}
@@ -251,7 +212,6 @@ export function PropertyGallery({
               )}
               <div
                 key={lightboxIndex}
-                style={lightboxPhotoTransitionStyle()}
                 className={cn(
                   'absolute inset-0',
                   outgoing && [

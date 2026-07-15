@@ -2,7 +2,11 @@ import type { AdminPaymentFailure, PaymentFailureCategory } from '@repo/shared';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { listPaymentFailures, resolvePaymentFailure } from '@/lib/api/payment-failures';
+import {
+  listPaymentFailures,
+  resolvePaymentFailure,
+  resolvePaymentFailures,
+} from '@/lib/api/payment-failures';
 
 interface AdminPaymentFailuresState {
   failures: AdminPaymentFailure[];
@@ -33,6 +37,7 @@ interface AdminPaymentFailuresActions {
   setGuestId: (value: string) => void;
   resetFilters: () => void;
   resolveFailure: (id: string) => Promise<void>;
+  resolveFailures: (ids: string[]) => Promise<void>;
 }
 
 const PAGE_SIZE = 20;
@@ -112,6 +117,10 @@ export const useAdminPaymentFailuresStore = create<
         }),
       resolveFailure: async (id) => {
         await resolvePaymentFailure(id);
+        await get().fetchFailures();
+      },
+      resolveFailures: async (ids) => {
+        await resolvePaymentFailures(ids);
         await get().fetchFailures();
       },
     }),

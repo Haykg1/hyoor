@@ -20,6 +20,7 @@ import type {
   AdminBooking,
   AdminHost,
   BookingNightPrice,
+  EarningsPreset,
   HostDashboardStats,
   HostListingSummary,
   HostListingsResponse,
@@ -35,12 +36,15 @@ import { StripeCheckoutService } from '../payments/stripe/stripe-checkout.servic
 import { StorageService } from '../storage/storage.service';
 
 import { QueryAdminBookingsDto } from './dto/query-admin-bookings.dto';
+import type { QueryAdminEarningsDto } from './dto/query-admin-earnings.dto';
 import { QueryAdminHostsDto } from './dto/query-admin-hosts.dto';
 import { QueryAdminPropertiesDto } from './dto/query-admin-properties.dto';
 import { QueryTimeseriesDto, TimeseriesMetric, TimeseriesRange } from './dto/query-timeseries.dto';
 import { QueryUsersDto } from './dto/query-users.dto';
 
 const S3_PRESIGNED_URL_EXPIRES = 3600;
+const EARNINGS_LAST_30_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+const EARNINGS_LAST_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
 const TIMESERIES_DEFAULT_DAYS = 30;
 const RANGE_TO_TRUNC: Record<TimeseriesRange, string> = {
@@ -204,7 +208,8 @@ export class AdminService {
     }) as Promise<User>;
   }
 
-  async getDashboardStats(): Promise<HostDashboardStats> {
+  async getDashboardStats(dto: QueryAdminEarningsDto = {}): Promise<HostDashboardStats> {
+    const { from, to } = resolveEarningsWindow(dto.preset, dto.from, dto.to);
     const [totalListings, activeListings, pendingReview, pendingBookings, revenueAgg] =
       await Promise.all([
         this.prisma.property.count({ where: { status: { not: 'INACTIVE' } } }),
@@ -212,8 +217,12 @@ export class AdminService {
         this.prisma.property.count({ where: { status: 'PENDING_REVIEW' } }),
         this.prisma.booking.count({ where: { status: 'PENDING' } }),
         this.prisma.booking.aggregate({
-          where: { paymentStatus: { in: ['PAID', 'CAPTURED'] } },
-          _sum: { totalAmount: true },
+          where: {
+            paymentStatus: { in: ['PAID', 'CAPTURED'] },
+            platformFeeAmount: { not: null },
+            paymentCompletedAt: { gte: from, lt: to },
+          },
+          _sum: { platformFeeAmount: true },
         }),
       ]);
     return {
@@ -222,7 +231,10 @@ export class AdminService {
       pendingRequests: pendingReview + pendingBookings,
       upcomingReservations: 0,
       pastReservations: 0,
-      totalEarnings: revenueAgg._sum.totalAmount ?? 0,
+      totalEarnings: revenueAgg._sum.platformFeeAmount ?? 0,
+      earningsFrom: from.toISOString(),
+      earningsTo: to.toISOString(),
+      earningsCurrency: 'USD',
     };
   }
 
@@ -273,7 +285,11 @@ export class AdminService {
         include: { photos: { where: { isCover: true }, take: 1 } },
       }),
       this.prisma.property.count({ where }),
-      this.getDashboardStats(),
+      this.getDashboardStats({
+        preset: dto.earningsPreset,
+        from: dto.earningsFrom,
+        to: dto.earningsTo,
+      }),
     ]);
     const data = await Promise.all(properties.map((p) => this.toListingSummary(p)));
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) || 1, stats };
@@ -309,9 +325,9 @@ export class AdminService {
     const search = dto.search?.trim();
     const where: Prisma.HostProfileWhereInput = {
       ...(dto.hostType ? { hostType: dto.hostType as HostType } : {}),
-      ...(dto.isVerified !== undefined ? { isVerified: dto.isVerified } : {}),
-      ...(dto.hasFeeOverride === true ? { platformFeePercent: { not: null } } : {}),
-      ...(dto.hasFeeOverride === false ? { platformFeePercent: null } : {}),
+      ...(dto.isVerified !== undefined ? { isVerified: dto.isVerified === 'true' } : {}),
+      ...(dto.hasFeeOverride === 'true' ? { platformFeePercent: { not: null } } : {}),
+      ...(dto.hasFeeOverride === 'false' ? { platformFeePercent: null } : {}),
       ...(search
         ? {
             OR: [
@@ -459,6 +475,7 @@ export class AdminService {
       ...(search
         ? {
             OR: [
+              { id: { contains: search, mode: 'insensitive' } },
               { property: { title: { contains: search, mode: 'insensitive' } } },
               { guest: { profile: { firstName: { contains: search, mode: 'insensitive' } } } },
               { guest: { profile: { lastName: { contains: search, mode: 'insensitive' } } } },
@@ -745,9 +762,10 @@ export class AdminService {
     }
     if (metric === TimeseriesMetric.REVENUE) {
       return this.prisma.$queryRaw<Array<{ bucket: Date; value: bigint }>>`
-        SELECT date_trunc(${trunc}, "paymentCompletedAt") AS bucket, SUM("totalAmount")::bigint AS value
+        SELECT date_trunc(${trunc}, "paymentCompletedAt") AS bucket, SUM("platformFeeAmount")::bigint AS value
         FROM "bookings"
         WHERE "paymentStatus" IN ('PAID', 'CAPTURED')
+          AND "platformFeeAmount" IS NOT NULL
           AND "paymentCompletedAt" IS NOT NULL
           AND "paymentCompletedAt" >= ${from}
           AND "paymentCompletedAt" < ${to}
@@ -771,6 +789,29 @@ function resolveTimeseriesWindow(
     throw new BadRequestException('from must be before to');
   }
   return { from, to };
+}
+
+function resolveEarningsWindow(
+  preset: EarningsPreset | undefined,
+  fromInput: string | undefined,
+  toInput: string | undefined,
+): { from: Date; to: Date } {
+  const resolvedPreset: EarningsPreset =
+    preset ?? (fromInput && toInput ? 'custom' : 'last_30_days');
+  if (resolvedPreset === 'custom') {
+    if (!fromInput || !toInput) {
+      throw new BadRequestException('from and to are required when preset is custom');
+    }
+    const from = parseDateOrThrow(fromInput, 'from');
+    const to = parseDateOrThrow(toInput, 'to');
+    if (from >= to) {
+      throw new BadRequestException('from must be before to');
+    }
+    return { from, to };
+  }
+  const to = new Date();
+  const ms = resolvedPreset === 'last_year' ? EARNINGS_LAST_YEAR_MS : EARNINGS_LAST_30_DAYS_MS;
+  return { from: new Date(to.getTime() - ms), to };
 }
 
 function parseDateOrThrow(value: string, field: string): Date {

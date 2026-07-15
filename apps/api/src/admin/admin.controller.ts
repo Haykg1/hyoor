@@ -32,7 +32,9 @@ import {
   type PlatformStats,
   type TimeseriesResponse,
 } from './admin.service';
+import { BulkResolvePaymentFailuresDto } from './dto/bulk-resolve-payment-failures.dto';
 import { QueryAdminBookingsDto } from './dto/query-admin-bookings.dto';
+import { QueryAdminEarningsDto } from './dto/query-admin-earnings.dto';
 import { QueryAdminHostsDto } from './dto/query-admin-hosts.dto';
 import { QueryAdminPropertiesDto } from './dto/query-admin-properties.dto';
 import { QueryPaymentFailuresDto } from './dto/query-payment-failures.dto';
@@ -112,8 +114,8 @@ export class AdminController {
   @ApiOperation({ summary: 'Get admin dashboard statistics' })
   @ApiOkResponse({ description: 'Property and booking counts for the admin dashboard' })
   @ApiStandardErrors()
-  getDashboardStats(): Promise<HostDashboardStats> {
-    return this.adminService.getDashboardStats();
+  getDashboardStats(@Query() dto: QueryAdminEarningsDto): Promise<HostDashboardStats> {
+    return this.adminService.getDashboardStats(dto);
   }
 
   @Get('properties')
@@ -269,6 +271,19 @@ export class AdminController {
       ...dto,
       resolved: dto.resolved === undefined ? undefined : dto.resolved === 'true',
     });
+  }
+
+  @Patch('payment-failures/resolve')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Mark multiple payment failures as resolved (admin only)' })
+  @ApiOkResponse({ description: 'Failures marked resolved' })
+  @ApiStandardErrors({ notFound: true })
+  async resolvePaymentFailures(
+    @Body() dto: BulkResolvePaymentFailuresDto,
+    @CurrentUser() user: RequestUser,
+  ): Promise<{ message: string; resolvedCount: number }> {
+    const { resolvedCount } = await this.paymentFailures.resolveMany(dto.ids, user.userId);
+    return { message: 'Payment failures marked resolved', resolvedCount };
   }
 
   @Patch('payment-failures/:id/resolve')

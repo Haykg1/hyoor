@@ -1,6 +1,8 @@
 'use client';
 
 import { UserRole } from '@repo/shared';
+import type { LucideIcon } from 'lucide-react';
+import { Compass, Home, Sparkles } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { Link } from '@/i18n/navigation';
@@ -10,13 +12,24 @@ import { useAuthStore } from '@/store';
 interface NavLink {
   href: string;
   labelKey: 'explore' | 'ai_search' | 'become_host';
+  icon: LucideIcon;
   forRoles: UserRole[];
 }
 
 const NAV_LINKS: NavLink[] = [
-  { href: '/search', labelKey: 'explore', forRoles: ['GUEST', 'HOST', 'ADMIN'] },
-  { href: '/ai-search', labelKey: 'ai_search', forRoles: ['GUEST', 'HOST', 'ADMIN'] },
-  { href: '/host/onboarding', labelKey: 'become_host', forRoles: ['GUEST'] },
+  { href: '/search', labelKey: 'explore', icon: Compass, forRoles: ['GUEST', 'HOST', 'ADMIN'] },
+  {
+    href: '/ai-search',
+    labelKey: 'ai_search',
+    icon: Sparkles,
+    forRoles: ['GUEST', 'HOST', 'ADMIN'],
+  },
+  {
+    href: '/host/onboarding',
+    labelKey: 'become_host',
+    icon: Home,
+    forRoles: ['GUEST'],
+  },
 ];
 
 interface NavDesktopLinksProps {
@@ -29,15 +42,19 @@ export function NavDesktopLinks({ className }: NavDesktopLinksProps): React.JSX.
   const role = user?.role ?? 'GUEST';
   return (
     <nav className={cn('items-center gap-6', className)} aria-label="Primary">
-      {NAV_LINKS.filter((link) => link.forRoles.includes(role)).map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          {t(link.labelKey)}
-        </Link>
-      ))}
+      {NAV_LINKS.filter((link) => link.forRoles.includes(role)).map((link) => {
+        const Icon = link.icon;
+        return (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <Icon className="h-4 w-4 shrink-0" aria-hidden />
+            {t(link.labelKey)}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

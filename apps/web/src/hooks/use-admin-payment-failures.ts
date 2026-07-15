@@ -33,6 +33,7 @@ export function useAdminPaymentFailures() {
     setGuestId,
     resetFilters,
     resolveFailure,
+    resolveFailures,
   } = useAdminPaymentFailuresStore();
 
   useEffect(() => {
@@ -71,5 +72,6 @@ export function useAdminPaymentFailures() {
     setGuestId,
     resetFilters,
     resolveFailure,
+    resolveFailures,
   };
 }

@@ -1,14 +1,21 @@
-import type { AdminBooking, PaginatedResponse } from '@repo/shared';
+import type {
+  AdminBooking,
+  BookingStatus,
+  DepositStatus,
+  PaginatedResponse,
+  PaymentStatus,
+  PayoutStatus,
+} from '@repo/shared';
 
 import { api } from '@/lib/api';
 
 export interface ListAdminBookingsParams {
   page?: number;
   limit?: number;
-  status?: string;
-  paymentStatus?: string;
-  payoutStatus?: string;
-  depositStatus?: string;
+  status?: BookingStatus;
+  paymentStatus?: PaymentStatus;
+  payoutStatus?: PayoutStatus;
+  depositStatus?: DepositStatus;
   propertyId?: string;
   guestId?: string;
   hostId?: string;

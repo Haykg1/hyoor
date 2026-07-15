@@ -1,53 +1,30 @@
 'use client';
 
+import type { BookingStatus, PaymentStatus, PayoutStatus } from '@repo/shared';
+import { BookingStatuses, PaymentStatuses, PayoutStatuses } from '@repo/shared';
 import { Search, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const BOOKING_STATUSES = [
-  'AWAITING_PAYMENT',
-  'PENDING',
-  'CONFIRMED',
-  'CANCELLED_BY_GUEST',
-  'CANCELLED_BY_HOST',
-  'PAYMENT_EXPIRED',
-  'COMPLETED',
-  'NO_SHOW',
-] as const;
-
-const PAYMENT_STATUSES = [
-  'UNPAID',
-  'PENDING',
-  'PAID',
-  'AUTHORIZED',
-  'CAPTURED',
-  'PARTIALLY_REFUNDED',
-  'REFUNDED',
-  'FAILED',
-  'CANCELLED',
-] as const;
-
-const PAYOUT_STATUSES = ['NONE', 'SCHEDULED', 'PAID', 'FAILED'] as const;
-
 const SELECT_CLASS =
   'h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring';
 
 interface AdminBookingsToolbarProps {
   searchQuery: string;
-  status: string | null;
-  paymentStatus: string | null;
-  payoutStatus: string | null;
+  status: BookingStatus | null;
+  paymentStatus: PaymentStatus | null;
+  payoutStatus: PayoutStatus | null;
   propertyId: string;
   guestId: string;
   hostId: string;
   from: string;
   to: string;
   onSearchChange: (value: string) => void;
-  onStatusChange: (value: string | null) => void;
-  onPaymentStatusChange: (value: string | null) => void;
-  onPayoutStatusChange: (value: string | null) => void;
+  onStatusChange: (value: BookingStatus | null) => void;
+  onPaymentStatusChange: (value: PaymentStatus | null) => void;
+  onPayoutStatusChange: (value: PayoutStatus | null) => void;
   onPropertyIdChange: (value: string) => void;
   onGuestIdChange: (value: string) => void;
   onHostIdChange: (value: string) => void;
@@ -87,8 +64,8 @@ export function AdminBookingsToolbar({
     propertyId.trim() ||
     guestId.trim() ||
     hostId.trim() ||
-    from.trim() ||
-    to.trim(),
+    from ||
+    to,
   );
   return (
     <div className="mb-4 flex flex-col gap-3">
@@ -106,12 +83,12 @@ export function AdminBookingsToolbar({
         </div>
         <select
           value={status ?? ''}
-          onChange={(e) => onStatusChange(e.target.value || null)}
+          onChange={(e) => onStatusChange((e.target.value || null) as BookingStatus | null)}
           className={SELECT_CLASS}
           aria-label={t('status')}
         >
           <option value="">{t('all_statuses')}</option>
-          {BOOKING_STATUSES.map((s) => (
+          {BookingStatuses.map((s) => (
             <option key={s} value={s}>
               {tBooking(s)}
             </option>
@@ -119,12 +96,12 @@ export function AdminBookingsToolbar({
         </select>
         <select
           value={paymentStatus ?? ''}
-          onChange={(e) => onPaymentStatusChange(e.target.value || null)}
+          onChange={(e) => onPaymentStatusChange((e.target.value || null) as PaymentStatus | null)}
           className={SELECT_CLASS}
           aria-label={t('payment_status')}
         >
           <option value="">{t('all_payment_statuses')}</option>
-          {PAYMENT_STATUSES.map((s) => (
+          {PaymentStatuses.map((s) => (
             <option key={s} value={s}>
               {t(`payment_status_values.${s}`)}
             </option>
@@ -132,12 +109,12 @@ export function AdminBookingsToolbar({
         </select>
         <select
           value={payoutStatus ?? ''}
-          onChange={(e) => onPayoutStatusChange(e.target.value || null)}
+          onChange={(e) => onPayoutStatusChange((e.target.value || null) as PayoutStatus | null)}
           className={SELECT_CLASS}
           aria-label={t('payout_status')}
         >
           <option value="">{t('all_payout_statuses')}</option>
-          {PAYOUT_STATUSES.map((s) => (
+          {PayoutStatuses.map((s) => (
             <option key={s} value={s}>
               {t(`payout_status_values.${s}`)}
             </option>

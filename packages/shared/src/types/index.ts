@@ -59,6 +59,8 @@ export interface ConversationParticipantView {
   id: string;
   firstName: string | null;
   lastName: string | null;
+  /** Resolved display label — company name for company hosts, otherwise first + last name. */
+  displayName: string;
   avatarUrl: string | null;
   nationality: string | null;
 }
@@ -391,6 +393,9 @@ export interface HostListingSummary {
   coverPhotoUrl?: string;
 }
 
+export const EarningsPresets = ['last_30_days', 'last_year', 'custom'] as const;
+export type EarningsPreset = (typeof EarningsPresets)[number];
+
 export interface HostDashboardStats {
   totalListings: number;
   activeListings: number;
@@ -398,6 +403,12 @@ export interface HostDashboardStats {
   upcomingReservations: number;
   pastReservations: number;
   totalEarnings: number;
+  /** ISO start of the earnings window (admin dashboard only). */
+  earningsFrom?: string;
+  /** ISO end of the earnings window (admin dashboard only). */
+  earningsTo?: string;
+  /** Currency for totalEarnings when shown as platform fees (admin). */
+  earningsCurrency?: 'USD';
 }
 
 export interface HostListingsResponse {
@@ -408,6 +419,41 @@ export interface HostListingsResponse {
   totalPages: number;
   stats: HostDashboardStats;
 }
+
+/** Mirrors Prisma `BookingStatus` — keep in sync with booking.prisma. */
+export const BookingStatuses = [
+  'AWAITING_PAYMENT',
+  'PENDING',
+  'CONFIRMED',
+  'CANCELLED_BY_GUEST',
+  'CANCELLED_BY_HOST',
+  'PAYMENT_EXPIRED',
+  'COMPLETED',
+  'NO_SHOW',
+] as const;
+export type BookingStatus = (typeof BookingStatuses)[number];
+
+/** Mirrors Prisma `PaymentStatus` — keep in sync with booking.prisma. */
+export const PaymentStatuses = [
+  'UNPAID',
+  'PENDING',
+  'PAID',
+  'AUTHORIZED',
+  'CAPTURED',
+  'PARTIALLY_REFUNDED',
+  'REFUNDED',
+  'FAILED',
+  'CANCELLED',
+] as const;
+export type PaymentStatus = (typeof PaymentStatuses)[number];
+
+/** Mirrors Prisma `PayoutStatus` — keep in sync with booking.prisma. */
+export const PayoutStatuses = ['NONE', 'SCHEDULED', 'PAID', 'FAILED'] as const;
+export type PayoutStatus = (typeof PayoutStatuses)[number];
+
+/** Mirrors Prisma `DepositStatus` — keep in sync with booking.prisma. */
+export const DepositStatuses = ['NONE', 'AUTHORIZED', 'RELEASED', 'CAPTURED', 'FAILED'] as const;
+export type DepositStatus = (typeof DepositStatuses)[number];
 
 export const PaymentFailureCategories = [
   'RENT_CAPTURE_FAILED',
@@ -438,10 +484,10 @@ export interface AdminPaymentFailure {
 
 export interface AdminBooking {
   id: string;
-  status: string;
-  paymentStatus: string;
-  depositStatus: string;
-  payoutStatus: string;
+  status: BookingStatus;
+  paymentStatus: PaymentStatus;
+  depositStatus: DepositStatus;
+  payoutStatus: PayoutStatus;
   checkIn: string;
   checkOut: string;
   guestCount: number;

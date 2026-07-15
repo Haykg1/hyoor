@@ -49,6 +49,7 @@ export default function AdminPaymentFailuresPage(): React.JSX.Element {
     setGuestId,
     resetFilters,
     resolveFailure,
+    resolveFailures,
   } = useAdminPaymentFailures();
 
   if (authLoading || !user) {
@@ -93,6 +94,7 @@ export default function AdminPaymentFailuresPage(): React.JSX.Element {
         total={total}
         onPageChange={setPage}
         onResolve={resolveFailure}
+        onResolveMany={resolveFailures}
       />
     </div>
   );

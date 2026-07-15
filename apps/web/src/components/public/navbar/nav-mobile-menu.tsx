@@ -41,16 +41,20 @@ export function NavMobileMenu(): React.JSX.Element {
         </SheetHeader>
         <div className="mt-6 flex flex-col gap-2">
           <div className={cn('flex flex-col gap-2', hideLinks && 'hidden')}>
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
-              >
-                {t(link.labelKey)}
-              </Link>
-            ))}
+            {NAV_LINKS.map((link) => {
+              const Icon = link.icon;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setOpen(false)}
+                  className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                  {t(link.labelKey)}
+                </Link>
+              );
+            })}
             <div className="my-2 h-px bg-border" />
           </div>
           <NavFavoritesLink

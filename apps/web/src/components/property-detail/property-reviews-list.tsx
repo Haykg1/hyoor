@@ -3,10 +3,11 @@
 import type { ReviewView } from '@repo/shared';
 import { BadgeCheck, Star } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { listMyBookings } from '@/lib/api/bookings';
 import { useAuthStore } from '@/store';
 
 import { usePropertyReviews } from '../../hooks/use-property-reviews';
@@ -51,6 +52,8 @@ export function PropertyReviewsList({
   const t = useTranslations('property_detail.reviews');
   const { isAuthenticated, user } = useAuthStore();
   const [modalOpen, setModalOpen] = useState(false);
+  const [eligibleBookingId, setEligibleBookingId] = useState<string | null>(null);
+  const [eligibilityChecked, setEligibilityChecked] = useState(false);
 
   const {
     reviews,
@@ -65,6 +68,34 @@ export function PropertyReviewsList({
   } = usePropertyReviews(propertyId, initialReviews);
 
   const hasReviewed = user !== null && allReviews.some((r) => r.authorId === user.id);
+  const canWriteReview = isAuthenticated && !hasReviewed && eligibleBookingId !== null;
+  const showIneligibleMessage =
+    isAuthenticated && !hasReviewed && eligibilityChecked && eligibleBookingId === null;
+
+  useEffect(() => {
+    if (!isAuthenticated || hasReviewed) {
+      setEligibleBookingId(null);
+      setEligibilityChecked(false);
+      return;
+    }
+    let cancelled = false;
+    setEligibilityChecked(false);
+    listMyBookings({ status: 'COMPLETED', limit: 50 })
+      .then((result) => {
+        if (cancelled) return;
+        const match = result.data.find((b) => b.propertyId === propertyId);
+        setEligibleBookingId(match?.id ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setEligibleBookingId(null);
+      })
+      .finally(() => {
+        if (!cancelled) setEligibilityChecked(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, hasReviewed, propertyId]);
 
   const displayedAvg =
     avgRating ??
@@ -76,10 +107,8 @@ export function PropertyReviewsList({
 
   return (
     <section className="space-y-6 border-b border-border py-8">
-      {/* Rating summary header */}
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-col gap-4 sm:flex-row sm:gap-8">
-          {/* Avg score */}
           <div className="flex flex-col items-start gap-1">
             {displayedAvg !== null && (
               <>
@@ -95,7 +124,6 @@ export function PropertyReviewsList({
             )}
           </div>
 
-          {/* Star distribution bars */}
           {allReviews.length > 0 && (
             <div className="flex flex-col gap-1.5">
               {([5, 4, 3, 2, 1] as const).map((star) => {
@@ -127,18 +155,16 @@ export function PropertyReviewsList({
           )}
         </div>
 
-        {/* Write review button / already-reviewed note */}
         {isAuthenticated &&
           (hasReviewed ? (
             <p className="shrink-0 text-sm text-muted-foreground">{t('already_reviewed')}</p>
-          ) : (
+          ) : canWriteReview ? (
             <Button className="shrink-0" onClick={() => setModalOpen(true)}>
               {t('write_review')}
             </Button>
-          ))}
+          ) : null)}
       </div>
 
-      {/* Active filter pill */}
       {ratingFilter !== null && (
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
@@ -154,7 +180,6 @@ export function PropertyReviewsList({
         </div>
       )}
 
-      {/* Sort controls */}
       {allReviews.length > 0 && (
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">{t('sort_label')}:</span>
@@ -175,7 +200,12 @@ export function PropertyReviewsList({
         </div>
       )}
 
-      {/* Review list */}
+      {showIneligibleMessage && (
+        <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          {t('no_eligible_booking')}
+        </p>
+      )}
+
       {isLoading ? (
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -248,13 +278,15 @@ export function PropertyReviewsList({
         </ul>
       )}
 
-      <WriteReviewModal
-        propertyId={propertyId}
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        onReviewSubmitted={refetch}
-        hasReviewed={hasReviewed}
-      />
+      {canWriteReview && eligibleBookingId && (
+        <WriteReviewModal
+          eligibleBookingId={eligibleBookingId}
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          onReviewSubmitted={refetch}
+          hasReviewed={hasReviewed}
+        />
+      )}
     </section>
   );
 }

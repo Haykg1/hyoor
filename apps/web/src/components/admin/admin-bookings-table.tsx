@@ -1,9 +1,10 @@
 'use client';
 
 import type { AdminBooking } from '@repo/shared';
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react';
+import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Copy } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -39,6 +40,38 @@ function formatDate(iso: string): string {
   });
 }
 
+function CopyBookingIdButton({ bookingId }: { bookingId: string }): React.JSX.Element {
+  const t = useTranslations('admin.bookings');
+  const [copied, setCopied] = useState(false);
+  async function handleCopy(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(bookingId);
+      setCopied(true);
+      toast.success(t('copy_id_success'));
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error(t('copy_id_error'));
+    }
+  }
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant="outline"
+      className="h-8 gap-1.5 font-normal"
+      onClick={() => void handleCopy()}
+      aria-label={t('copy_id')}
+    >
+      {copied ? (
+        <Check className="h-3.5 w-3.5 text-emerald-600" aria-hidden />
+      ) : (
+        <Copy className="h-3.5 w-3.5" aria-hidden />
+      )}
+      <span className="text-xs">{t('copy_id')}</span>
+    </Button>
+  );
+}
+
 export function AdminBookingsTable({
   bookings,
   isLoading,
@@ -53,7 +86,6 @@ export function AdminBookingsTable({
 }: AdminBookingsTableProps): React.JSX.Element {
   const t = useTranslations('admin.bookings');
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -63,11 +95,9 @@ export function AdminBookingsTable({
       </div>
     );
   }
-
   if (bookings.length === 0) {
     return <p className="text-sm text-muted-foreground">{t('empty_state')}</p>;
   }
-
   return (
     <div className="space-y-4">
       <Table>
@@ -82,7 +112,7 @@ export function AdminBookingsTable({
             <TableHead>{t('table.payment')}</TableHead>
             <TableHead>{t('table.payout')}</TableHead>
             <TableHead className="text-right">{t('table.total')}</TableHead>
-            <TableHead />
+            <TableHead>{t('table.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -137,30 +167,29 @@ export function AdminBookingsTable({
                     {formatCurrencyAmount(booking.totalAmount, booking.currency)}
                   </TableCell>
                   <TableCell>
-                    {canRetryMoney && (
-                      <div className="flex flex-col gap-1">
-                        {booking.canRetryRentCapture && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={busy}
-                            onClick={() => void onRetryRentCapture(booking.id)}
-                          >
-                            {busy ? t('retrying') : t('retry_capture')}
-                          </Button>
-                        )}
-                        {booking.canRetryPayout && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={busy}
-                            onClick={() => void onRetryPayout(booking.id)}
-                          >
-                            {busy ? t('retrying') : t('retry_payout')}
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                    <div className="flex flex-col items-start gap-1">
+                      <CopyBookingIdButton bookingId={booking.id} />
+                      {canRetryMoney && booking.canRetryRentCapture ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={busy}
+                          onClick={() => void onRetryRentCapture(booking.id)}
+                        >
+                          {busy ? t('retrying') : t('retry_capture')}
+                        </Button>
+                      ) : null}
+                      {canRetryMoney && booking.canRetryPayout ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={busy}
+                          onClick={() => void onRetryPayout(booking.id)}
+                        >
+                          {busy ? t('retrying') : t('retry_payout')}
+                        </Button>
+                      ) : null}
+                    </div>
                   </TableCell>
                 </TableRow>
                 {expanded ? (

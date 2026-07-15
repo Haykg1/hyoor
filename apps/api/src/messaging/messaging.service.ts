@@ -31,14 +31,25 @@ type ProfileSelect = {
   nationality: string | null;
 };
 
+type HostProfileSelect = {
+  hostType: 'INDIVIDUAL' | 'COMPANY';
+  companyName: string | null;
+};
+
+type ParticipantSelect = {
+  id: string;
+  profile: ProfileSelect | null;
+  hostProfile: HostProfileSelect | null;
+};
+
 type ConversationRow = {
   id: string;
   guestId: string;
   hostUserId: string;
   createdAt: Date;
   updatedAt: Date;
-  guest: { id: string; profile: ProfileSelect | null };
-  host: { id: string; profile: ProfileSelect | null };
+  guest: ParticipantSelect;
+  host: ParticipantSelect;
 };
 
 type ConversationCursor = { updatedAt: string; id: string };
@@ -360,12 +371,12 @@ export class MessagingService {
   }
 
   private conversationInclude(): {
-    guest: { include: { profile: true } };
-    host: { include: { profile: true } };
+    guest: { include: { profile: true; hostProfile: true } };
+    host: { include: { profile: true; hostProfile: true } };
   } {
     return {
-      guest: { include: { profile: true } },
-      host: { include: { profile: true } },
+      guest: { include: { profile: true, hostProfile: true } },
+      host: { include: { profile: true, hostProfile: true } },
     };
   }
 
@@ -379,18 +390,12 @@ export class MessagingService {
     });
   }
 
-  private getOtherParticipant(
-    conversation: ConversationRow,
-    userId: string,
-  ): { id: string; profile: ProfileSelect | null } {
+  private getOtherParticipant(conversation: ConversationRow, userId: string): ParticipantSelect {
     if (userId === conversation.guestId) return conversation.host;
     return conversation.guest;
   }
 
-  private async toParticipantView(user: {
-    id: string;
-    profile: ProfileSelect | null;
-  }): Promise<ConversationParticipantView> {
+  private async toParticipantView(user: ParticipantSelect): Promise<ConversationParticipantView> {
     let avatarUrl: string | null = null;
     if (user.profile?.avatarKey && this.storage.isConfigured) {
       try {
@@ -402,10 +407,18 @@ export class MessagingService {
         avatarUrl = null;
       }
     }
+    const firstName = user.profile?.firstName ?? null;
+    const lastName = user.profile?.lastName ?? null;
+    const personName = [firstName, lastName].filter(Boolean).join(' ').trim();
+    const displayName =
+      user.hostProfile?.hostType === 'COMPANY' && user.hostProfile.companyName
+        ? user.hostProfile.companyName
+        : personName || 'User';
     return {
       id: user.id,
-      firstName: user.profile?.firstName ?? null,
-      lastName: user.profile?.lastName ?? null,
+      firstName,
+      lastName,
+      displayName,
       avatarUrl,
       nationality: user.profile?.nationality ?? null,
     };

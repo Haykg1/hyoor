@@ -5,14 +5,33 @@ import { CircleCheckBig, Clock, DollarSign, House } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { StatCard, StatCardGrid } from '@/components/ui/stat-card';
-import { formatAmd } from '@/lib/format/price';
+import { formatAmd, formatUsdFromMinor } from '@/lib/format/price';
 
 interface HostDashboardStatsProps {
   stats: HostDashboardStats;
+  variant?: 'host' | 'admin';
 }
 
-export function HostDashboardStatsPanel({ stats }: HostDashboardStatsProps): React.JSX.Element {
+function formatEarningsRange(fromIso?: string, toIso?: string): string | null {
+  if (!fromIso || !toIso) return null;
+  const from = new Date(fromIso);
+  const to = new Date(toIso);
+  if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return null;
+  const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
+  return `${from.toLocaleDateString(undefined, opts)} – ${to.toLocaleDateString(undefined, opts)}`;
+}
+
+export function HostDashboardStatsPanel({
+  stats,
+  variant = 'host',
+}: HostDashboardStatsProps): React.JSX.Element {
   const t = useTranslations('dashboard.stats');
+  const isAdmin = variant === 'admin';
+  const earningsValue = isAdmin
+    ? formatUsdFromMinor(stats.totalEarnings)
+    : formatAmd(stats.totalEarnings);
+  const earningsLabel = isAdmin ? t('platform_fees_earned') : t('total_earned');
+  const rangeHint = isAdmin ? formatEarningsRange(stats.earningsFrom, stats.earningsTo) : null;
   return (
     <StatCardGrid>
       <StatCard icon={House} label={t('total_properties')} value={String(stats.totalListings)} />
@@ -28,8 +47,9 @@ export function HostDashboardStatsPanel({ stats }: HostDashboardStatsProps): Rea
       />
       <StatCard
         icon={DollarSign}
-        label={t('total_earned')}
-        value={formatAmd(stats.totalEarnings)}
+        label={earningsLabel}
+        value={earningsValue}
+        delta={rangeHint ?? undefined}
       />
     </StatCardGrid>
   );

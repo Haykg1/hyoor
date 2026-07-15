@@ -1,4 +1,5 @@
 import type {
+  EarningsPreset,
   HostDashboardStats,
   HostListingSummary,
   HostListingTab,
@@ -24,6 +25,9 @@ interface AdminListingsState {
   statusFilter: AdminListingStatusFilter | null;
   propertyTypeFilter: PropertyType | null;
   searchQuery: string;
+  earningsPreset: EarningsPreset;
+  earningsFrom: string;
+  earningsTo: string;
   isLoading: boolean;
   error: string | null;
 }
@@ -36,6 +40,9 @@ interface AdminListingsActions {
   setStatusFilter: (status: AdminListingStatusFilter | null) => void;
   setPropertyTypeFilter: (type: PropertyType | null) => void;
   setSearchQuery: (query: string) => void;
+  setEarningsPreset: (preset: EarningsPreset) => void;
+  setEarningsFrom: (value: string) => void;
+  setEarningsTo: (value: string) => void;
   resetFilters: () => void;
   disableListing: (id: string) => Promise<void>;
   enableListing: (id: string) => Promise<void>;
@@ -50,6 +57,16 @@ const DEFAULT_STATS: HostDashboardStats = {
   totalEarnings: 0,
 };
 
+function toIsoDateStart(date: string): string {
+  return `${date}T00:00:00.000Z`;
+}
+
+function toIsoDateEndExclusive(date: string): string {
+  const next = new Date(`${date}T00:00:00.000Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  return next.toISOString();
+}
+
 export const useAdminListingsStore = create<AdminListingsState & AdminListingsActions>()(
   devtools(
     (set, get) => ({
@@ -63,10 +80,26 @@ export const useAdminListingsStore = create<AdminListingsState & AdminListingsAc
       statusFilter: null,
       propertyTypeFilter: null,
       searchQuery: '',
+      earningsPreset: 'last_30_days',
+      earningsFrom: '',
+      earningsTo: '',
       isLoading: false,
       error: null,
       fetchListings: async () => {
-        const { page, limit, tab, statusFilter, propertyTypeFilter, searchQuery } = get();
+        const {
+          page,
+          limit,
+          tab,
+          statusFilter,
+          propertyTypeFilter,
+          searchQuery,
+          earningsPreset,
+          earningsFrom,
+          earningsTo,
+        } = get();
+        if (earningsPreset === 'custom' && (!earningsFrom || !earningsTo)) {
+          return;
+        }
         set({ isLoading: true, error: null });
         try {
           const res = await listAdminProperties({
@@ -76,6 +109,15 @@ export const useAdminListingsStore = create<AdminListingsState & AdminListingsAc
             status: tab === 'active' && statusFilter ? statusFilter : undefined,
             propertyType: propertyTypeFilter ?? undefined,
             search: searchQuery.trim() || undefined,
+            earningsPreset,
+            earningsFrom:
+              earningsPreset === 'custom' && earningsFrom
+                ? toIsoDateStart(earningsFrom)
+                : undefined,
+            earningsTo:
+              earningsPreset === 'custom' && earningsTo
+                ? toIsoDateEndExclusive(earningsTo)
+                : undefined,
           });
           set({
             listings: res.data,
@@ -94,6 +136,9 @@ export const useAdminListingsStore = create<AdminListingsState & AdminListingsAc
       setStatusFilter: (statusFilter) => set({ statusFilter, page: 1 }),
       setPropertyTypeFilter: (propertyTypeFilter) => set({ propertyTypeFilter, page: 1 }),
       setSearchQuery: (searchQuery) => set({ searchQuery, page: 1 }),
+      setEarningsPreset: (earningsPreset) => set({ earningsPreset }),
+      setEarningsFrom: (earningsFrom) => set({ earningsFrom }),
+      setEarningsTo: (earningsTo) => set({ earningsTo }),
       resetFilters: () =>
         set({ statusFilter: null, propertyTypeFilter: null, searchQuery: '', page: 1 }),
       disableListing: async (id) => {

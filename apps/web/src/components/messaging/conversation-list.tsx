@@ -10,9 +10,7 @@ import { cn } from '@/lib/utils';
 import { useMessagingStore } from '@/store/messaging.store';
 
 function displayName(preview: ConversationPreview): string {
-  const { firstName, lastName } = preview.otherParticipant;
-  const name = [firstName, lastName].filter(Boolean).join(' ').trim();
-  return name || 'User';
+  return preview.otherParticipant.displayName || 'User';
 }
 
 function initials(preview: ConversationPreview): string {

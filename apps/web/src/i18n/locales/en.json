@@ -701,7 +701,16 @@
       "active_bookings": "Active Bookings",
       "pending_requests": "Pending Requests",
       "upcoming_reservations": "Upcoming Reservations",
-      "total_earned": "Total Earned"
+      "total_earned": "Total Earned",
+      "platform_fees_earned": "Platform fees (USD)",
+      "earnings_preset": "Earnings period",
+      "earnings_presets": {
+        "last_30_days": "Last 30 days",
+        "last_year": "Last year",
+        "custom": "Custom range"
+      },
+      "earnings_from": "From",
+      "earnings_to": "To"
     },
     "sidebar_preview": "Host sidebar preview",
     "capacity": {
@@ -1210,6 +1219,9 @@
       "subtitle": "All platform bookings — check-in dates, totals, and per-night prices.",
       "back_to_dashboard": "Back to dashboard",
       "empty_state": "No bookings match your filters.",
+      "copy_id": "Copy ID",
+      "copy_id_success": "Booking ID copied to clipboard",
+      "copy_id_error": "Could not copy booking ID",
       "retry_capture": "Retry capture",
       "retry_payout": "Retry payout",
       "retrying": "Retrying…",
@@ -1222,6 +1234,7 @@
         "payment": "Payment",
         "payout": "Payout",
         "total": "Total",
+        "actions": "Actions",
         "nights": "{count, plural, one {# night} other {# nights}}",
         "nightly_breakdown": "Price per night",
         "toggle_nights": "Show nightly prices"
@@ -1230,7 +1243,7 @@
         "page_of": "Page {page} of {totalPages} ({total} total)"
       },
       "filters": {
-        "search_placeholder": "Search guest, host, or property…",
+        "search_placeholder": "Search booking ID, guest, host, or property…",
         "status": "Status",
         "all_statuses": "All statuses",
         "payment_status": "Payment",
@@ -1321,6 +1334,18 @@
       "resolve_button": "Mark resolved",
       "resolved_badge": "Resolved",
       "unresolved_badge": "Unresolved",
+      "bulk": {
+        "select_all": "Select all unresolved",
+        "select_row": "Select payment failure",
+        "selected_count": "{count, plural, one {# selected} other {# selected}}",
+        "resolve_all": "Resolve all",
+        "confirm_title": "Resolve selected failures?",
+        "confirm_description": "Are you sure you want to mark {count, plural, one {# payment failure} other {# payment failures}} as resolved?",
+        "summary_line": "{guest} · {host} · booking {booking}…",
+        "cancel": "Cancel",
+        "confirm": "Resolve all",
+        "resolving": "Resolving…"
+      },
       "table": {
         "created_at": "Occurred",
         "category": "Category",

@@ -1,4 +1,4 @@
-import type { AdminBooking } from '@repo/shared';
+import type { AdminBooking, BookingStatus, PaymentStatus, PayoutStatus } from '@repo/shared';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
@@ -14,9 +14,9 @@ interface AdminBookingsState {
   limit: number;
   total: number;
   totalPages: number;
-  status: string | null;
-  paymentStatus: string | null;
-  payoutStatus: string | null;
+  status: BookingStatus | null;
+  paymentStatus: PaymentStatus | null;
+  payoutStatus: PayoutStatus | null;
   propertyId: string;
   guestId: string;
   hostId: string;
@@ -31,9 +31,9 @@ interface AdminBookingsState {
 interface AdminBookingsActions {
   fetchBookings: () => Promise<void>;
   setPage: (page: number) => void;
-  setStatus: (status: string | null) => void;
-  setPaymentStatus: (paymentStatus: string | null) => void;
-  setPayoutStatus: (payoutStatus: string | null) => void;
+  setStatus: (status: BookingStatus | null) => void;
+  setPaymentStatus: (paymentStatus: PaymentStatus | null) => void;
+  setPayoutStatus: (payoutStatus: PayoutStatus | null) => void;
   setSearchQuery: (query: string) => void;
   setPropertyId: (value: string) => void;
   setGuestId: (value: string) => void;

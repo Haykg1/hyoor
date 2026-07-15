@@ -15,3 +15,13 @@ export function formatCurrencyAmount(amount: number, currency: string): string {
 export function formatAmd(amount: number): string {
   return formatCurrencyAmount(amount, 'AMD');
 }
+
+/** Formats Stripe minor units (cents) as major USD, e.g. 2000 → "20.00 USD". */
+export function formatUsdFromMinor(amount: number): string {
+  const major = amount / 100;
+  const value = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(major);
+  return `${value} USD`;
+}

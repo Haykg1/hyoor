@@ -53,6 +53,9 @@ export interface ListAdminPropertiesParams {
   status?: AdminListingStatusFilter;
   propertyType?: PropertyType;
   search?: string;
+  earningsPreset?: 'last_30_days' | 'last_year' | 'custom';
+  earningsFrom?: string;
+  earningsTo?: string;
 }
 
 export interface GetAdminTimeseriesParams {
@@ -62,8 +65,19 @@ export interface GetAdminTimeseriesParams {
   to?: string;
 }
 
-export async function getAdminDashboardStats(): Promise<HostDashboardStats> {
-  return api.get<HostDashboardStats>('/admin/dashboard/stats');
+export async function getAdminDashboardStats(
+  params: {
+    preset?: 'last_30_days' | 'last_year' | 'custom';
+    from?: string;
+    to?: string;
+  } = {},
+): Promise<HostDashboardStats> {
+  const query = new URLSearchParams();
+  if (params.preset) query.set('preset', params.preset);
+  if (params.from) query.set('from', params.from);
+  if (params.to) query.set('to', params.to);
+  const qs = query.toString();
+  return api.get<HostDashboardStats>(`/admin/dashboard/stats${qs ? `?${qs}` : ''}`);
 }
 
 export async function getPlatformStats(): Promise<PlatformStats> {
@@ -93,6 +107,9 @@ export async function listAdminProperties(
   if (params.propertyType) query.set('propertyType', params.propertyType);
   const trimmed = params.search?.trim();
   if (trimmed) query.set('search', trimmed);
+  if (params.earningsPreset) query.set('earningsPreset', params.earningsPreset);
+  if (params.earningsFrom) query.set('earningsFrom', params.earningsFrom);
+  if (params.earningsTo) query.set('earningsTo', params.earningsTo);
   const qs = query.toString();
   return api.get<HostListingsResponse>(`/admin/properties${qs ? `?${qs}` : ''}`);
 }

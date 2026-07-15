@@ -748,7 +748,16 @@
       "active_bookings": "Active Bookings",
       "pending_requests": "Pending Requests",
       "upcoming_reservations": "Предстоящие бронирования",
-      "total_earned": "Total Earned"
+      "total_earned": "Total Earned",
+      "platform_fees_earned": "Комиссия платформы (USD)",
+      "earnings_preset": "Период дохода",
+      "earnings_presets": {
+        "last_30_days": "Последние 30 дней",
+        "last_year": "Последний год",
+        "custom": "Свой период"
+      },
+      "earnings_from": "С",
+      "earnings_to": "По"
     },
     "sidebar_preview": "Host sidebar preview",
     "capacity": {
@@ -1196,6 +1205,9 @@
       "subtitle": "Все бронирования платформы — даты заезда, суммы и цены по ночам.",
       "back_to_dashboard": "Назад в панель",
       "empty_state": "Нет бронирований по выбранным фильтрам.",
+      "copy_id": "Копировать ID",
+      "copy_id_success": "ID бронирования скопирован",
+      "copy_id_error": "Не удалось скопировать ID бронирования",
       "retry_capture": "Повторить списание",
       "retry_payout": "Повторить выплату",
       "retrying": "Повтор…",
@@ -1208,6 +1220,7 @@
         "payment": "Оплата",
         "payout": "Выплата",
         "total": "Итого",
+        "actions": "Действия",
         "nights": "{count, plural, one {# ночь} few {# ночи} other {# ночей}}",
         "nightly_breakdown": "Цена по ночам",
         "toggle_nights": "Показать цены по ночам"
@@ -1216,7 +1229,7 @@
         "page_of": "Страница {page} из {totalPages} (всего {total})"
       },
       "filters": {
-        "search_placeholder": "Поиск по гостю, хозяину или объекту…",
+        "search_placeholder": "Поиск по ID бронирования, гостю, хозяину или объекту…",
         "status": "Статус",
         "all_statuses": "Все статусы",
         "payment_status": "Оплата",
@@ -1307,6 +1320,18 @@
       "resolve_button": "Отметить решённым",
       "resolved_badge": "Решено",
       "unresolved_badge": "Не решено",
+      "bulk": {
+        "select_all": "Выбрать все нерешённые",
+        "select_row": "Выбрать сбой платежа",
+        "selected_count": "{count, plural, one {# выбран} few {# выбрано} other {# выбрано}}",
+        "resolve_all": "Решить все",
+        "confirm_title": "Отметить выбранные как решённые?",
+        "confirm_description": "Вы уверены, что хотите отметить {count, plural, one {# сбой платежа} few {# сбоя платежей} other {# сбоев платежей}} как решённые?",
+        "summary_line": "{guest} · {host} · бронь {booking}…",
+        "cancel": "Отмена",
+        "confirm": "Решить все",
+        "resolving": "Решение…"
+      },
       "table": {
         "created_at": "Время",
         "category": "Категория",
