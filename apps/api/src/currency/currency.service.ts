@@ -35,6 +35,11 @@ export class CurrencyService implements OnModuleInit {
   ) {}
 
   async onModuleInit(): Promise<void> {
+    const fetchOnBoot = this.config.get('currency.fetchOnBoot', { infer: true });
+    if (!fetchOnBoot) {
+      this.logger.log('CURRENCY_RATES_FETCH_ON_BOOT is not true — skipping initial FX rates fetch');
+      return;
+    }
     try {
       const existing = await this.getRates();
       if (!existing) {

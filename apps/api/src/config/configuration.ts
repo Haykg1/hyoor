@@ -26,7 +26,7 @@ export interface AppConfig {
   };
   yandex: { mapsApiKey: string };
   redis: { url: string };
-  currency: { ratesApiUrl: string };
+  currency: { ratesApiUrl: string; fetchOnBoot: boolean };
   openai: { apiKey: string; model: string };
   stripe: {
     secretKey: string;
@@ -122,6 +122,7 @@ export default (): AppConfig => ({
   },
   currency: {
     ratesApiUrl: process.env.CURRENCY_RATES_API_URL ?? 'https://open.er-api.com/v6/latest/USD',
+    fetchOnBoot: process.env.CURRENCY_RATES_FETCH_ON_BOOT === 'true',
   },
   openai: {
     apiKey: process.env.OPENAI_API_KEY ?? '',
