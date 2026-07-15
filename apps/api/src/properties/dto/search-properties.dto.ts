@@ -1,4 +1,9 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  LEGACY_PROPERTY_SORT_VALUES,
+  normalizePropertySortBy,
+  PROPERTY_SORT_VALUES,
+} from '@repo/shared';
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '@repo/shared/constants';
 import { Transform, Type } from 'class-transformer';
 import {
@@ -14,9 +19,11 @@ import {
   Min,
 } from 'class-validator';
 
+import { CACHED_CURRENCIES } from '../../currency/currency.constants';
+
 import { PROPERTY_TYPES } from './create-property.dto';
 
-export const SORT_BY = ['pricePerNight', 'createdAt'] as const;
+export const SORT_BY = [...PROPERTY_SORT_VALUES, ...LEGACY_PROPERTY_SORT_VALUES] as const;
 
 function toOptionalBoolean(value: unknown): boolean | undefined {
   if (value === 'true') return true;
@@ -335,8 +342,23 @@ export class SearchPropertiesDto {
   @Type(() => Number)
   limit?: number = DEFAULT_PAGE_SIZE;
 
-  @ApiPropertyOptional({ enum: SORT_BY, default: 'createdAt' })
+  @ApiPropertyOptional({
+    enum: SORT_BY,
+    default: 'recommended',
+    description: 'Legacy createdAt→recommended, pricePerNight→priceAsc are accepted.',
+  })
   @IsOptional()
-  @IsIn(SORT_BY)
-  sortBy?: (typeof SORT_BY)[number] = 'createdAt';
+  @Transform(({ value }) => normalizePropertySortBy(typeof value === 'string' ? value : undefined))
+  @IsIn([...PROPERTY_SORT_VALUES])
+  sortBy?: (typeof PROPERTY_SORT_VALUES)[number] = 'recommended';
+
+  @ApiPropertyOptional({
+    example: 'AMD',
+    description:
+      'Override guest display currency and currency of minPrice/maxPrice. Must be a cached rate currency.',
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn([...CACHED_CURRENCIES])
+  displayCurrency?: string;
 }

@@ -158,8 +158,15 @@
     "filters_button": "Զտիչներ",
     "sort": {
       "label": "Դասավորել ըստ",
-      "newest": "Վերջին ավելացվածները",
-      "price_asc": "Գին․ էժանից թանկ"
+      "recommended": "Առաջարկվող",
+      "price_asc": "Գին․ էժանից թանկ",
+      "price_desc": "Գին․ թանկից էժան",
+      "top_rated": "Բարձր գնահատական",
+      "most_reviewed": "Ամենաշատ կարծիքներ",
+      "newest": "Վերջին ավելացվածները"
+    },
+    "currency": {
+      "label": "Ցուցադրման արժույթ"
     },
     "count": "{count, plural, =0 {Կացարաններ չեն գտնվել} =1 {գտնվել է 1 կացարան} other {գտնվել է # կացարան}}",
     "map_button": "Քարտեզ",
@@ -177,13 +184,22 @@
       "max": "Առավելագույն",
       "region": "Մարզ",
       "region_placeholder": "օր. Տավուշ",
-      "min_bedrooms": "Ննջասենյակներ (նվազագույն)",
-      "min_beds": "Մահճակալներ (նվազագույն)",
-      "min_bathrooms": "Լոգասենյակներ (նվազագույն)",
+      "dates": "Ամսաթվեր",
+      "guests": "Հյուրեր",
+      "min_bedrooms": "Ննջասենյակներ",
+      "min_beds": "Մահճակալներ",
+      "beds_any": "Ցանկացած",
+      "beds_plus": "{count}+",
+      "min_bathrooms": "Լոգասենյակներ",
+      "bathrooms_any": "Ցանկացած",
+      "bathrooms_plus": "{count}+",
+      "guest_rating": "Հյուրերի գնահատական",
+      "rating_any": "Ցանկացած",
+      "rating_plus": "{rating}+",
       "min_adults": "Մեծահասակներ (նվազագույն)",
       "min_children": "Երեխաներ (նվազագույն)",
       "min_infants": "Նորածիններ (նվազագույն)",
-      "price_per_night_range": "Գիշերական գին (AMD)",
+      "price_per_night_range": "Գիշերական գին",
       "cleaning_fee_range": "Մաքրության վճար (AMD)",
       "security_deposit_range": "Գրավ (AMD)",
       "min_nights": "Գիշերեր (նվազագույն)",
@@ -205,8 +221,29 @@
       "search_street": "Փողոց",
       "search_street_placeholder": "օր. Ազատության պողոտա",
       "search_building_number": "Շենքի համար",
-      "search_building_number_placeholder": "օր. 11"
-    }
+      "search_building_number_placeholder": "օր. 11",
+      "more_filters": "Ավելի շատ զտիչներ",
+      "property_type": "Կացարանի տեսակ",
+      "bedrooms_any": "Ցանկացած",
+      "bedrooms_plus": "{count}+",
+      "price_up_to": "Մինչև {amount}"
+    },
+    "filters_close": "Փակել զտիչները",
+    "ai_section_title": "AI որոնում",
+    "ai_results_count": "{count, plural, =0 {Արդյունք չկա} =1 {1 արդյունք} other {# արդյունք}}",
+    "ai_interpreted_as": "Մեկնաբանված է որպես՝",
+    "ai_interpreted_fallback": "Ցուցադրվում են ընթացիկ զտիչներին համապատասխան կացարաններ։",
+    "ai_prompt_placeholder": "Նկարագրեք ցանկալի կացարանը…",
+    "ai_update": "Թարմացնել",
+    "ai_collapse": "Ծալել AI որոնումը",
+    "ai_expand": "Ծավալել AI որոնումը",
+    "ai_remove_chip": "Հեռացնել զտիչը",
+    "ai_search_tip": "Ավելացրեք քաղաք, ամսաթվեր կամ հյուրերի թիվ՝ արդյունքները նեղացնելու համար։",
+    "map_coming_soon": "Շուտով",
+    "where": "Որտեղ",
+    "where_placeholder": "Ցանկացած վայր",
+    "add_dates": "Ավելացնել ամսաթվեր",
+    "search": "Որոնել"
   },
   "footer": {
     "tagline": "Բացահայտիր Հայաստանը՝ մեկ կացարան՝ մեկ քայլ",
@@ -552,14 +589,19 @@
       "empty_promotions": "Այս գույքի համար ակցիաներ չկան։",
       "loading": "Բեռնվում է…",
       "meta": "{start} – {end} · {remaining} մնաց · {type}",
-      "types": { "date_range": "Ժամկետային զեղչ" },
+      "types": {
+        "date_range": "Ժամկետային զեղչ"
+      },
       "form": {
         "title": "Նոր ակցիա",
         "subtitle": "Ակցիա՝ {title}",
         "no_property": "Նախ ընտրեք գույք։",
         "promotion_type": "Տեսակ",
         "discount_type": "Զեղչի տեսակ",
-        "types": { "date_range": "Ժամկետային", "promo_code": "Պրոմո կոդ" },
+        "types": {
+          "date_range": "Ժամկետային",
+          "promo_code": "Պրոմո կոդ"
+        },
         "discount": {
           "percent": "Տոկոս",
           "fixed": "Ֆիքսված",
@@ -982,7 +1024,8 @@
       "guesthouse": "Հյուրատուն",
       "hotel_room": "Հյուրանոցի սենյակ",
       "other": "Այլ"
-    }
+    },
+    "ai_match": "AI համընկնում"
   },
   "home": {
     "hero": {

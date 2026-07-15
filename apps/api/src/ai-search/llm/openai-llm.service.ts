@@ -5,7 +5,14 @@ import type {
   ProposeCalendarChangesToolArgs,
   SearchPropertiesToolArgs,
 } from '@repo/shared';
-import { AMENITIES_CATALOG, CancellationPolicies, PropertyTypes } from '@repo/shared';
+import {
+  AMENITIES_CATALOG,
+  CancellationPolicies,
+  PropertyTypes,
+  normalizePropertyType,
+  resolveAiSearchDateFields,
+  todayIsoUtc,
+} from '@repo/shared';
 import OpenAI from 'openai';
 
 import type { AppConfig } from '../../config/configuration';
@@ -273,11 +280,9 @@ export class OpenAiLlmService extends LlmService {
       args.minBathrooms = Math.floor(record.minBathrooms);
     if (typeof record.minPrice === 'number') args.minPrice = Math.floor(record.minPrice);
     if (typeof record.maxPrice === 'number') args.maxPrice = Math.floor(record.maxPrice);
-    if (
-      typeof record.propertyType === 'string' &&
-      PropertyTypes.includes(record.propertyType as never)
-    ) {
-      args.propertyType = record.propertyType as SearchPropertiesToolArgs['propertyType'];
+    if (typeof record.propertyType === 'string') {
+      const propertyType = normalizePropertyType(record.propertyType);
+      if (propertyType) args.propertyType = propertyType;
     }
     if (Array.isArray(record.amenities)) {
       args.amenities = record.amenities.filter((a): a is string => typeof a === 'string');
@@ -287,7 +292,7 @@ export class OpenAiLlmService extends LlmService {
     if (typeof record.partiesAllowed === 'boolean') args.partiesAllowed = record.partiesAllowed;
     if (typeof record.minAvgRating === 'number') args.minAvgRating = record.minAvgRating;
     if (typeof record.q === 'string') args.q = record.q.trim();
-    return args;
+    return resolveAiSearchDateFields(args, todayIsoUtc());
   }
 
   async normalizeBulkPropertyRows(

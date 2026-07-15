@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { AiSearchPropertyResult } from '@repo/shared';
 import type { AiSearchChatResponse, AiSearchMessage } from '@repo/shared';
-import { localeToYandexLang } from '@repo/shared';
+import { inferPropertyTypeFromText, localeToYandexLang, todayIsoUtc } from '@repo/shared';
 
 import { GeocodingService } from '../geocoding/geocoding.service';
 import { PropertiesService } from '../properties/properties.service';
@@ -11,19 +11,21 @@ import { LlmService } from './llm/llm.service';
 import {
   buildSearchPathFromFilters,
   fallbackResolvedLocation,
-  hasRequiredSearchFields,
   placeToResolvedLocation,
   toExtractedFilters,
   toSearchPropertiesDto,
   type ResolvedLocation,
 } from './mappers/ai-search-filters.mapper';
-import {
-  AI_SEARCH_MISSING_FIELDS_MESSAGES,
-  AI_SEARCH_NO_MATCHES_SUFFIX,
-  normalizeChatLocale,
-} from './utils/chat-locale';
+import { buildAiSearchInterpretation } from './utils/ai-search-interpretation';
+import { alignSearchArgsWithUserText } from './utils/align-search-args';
+import { AI_SEARCH_NO_MATCHES_SUFFIX, normalizeChatLocale } from './utils/chat-locale';
 
 const AI_SEARCH_RESULT_LIMIT = 8;
+
+function appendAiFlag(searchPath: string): string {
+  if (searchPath.includes('ai=1')) return searchPath;
+  return searchPath.includes('?') ? `${searchPath}&ai=1` : `${searchPath}?ai=1`;
+}
 
 export interface AiSearchChatResult {
   response: AiSearchChatResponse;
@@ -46,25 +48,38 @@ export class AiSearchService {
         tokensUsed: llmResult.usage.totalTokens,
       };
     }
-    const response = await this.handleSearchTool(llmResult, locale);
+    const response = await this.handleSearchTool(llmResult, messages, locale);
     return { response, tokensUsed: llmResult.usage.totalTokens };
   }
 
   private async handleSearchTool(
     llmResult: Extract<LlmCompletionResult, { kind: 'tool' }>,
+    messages: AiSearchMessage[],
     locale: string,
   ): Promise<AiSearchChatResponse> {
     const chatLocale = normalizeChatLocale(locale);
-    const { args, message } = llmResult;
-    if (!hasRequiredSearchFields(args)) {
-      return {
-        type: 'clarify',
-        message: AI_SEARCH_MISSING_FIELDS_MESSAGES[chatLocale],
-      };
+    const lastUser = [...messages].reverse().find((item) => item.role === 'user')?.content;
+    const args = alignSearchArgsWithUserText(llmResult.args, lastUser, todayIsoUtc());
+    if (!args.propertyType && lastUser) {
+      const inferred = inferPropertyTypeFromText(lastUser);
+      if (inferred) args.propertyType = inferred;
     }
-    const location = await this.resolveLocation(args.locationQuery!.trim(), locale);
+    const locationQuery = args.locationQuery?.trim();
+    const location = locationQuery
+      ? await this.resolveLocation(locationQuery, locale)
+      : fallbackResolvedLocation('');
     const filters = toExtractedFilters(args, location);
+    if (!locationQuery) {
+      delete filters.locationLabel;
+      delete filters.searchCity;
+      delete filters.region;
+    }
     const searchDto = toSearchPropertiesDto(args, location);
+    if (!locationQuery) {
+      searchDto.searchCity = undefined;
+      searchDto.city = undefined;
+      searchDto.region = undefined;
+    }
     searchDto.limit = AI_SEARCH_RESULT_LIMIT;
     const results = await this.propertiesService.search(searchDto);
     const properties: AiSearchPropertyResult[] = results.data.map((property) => {
@@ -81,17 +96,17 @@ export class AiSearchService {
     const firstSuggested = properties.find(
       (property) => property.suggestedCheckIn && property.suggestedCheckOut,
     );
-    const searchPath = buildSearchPathFromFilters(
-      filters,
+    const suggestedDates =
       firstSuggested?.suggestedCheckIn && firstSuggested.suggestedCheckOut
         ? {
             checkIn: firstSuggested.suggestedCheckIn,
             checkOut: firstSuggested.suggestedCheckOut,
           }
-        : undefined,
-    );
+        : undefined;
+    const searchPath = appendAiFlag(buildSearchPathFromFilters(filters, suggestedDates));
+    const grounded = buildAiSearchInterpretation(filters, suggestedDates, chatLocale);
     const resultMessage =
-      properties.length > 0 ? message : `${message}${AI_SEARCH_NO_MATCHES_SUFFIX[chatLocale]}`;
+      properties.length > 0 ? grounded : `${grounded}${AI_SEARCH_NO_MATCHES_SUFFIX[chatLocale]}`;
     return {
       type: 'search',
       message: resultMessage,

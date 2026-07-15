@@ -71,12 +71,6 @@ export const HOST_CALENDAR_REVERT_HINTS: LocalizedCopy = {
   ru: 'Чтобы отменить, попросите снова открыть эти даты, вернуть базовую цену или изменить даты прямо в календаре.',
 };
 
-export const AI_SEARCH_MISSING_FIELDS_MESSAGES: LocalizedCopy = {
-  en: 'I need a destination and travel dates before I can search. Where would you like to stay, and when? Exact dates or a flexible window like "5 nights in July" both work.',
-  hy: 'Որոնելու համար պետք են վայրը և ամսաթվերը։ Որտե՞ղ եք ցանկանում մնալ, և երբե՞։ Կարող են լինել ճշգրիտ ամսաթվեր կամ ճկուն պատուհան, օրինակ «5 գիշեր հուլիսին»։',
-  ru: 'Для поиска нужны место и даты. Где вы хотите остановиться и когда? Подойдут точные даты или гибкое окно, например «5 ночей в июле».',
-};
-
 export const AI_SEARCH_NO_MATCHES_SUFFIX: LocalizedCopy = {
   en: ' I could not find exact matches — try adjusting dates, budget, or amenities.',
   hy: ' Ճշգրիտ համընկնումներ չգտա — փորձեք փոխել ամսաթվերը, բյուջեն կամ հարմարավետությունները։',

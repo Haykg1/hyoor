@@ -5,13 +5,19 @@ import { DEFAULT_SEARCH_FILTERS, type SearchFilters } from '@/hooks/use-search-f
 
 interface SearchState {
   filters: SearchFilters;
-  isAdvancedOpen: boolean;
+  isFiltersOpen: boolean;
+  isMoreFiltersOpen: boolean;
+  aiPrompt: string;
+  aiInterpretation: string | null;
 }
 
 interface SearchActions {
   hydrateFromUrlFilters: (filters: SearchFilters) => void;
   setFilters: (partial: Partial<SearchFilters>) => void;
-  setAdvancedOpen: (open: boolean) => void;
+  setFiltersOpen: (open: boolean) => void;
+  setMoreFiltersOpen: (open: boolean) => void;
+  setAiPrompt: (prompt: string) => void;
+  setAiInterpretation: (text: string | null) => void;
   resetAdvanced: () => void;
 }
 
@@ -19,13 +25,19 @@ export const useSearchStore = create<SearchState & SearchActions>()(
   devtools(
     (set, get) => ({
       filters: DEFAULT_SEARCH_FILTERS,
-      isAdvancedOpen: false,
+      isFiltersOpen: true,
+      isMoreFiltersOpen: false,
+      aiPrompt: '',
+      aiInterpretation: null,
       hydrateFromUrlFilters: (filters) => set({ filters }),
       setFilters: (partial) => {
         const { filters } = get();
         set({ filters: { ...filters, ...partial } });
       },
-      setAdvancedOpen: (open) => set({ isAdvancedOpen: open }),
+      setFiltersOpen: (open) => set({ isFiltersOpen: open }),
+      setMoreFiltersOpen: (open) => set({ isMoreFiltersOpen: open }),
+      setAiPrompt: (prompt) => set({ aiPrompt: prompt }),
+      setAiInterpretation: (text) => set({ aiInterpretation: text }),
       resetAdvanced: () => {
         const { location, checkIn, checkOut, guests, sortBy } = get().filters;
         set({

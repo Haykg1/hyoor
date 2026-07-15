@@ -2,7 +2,7 @@
 
 import { UserRole } from '@repo/shared';
 import type { LucideIcon } from 'lucide-react';
-import { Compass, Home, Sparkles } from 'lucide-react';
+import { Compass, Home } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { Link } from '@/i18n/navigation';
@@ -11,19 +11,13 @@ import { useAuthStore } from '@/store';
 
 interface NavLink {
   href: string;
-  labelKey: 'explore' | 'ai_search' | 'become_host';
+  labelKey: 'explore' | 'become_host';
   icon: LucideIcon;
   forRoles: UserRole[];
 }
 
 const NAV_LINKS: NavLink[] = [
   { href: '/search', labelKey: 'explore', icon: Compass, forRoles: ['GUEST', 'HOST', 'ADMIN'] },
-  {
-    href: '/ai-search',
-    labelKey: 'ai_search',
-    icon: Sparkles,
-    forRoles: ['GUEST', 'HOST', 'ADMIN'],
-  },
   {
     href: '/host/onboarding',
     labelKey: 'become_host',

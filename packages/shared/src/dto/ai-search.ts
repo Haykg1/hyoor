@@ -55,6 +55,8 @@ export interface AiSearchChatResponse {
   filters?: AiSearchExtractedFilters;
   properties?: AiSearchPropertyResult[];
   searchPath?: string;
+  /** True when the model called search without required location+dates; partial filters still applied. */
+  inefficientPrompt?: boolean;
   quota?: AiSearchQuota;
 }
 

@@ -1,5 +1,6 @@
 import type { AiSearchExtractedFilters, SearchPropertiesToolArgs } from '@repo/shared';
 import type { PlaceResult } from '@repo/shared';
+import { resolveAiSearchDateFields, todayIsoUtc } from '@repo/shared';
 
 import { SearchPropertiesDto } from '../../properties/dto/search-properties.dto';
 
@@ -51,6 +52,17 @@ export function buildSearchPathFromFilters(
   filters: AiSearchExtractedFilters,
   suggestedDates?: { checkIn: string; checkOut: string },
 ): string {
+  const today = todayIsoUtc();
+  const sanitized = resolveAiSearchDateFields(
+    {
+      checkIn: suggestedDates?.checkIn ?? filters.checkIn,
+      checkOut: suggestedDates?.checkOut ?? filters.checkOut,
+      stayNights: filters.stayNights,
+      availableFrom: filters.availableFrom,
+      availableTo: filters.availableTo,
+    },
+    today,
+  );
   const query = new URLSearchParams();
   if (filters.searchCity) query.set('searchCity', filters.searchCity);
   if (filters.region) query.set('region', filters.region);
@@ -59,10 +71,8 @@ export function buildSearchPathFromFilters(
   if (filters.searchPlaceKind) query.set('searchPlaceKind', filters.searchPlaceKind);
   setOptionalNumber(query, 'searchLatitude', filters.searchLatitude);
   setOptionalNumber(query, 'searchLongitude', filters.searchLongitude);
-  const checkIn = suggestedDates?.checkIn ?? filters.checkIn;
-  const checkOut = suggestedDates?.checkOut ?? filters.checkOut;
-  if (checkIn) query.set('checkIn', checkIn);
-  if (checkOut) query.set('checkOut', checkOut);
+  if (sanitized.checkIn) query.set('checkIn', sanitized.checkIn);
+  if (sanitized.checkOut) query.set('checkOut', sanitized.checkOut);
   if (filters.guests && filters.guests > 1) query.set('guests', String(filters.guests));
   setOptionalNumber(query, 'minBedrooms', filters.minBedrooms);
   setOptionalNumber(query, 'minBeds', filters.minBeds);
@@ -87,6 +97,7 @@ export function toExtractedFilters(
   args: SearchPropertiesToolArgs,
   location: ResolvedLocation,
 ): AiSearchExtractedFilters {
+  const dates = resolveAiSearchDateFields(args, todayIsoUtc());
   return {
     locationLabel: location.locationLabel,
     searchCity: location.searchCity,
@@ -96,11 +107,11 @@ export function toExtractedFilters(
     searchLatitude: location.searchLatitude,
     searchLongitude: location.searchLongitude,
     region: location.region,
-    checkIn: args.checkIn,
-    checkOut: args.checkOut,
-    stayNights: args.stayNights,
-    availableFrom: args.availableFrom,
-    availableTo: args.availableTo,
+    checkIn: dates.checkIn,
+    checkOut: dates.checkOut,
+    stayNights: dates.stayNights,
+    availableFrom: dates.availableFrom,
+    availableTo: dates.availableTo,
     guests: args.maxGuests,
     minBedrooms: args.minBedrooms,
     minBeds: args.minBeds,
@@ -133,6 +144,7 @@ export function toSearchPropertiesDto(
   args: SearchPropertiesToolArgs,
   location: ResolvedLocation,
 ): SearchPropertiesDto {
+  const dates = resolveAiSearchDateFields(args, todayIsoUtc());
   const dto = new SearchPropertiesDto();
   dto.searchCity = location.searchCity;
   dto.searchStreet = location.searchStreet;
@@ -142,15 +154,15 @@ export function toSearchPropertiesDto(
   dto.searchLongitude = location.searchLongitude;
   dto.region = location.region;
   dto.city = location.city;
-  if (hasExactSearchDates(args)) {
-    dto.checkIn = args.checkIn;
-    dto.checkOut = args.checkOut;
-  } else if (hasFlexibleSearchDates(args)) {
-    dto.stayNights = args.stayNights;
-    dto.availableFrom = args.availableFrom;
-    dto.availableTo = args.availableTo;
-    dto.minNights = args.stayNights;
-    dto.maxNights = args.stayNights;
+  if (hasExactSearchDates(dates)) {
+    dto.checkIn = dates.checkIn;
+    dto.checkOut = dates.checkOut;
+  } else if (hasFlexibleSearchDates(dates)) {
+    dto.stayNights = dates.stayNights;
+    dto.availableFrom = dates.availableFrom;
+    dto.availableTo = dates.availableTo;
+    dto.minNights = dates.stayNights;
+    dto.maxNights = dates.stayNights;
   }
   dto.maxGuests = args.maxGuests;
   dto.minBedrooms = args.minBedrooms;

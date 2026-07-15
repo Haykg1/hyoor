@@ -1,5 +1,8 @@
 export * from './poi-city';
 export * from './geo-distance';
+export * from './search-dates';
+export * from './property-type';
+export * from './search-intent';
 
 export function slugify(text: string): string {
   return text

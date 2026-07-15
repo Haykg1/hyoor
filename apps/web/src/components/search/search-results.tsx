@@ -8,9 +8,13 @@ import { useSearchNavigation } from '@/hooks/use-search-navigation';
 
 interface SearchResultsProps {
   properties: PropertySummary[];
+  showAiMatch?: boolean;
 }
 
-export function SearchResults({ properties }: SearchResultsProps): React.JSX.Element {
+export function SearchResults({
+  properties,
+  showAiMatch = false,
+}: SearchResultsProps): React.JSX.Element {
   const t = useTranslations('search.empty');
   const { goToSearch } = useSearchNavigation();
   if (properties.length === 0) {
@@ -29,9 +33,9 @@ export function SearchResults({ properties }: SearchResultsProps): React.JSX.Ele
     );
   }
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
       {properties.map((property) => (
-        <PropertyCard key={property.id} property={property} />
+        <PropertyCard key={property.id} property={property} showAiMatch={showAiMatch} />
       ))}
     </div>
   );

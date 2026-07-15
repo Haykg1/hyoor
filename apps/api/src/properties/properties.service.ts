@@ -24,10 +24,17 @@ import type {
   PresignedPhotoUrlResponse,
   PropertyAddressLabels,
   PropertyFeaturedPoiView,
+  PropertySortValue,
   PropertySummary,
   PropertyTitleLabels,
 } from '@repo/shared';
-import { AddressLocales, MAX_FEATURED_POIS } from '@repo/shared';
+import {
+  AddressLocales,
+  MAX_FEATURED_POIS,
+  normalizePropertySortBy,
+  sanitizeSearchDateFields,
+  todayIsoUtc,
+} from '@repo/shared';
 import {
   DEFAULT_PAGE_SIZE,
   expandCityFilterValues,
@@ -120,7 +127,11 @@ export class PropertiesService {
     displayCurrency: string | undefined,
     rates: CurrencyRates | null,
   ): DisplayPrice | null {
-    if (!displayCurrency || !rates) return null;
+    if (!displayCurrency) return null;
+    if (currency === displayCurrency) {
+      return { amount: pricePerNight, currency: displayCurrency };
+    }
+    if (!rates) return null;
     const converted = this.currencyService.convert(pricePerNight, currency, displayCurrency, rates);
     if (converted === null) return null;
     return { amount: Math.round(converted), currency: displayCurrency };
@@ -489,13 +500,56 @@ export class PropertiesService {
     return dto.featured !== undefined ? { featured: dto.featured } : {};
   }
 
-  private buildPriceWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
-    if (dto.minPrice === undefined && dto.maxPrice === undefined) return {};
+  private buildPriceWhere(
+    dto: SearchPropertiesDto,
+    priceBounds?: { minPrice?: number; maxPrice?: number },
+  ): Prisma.PropertyWhereInput {
+    const minPrice = priceBounds?.minPrice ?? dto.minPrice;
+    const maxPrice = priceBounds?.maxPrice ?? dto.maxPrice;
+    if (minPrice === undefined && maxPrice === undefined) return {};
     return {
       pricePerNight: {
-        ...(dto.minPrice !== undefined ? { gte: dto.minPrice } : {}),
-        ...(dto.maxPrice !== undefined ? { lte: dto.maxPrice } : {}),
+        ...(minPrice !== undefined ? { gte: minPrice } : {}),
+        ...(maxPrice !== undefined ? { lte: maxPrice } : {}),
       },
+    };
+  }
+
+  /**
+   * Listing prices use host settlement currency (USD). Convert filter bounds from the
+   * guest display currency into USD before comparing to `pricePerNight`.
+   */
+  private convertPriceBoundsToSettlement(
+    dto: SearchPropertiesDto,
+    displayCurrency: string | undefined,
+    rates: CurrencyRates | null,
+  ): { minPrice?: number; maxPrice?: number } {
+    const settlementCurrency = 'USD';
+    const minPrice = dto.minPrice;
+    const maxPrice = dto.maxPrice;
+    if (minPrice === undefined && maxPrice === undefined) return {};
+    if (!displayCurrency || displayCurrency === settlementCurrency) {
+      return { minPrice, maxPrice };
+    }
+    if (!rates) {
+      this.logger.warn(
+        `Price filter bounds treated as ${settlementCurrency} — rates unavailable for ${displayCurrency}`,
+      );
+      return { minPrice, maxPrice };
+    }
+    const convertBound = (amount: number): number | undefined => {
+      const converted = this.currencyService.convert(
+        amount,
+        displayCurrency,
+        settlementCurrency,
+        rates,
+      );
+      if (converted === null) return amount;
+      return Math.round(converted);
+    };
+    return {
+      minPrice: minPrice === undefined ? undefined : convertBound(minPrice),
+      maxPrice: maxPrice === undefined ? undefined : convertBound(maxPrice),
     };
   }
 
@@ -560,10 +614,65 @@ export class PropertiesService {
     return names.map((name) => ({ amenities: { some: { name } } }));
   }
 
-  private buildOrderBy(dto: SearchPropertiesDto): Prisma.PropertyOrderByWithRelationInput {
-    return dto.sortBy === 'pricePerNight'
-      ? { pricePerNight: 'asc' as const }
-      : { createdAt: 'desc' as const };
+  private resolveSortBy(dto: SearchPropertiesDto): PropertySortValue {
+    return normalizePropertySortBy(dto.sortBy) ?? 'recommended';
+  }
+
+  /**
+   * Always pin featured listings first (not controllable via API sortBy).
+   * Requested sort is applied only among featured, then among non-featured.
+   */
+  private buildOrderBy(dto: SearchPropertiesDto): Prisma.PropertyOrderByWithRelationInput[] {
+    const sortBy = this.resolveSortBy(dto);
+    const featuredFirst: Prisma.PropertyOrderByWithRelationInput = { featured: 'desc' };
+    if (sortBy === 'priceAsc') return [featuredFirst, { pricePerNight: 'asc' }];
+    if (sortBy === 'priceDesc') return [featuredFirst, { pricePerNight: 'desc' }];
+    if (sortBy === 'mostReviewed') return [featuredFirst, { reviews: { _count: 'desc' } }];
+    if (sortBy === 'topRated') return [featuredFirst, { createdAt: 'desc' }];
+    return [featuredFirst, { createdAt: 'desc' }];
+  }
+
+  private usesAggregateReviewSort(dto: SearchPropertiesDto): boolean {
+    const sortBy = this.resolveSortBy(dto);
+    return sortBy === 'topRated' || sortBy === 'mostReviewed';
+  }
+
+  private async orderPropertyIdsByReviewAggregate(
+    properties: { id: string; featured: boolean }[],
+    sortBy: 'topRated' | 'mostReviewed',
+  ): Promise<string[]> {
+    if (properties.length === 0) return [];
+    const propertyIds = properties.map((property) => property.id);
+    const groups = await this.prisma.review.groupBy({
+      by: ['propertyId'],
+      where: {
+        target: 'PROPERTY',
+        isPublished: true,
+        propertyId: { in: propertyIds },
+      },
+      _avg: { rating: true },
+      _count: { _all: true },
+    });
+    const byId = new Map(
+      groups
+        .filter((g): g is typeof g & { propertyId: string } => typeof g.propertyId === 'string')
+        .map((g) => [g.propertyId, { avg: g._avg.rating ?? 0, count: g._count._all }]),
+    );
+    return [...properties]
+      .sort((a, b) => {
+        if (a.featured !== b.featured) return a.featured ? -1 : 1;
+        const left = byId.get(a.id);
+        const right = byId.get(b.id);
+        if (sortBy === 'topRated') {
+          const avgDiff = (right?.avg ?? -1) - (left?.avg ?? -1);
+          if (avgDiff !== 0) return avgDiff;
+          return (right?.count ?? 0) - (left?.count ?? 0);
+        }
+        const countDiff = (right?.count ?? 0) - (left?.count ?? 0);
+        if (countDiff !== 0) return countDiff;
+        return (right?.avg ?? 0) - (left?.avg ?? 0);
+      })
+      .map((property) => property.id);
   }
 
   private async getRatedPropertyIds(dto: SearchPropertiesDto): Promise<string[] | null> {
@@ -594,6 +703,7 @@ export class PropertiesService {
       suggestedDatesByPropertyId?: Record<string, FlexibleStayMatch>;
     }
   > {
+    this.sanitizeSearchDatesInPlace(dto);
     if (this.usesFlexibleDateSearch(dto)) {
       return this.searchWithFlexibleDates(dto, displayCurrency);
     }
@@ -611,7 +721,32 @@ export class PropertiesService {
     if (ratedPropertyIds && ratedPropertyIds.length === 0) {
       return { data: [], total: 0, page, limit, totalPages: 1 };
     }
-    const where = this.buildSearchWhere(dto, unavailablePropertyIds, ratedPropertyIds);
+    const priceBounds = this.convertPriceBoundsToSettlement(dto, displayCurrency, rates);
+    const where = this.buildSearchWhere(dto, unavailablePropertyIds, ratedPropertyIds, priceBounds);
+    if (this.usesAggregateReviewSort(dto)) {
+      const sortBy = this.resolveSortBy(dto) as 'topRated' | 'mostReviewed';
+      const candidates = await this.prisma.property.findMany({
+        where,
+        select: { id: true, featured: true },
+      });
+      const orderedIds = await this.orderPropertyIdsByReviewAggregate(candidates, sortBy);
+      const total = orderedIds.length;
+      const pageIds = orderedIds.slice(skip, skip + limit);
+      const properties = await this.prisma.property.findMany({
+        where: { id: { in: pageIds } },
+        include: this.searchPropertyInclude(),
+      });
+      const propertyById = new Map(properties.map((property) => [property.id, property]));
+      const orderedProperties = pageIds
+        .map((id) => propertyById.get(id))
+        .filter((property): property is NonNullable<typeof property> => property !== undefined);
+      const summaries = await Promise.all(
+        orderedProperties.map((property) =>
+          this.toPropertySummary(property, displayCurrency, rates),
+        ),
+      );
+      return { data: summaries, total, page, limit, totalPages: Math.ceil(total / limit) || 1 };
+    }
     const orderBy = this.buildOrderBy(dto);
     const [properties, total] = await Promise.all([
       this.prisma.property.findMany({
@@ -627,6 +762,25 @@ export class PropertiesService {
       properties.map((property) => this.toPropertySummary(property, displayCurrency, rates)),
     );
     return { data: summaries, total, page, limit, totalPages: Math.ceil(total / limit) || 1 };
+  }
+
+  /** Past stays are never searchable: shift exact dates or clamp flexible windows to today+. */
+  private sanitizeSearchDatesInPlace(dto: SearchPropertiesDto): void {
+    const dates = sanitizeSearchDateFields(
+      {
+        checkIn: dto.checkIn,
+        checkOut: dto.checkOut,
+        stayNights: dto.stayNights,
+        availableFrom: dto.availableFrom,
+        availableTo: dto.availableTo,
+      },
+      todayIsoUtc(),
+    );
+    dto.checkIn = dates.checkIn;
+    dto.checkOut = dates.checkOut;
+    dto.stayNights = dates.stayNights;
+    dto.availableFrom = dates.availableFrom;
+    dto.availableTo = dates.availableTo;
   }
 
   private usesFlexibleDateSearch(dto: SearchPropertiesDto): boolean {
@@ -685,15 +839,20 @@ export class PropertiesService {
     if (ratedPropertyIds && ratedPropertyIds.length === 0) {
       return { data: [], total: 0, page, limit, totalPages: 1, suggestedDatesByPropertyId: {} };
     }
-    const where = this.buildSearchWhere(dto, [], ratedPropertyIds);
+    const priceBounds = this.convertPriceBoundsToSettlement(dto, displayCurrency, rates);
+    const where = this.buildSearchWhere(dto, [], ratedPropertyIds, priceBounds);
     const orderBy = this.buildOrderBy(dto);
     const candidates = await this.prisma.property.findMany({
       where,
       orderBy,
       take: FLEXIBLE_SEARCH_CANDIDATE_CAP,
-      select: { id: true },
+      select: { id: true, featured: true },
     });
-    const candidateIds = candidates.map((row) => row.id);
+    let candidateIds = candidates.map((row) => row.id);
+    if (this.usesAggregateReviewSort(dto)) {
+      const sortBy = this.resolveSortBy(dto) as 'topRated' | 'mostReviewed';
+      candidateIds = await this.orderPropertyIdsByReviewAggregate(candidates, sortBy);
+    }
     const flexibleMatches = await this.findFlexibleAvailabilityForProperties(
       candidateIds,
       availableFrom,
@@ -754,6 +913,7 @@ export class PropertiesService {
     dto: SearchPropertiesDto,
     unavailablePropertyIds: string[],
     ratedPropertyIds: string[] | null,
+    priceBounds?: { minPrice?: number; maxPrice?: number },
   ): Prisma.PropertyWhereInput {
     const titleSearchOr = this.buildTitleSearchOr(dto.q);
     const andClauses: Prisma.PropertyWhereInput[] = [
@@ -761,7 +921,7 @@ export class PropertiesService {
       this.buildLocationWhere(dto),
       this.buildTypeWhere(dto),
       this.buildFeaturedWhere(dto),
-      this.buildPriceWhere(dto),
+      this.buildPriceWhere(dto, priceBounds),
       this.buildFeesWhere(dto),
       this.buildCapacityWhere(dto),
       this.buildRoomsWhere(dto),

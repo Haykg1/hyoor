@@ -102,10 +102,23 @@ describe('CurrencyService', () => {
   });
 
   describe('refreshRates', () => {
-    it('does nothing when Redis is not configured', async () => {
+    it('keeps rates in memory when Redis is not configured', async () => {
       const { service, redis } = buildService({ isConfigured: false });
+      const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          result: 'success',
+          base_code: 'USD',
+          rates: sampleRates.rates,
+        }),
+      } as Response);
       await service.refreshRates();
       expect(redis.setWithTtl).not.toHaveBeenCalled();
+      expect(await service.getRates()).toMatchObject({
+        base: 'USD',
+        rates: expect.objectContaining({ AMD: 400, EUR: 0.92 }),
+      });
+      fetchMock.mockRestore();
     });
 
     it('fetches, filters to the curated set, and caches the result', async () => {

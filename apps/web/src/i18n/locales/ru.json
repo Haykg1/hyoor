@@ -156,13 +156,32 @@
     "guests": "Гости",
     "search_button": "Найти",
     "filters_button": "Фильтры",
+    "filters_close": "Закрыть фильтры",
+    "ai_section_title": "AI-поиск",
+    "ai_results_count": "{count, plural, =0 {Нет результатов} one {# результат} few {# результата} many {# результатов} other {# результатов}}",
+    "ai_interpreted_as": "Интерпретация:",
+    "ai_interpreted_fallback": "Показаны объекты по текущим фильтрам.",
+    "ai_prompt_placeholder": "Опишите жильё, которое ищете…",
+    "ai_update": "Обновить",
+    "ai_collapse": "Свернуть AI-поиск",
+    "ai_expand": "Развернуть AI-поиск",
+    "ai_remove_chip": "Убрать фильтр",
+    "ai_search_tip": "Добавьте город, даты или количество гостей — так проще найти подходящие варианты.",
     "sort": {
       "label": "Сортировка",
-      "newest": "Сначала добавленные",
-      "price_asc": "Цена: по возрастанию"
+      "recommended": "Рекомендуемые",
+      "price_asc": "Цена: по возрастанию",
+      "price_desc": "Цена: по убыванию",
+      "top_rated": "С высоким рейтингом",
+      "most_reviewed": "Больше всего отзывов",
+      "newest": "Сначала добавленные"
+    },
+    "currency": {
+      "label": "Валюта отображения"
     },
     "count": "{count, plural, =0 {Ничего не найдено} one {Найден # объект} few {Найдено # объекта} many {Найдено # объектов} other {Найдено # объектов}}",
     "map_button": "Карта",
+    "map_coming_soon": "Скоро",
     "empty": {
       "title": "Подходящих избранных объектов нет",
       "description": "Попробуйте другое направление или сбросьте фильтры.",
@@ -173,17 +192,31 @@
       "apply": "Применить",
       "reset": "Сбросить",
       "cancel": "Отмена",
+      "more_filters": "Ещё фильтры",
       "min": "Мин",
       "max": "Макс",
       "region": "Регион",
       "region_placeholder": "напр. Тавуш",
-      "min_bedrooms": "Спальни (минимум)",
-      "min_beds": "Кровати (минимум)",
-      "min_bathrooms": "Ванные (минимум)",
+      "dates": "Даты",
+      "guests": "Гости",
+      "min_bedrooms": "Спальни",
+      "bedrooms_any": "Любые",
+      "bedrooms_plus": "{count}+",
+      "min_beds": "Кровати",
+      "beds_any": "Любые",
+      "beds_plus": "{count}+",
+      "min_bathrooms": "Ванные",
+      "bathrooms_any": "Любые",
+      "bathrooms_plus": "{count}+",
+      "guest_rating": "Оценка гостей",
+      "rating_any": "Любая",
+      "rating_plus": "{rating}+",
       "min_adults": "Взрослые (минимум)",
       "min_children": "Дети (минимум)",
       "min_infants": "Младенцы (минимум)",
-      "price_per_night_range": "Цена за ночь (AMD)",
+      "price_per_night_range": "Цена за ночь",
+      "price_up_to": "До {amount}",
+      "property_type": "Тип жилья",
       "cleaning_fee_range": "Уборка (AMD)",
       "security_deposit_range": "Залог (AMD)",
       "min_nights": "Ночей (минимум)",
@@ -206,7 +239,11 @@
       "search_street_placeholder": "напр. проспект Азатутян",
       "search_building_number": "Номер дома",
       "search_building_number_placeholder": "напр. 11"
-    }
+    },
+    "where": "Где",
+    "where_placeholder": "Где угодно",
+    "add_dates": "Добавить даты",
+    "search": "Найти"
   },
   "footer": {
     "tagline": "Откройте Армению — одно жильё за раз",
@@ -552,14 +589,19 @@
       "empty_promotions": "Для этого объекта акций пока нет.",
       "loading": "Загрузка…",
       "meta": "{start} – {end} · осталось {remaining} · {type}",
-      "types": { "date_range": "Скидка по датам" },
+      "types": {
+        "date_range": "Скидка по датам"
+      },
       "form": {
         "title": "Новая акция",
         "subtitle": "Акция для {title}",
         "no_property": "Сначала выберите объект.",
         "promotion_type": "Тип акции",
         "discount_type": "Тип скидки",
-        "types": { "date_range": "По датам", "promo_code": "Промокод" },
+        "types": {
+          "date_range": "По датам",
+          "promo_code": "Промокод"
+        },
         "discount": {
           "percent": "Процент",
           "fixed": "Фиксированная",
@@ -974,6 +1016,7 @@
     "guests_max": "до {count} гостей",
     "bedrooms": "{count} спальня",
     "reviews": "{count} отзывов",
+    "ai_match": "AI Match",
     "categories": {
       "apartment": "Квартира",
       "studio": "Студия",

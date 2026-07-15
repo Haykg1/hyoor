@@ -20,6 +20,9 @@ export type SearchNavigationParams = Partial<
     | 'checkOut'
     | 'guests'
     | 'sortBy'
+    | 'displayCurrency'
+    | 'propertyType'
+    | 'aiMatch'
     | 'minBedrooms'
     | 'minBeds'
     | 'minBathrooms'
@@ -66,7 +69,10 @@ export function searchFiltersToNavigationParams(filters: SearchFilters): SearchN
     checkIn: filters.checkIn || undefined,
     checkOut: filters.checkOut || undefined,
     guests: filters.guests > 1 ? filters.guests : undefined,
-    sortBy: filters.sortBy !== 'createdAt' ? filters.sortBy : undefined,
+    sortBy: filters.sortBy !== 'recommended' ? filters.sortBy : undefined,
+    displayCurrency: filters.displayCurrency,
+    propertyType: filters.propertyType,
+    aiMatch: filters.aiMatch || undefined,
     minBedrooms: filters.minBedrooms,
     minBeds: filters.minBeds,
     minBathrooms: filters.minBathrooms,
@@ -113,7 +119,10 @@ export function buildSearchQueryString(params?: SearchNavigationParams): string 
   if (params?.checkIn) query.set('checkIn', params.checkIn);
   if (params?.checkOut) query.set('checkOut', params.checkOut);
   if (params?.guests && params.guests > 1) query.set('guests', String(params.guests));
-  if (params?.sortBy && params.sortBy !== 'createdAt') query.set('sortBy', params.sortBy);
+  if (params?.sortBy && params.sortBy !== 'recommended') query.set('sortBy', params.sortBy);
+  if (params?.displayCurrency) query.set('displayCurrency', params.displayCurrency);
+  if (params?.propertyType) query.set('propertyType', params.propertyType);
+  if (params?.aiMatch) query.set('ai', '1');
   setOptionalNumber(query, 'minBedrooms', params?.minBedrooms);
   setOptionalNumber(query, 'minBeds', params?.minBeds);
   setOptionalNumber(query, 'minBathrooms', params?.minBathrooms);

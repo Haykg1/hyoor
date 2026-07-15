@@ -1,8 +1,12 @@
+import type { PropertyType } from '@repo/shared';
 import {
-  PROPERTY_SORT_VALUES,
-  type ListPropertiesParams,
-  type PropertySortValue,
-} from '@/lib/api/properties';
+  normalizePropertySortBy,
+  PropertyTypes,
+  sanitizeExactStayDates,
+  todayIsoLocal,
+} from '@repo/shared';
+
+import { type ListPropertiesParams, type PropertySortValue } from '@/lib/api/properties';
 
 export interface SearchFilters {
   location: string;
@@ -17,6 +21,10 @@ export interface SearchFilters {
   checkOut: string;
   guests: number;
   sortBy: PropertySortValue;
+  displayCurrency?: string;
+  propertyType?: PropertyType;
+  /** Set when results came from AI search Update (`ai=1` in URL). */
+  aiMatch?: boolean;
   minBedrooms?: number;
   minBeds?: number;
   minBathrooms?: number;
@@ -45,7 +53,7 @@ export const DEFAULT_SEARCH_FILTERS: SearchFilters = {
   checkIn: '',
   checkOut: '',
   guests: 1,
-  sortBy: 'createdAt',
+  sortBy: 'recommended',
   amenities: [],
 };
 
@@ -58,10 +66,7 @@ function readString(raw: RawSearchParams, key: string): string {
 }
 
 function readSort(raw: RawSearchParams): PropertySortValue {
-  const value = readString(raw, 'sortBy');
-  return (PROPERTY_SORT_VALUES as readonly string[]).includes(value)
-    ? (value as PropertySortValue)
-    : 'createdAt';
+  return normalizePropertySortBy(readString(raw, 'sortBy')) ?? 'recommended';
 }
 
 function readGuests(raw: RawSearchParams): number {
@@ -111,11 +116,24 @@ function readStringArray(raw: RawSearchParams, key: string): string[] {
   return [];
 }
 
+function readPropertyType(raw: RawSearchParams): PropertyType | undefined {
+  const value = readString(raw, 'propertyType');
+  if ((PropertyTypes as readonly string[]).includes(value)) {
+    return value as PropertyType;
+  }
+  return undefined;
+}
+
 /**
  * Parses the Next.js searchParams object into our typed SearchFilters.
  * Pure function — safe to call from server components.
  */
 export function parseSearchFilters(raw: RawSearchParams): SearchFilters {
+  const dates = sanitizeExactStayDates(
+    readString(raw, 'checkIn') || undefined,
+    readString(raw, 'checkOut') || undefined,
+    todayIsoLocal(),
+  );
   return {
     location: readString(raw, 'location'),
     region: readString(raw, 'region'),
@@ -125,10 +143,13 @@ export function parseSearchFilters(raw: RawSearchParams): SearchFilters {
     searchPlaceKind: readString(raw, 'searchPlaceKind') || undefined,
     searchLatitude: readOptionalFloat(raw, 'searchLatitude'),
     searchLongitude: readOptionalFloat(raw, 'searchLongitude'),
-    checkIn: readString(raw, 'checkIn'),
-    checkOut: readString(raw, 'checkOut'),
+    checkIn: dates.checkIn ?? '',
+    checkOut: dates.checkOut ?? '',
     guests: readGuests(raw),
     sortBy: readSort(raw),
+    displayCurrency: readString(raw, 'displayCurrency') || undefined,
+    propertyType: readPropertyType(raw),
+    aiMatch: readString(raw, 'ai') === '1',
     minBedrooms: readOptionalInt(raw, 'minBedrooms'),
     minBeds: readOptionalInt(raw, 'minBeds'),
     minBathrooms: readOptionalFloat(raw, 'minBathrooms'),
@@ -197,6 +218,8 @@ export function filtersToApiParams(filters: SearchFilters): Omit<ListPropertiesP
     checkOut: filters.checkOut || undefined,
     maxGuests: filters.guests > 1 ? filters.guests : undefined,
     sortBy: filters.sortBy,
+    displayCurrency: filters.displayCurrency,
+    propertyType: filters.propertyType,
     minBedrooms: filters.minBedrooms,
     minBeds: filters.minBeds,
     minBathrooms: filters.minBathrooms,
@@ -233,6 +256,7 @@ export function hasActiveFilters(filters: SearchFilters): boolean {
     Boolean(filters.checkIn) ||
     Boolean(filters.checkOut) ||
     filters.guests > 1 ||
+    Boolean(filters.propertyType) ||
     (filters.amenities?.length ?? 0) > 0 ||
     filters.minBedrooms !== undefined ||
     filters.minBeds !== undefined ||

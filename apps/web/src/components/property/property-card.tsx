@@ -17,6 +17,7 @@ import { PropertyPriceDisplay } from './property-price-display';
 interface PropertyCardProps {
   property: PropertySummary | AiSearchPropertyResult;
   showSuggestedDates?: boolean;
+  showAiMatch?: boolean;
 }
 
 function buildPropertyHref(
@@ -38,6 +39,7 @@ function buildPropertyHref(
 export function PropertyCard({
   property,
   showSuggestedDates = false,
+  showAiMatch = false,
 }: PropertyCardProps): React.JSX.Element {
   const locale = useLocale();
   const t = useTranslations('property_card');
@@ -67,6 +69,8 @@ export function PropertyCard({
           imageUrl={property.coverPhotoUrl ?? PROPERTY_PLACEHOLDER_IMAGE}
           title={localizedTitle}
           categoryLabel={tc(propertyTypeLabelKey(property.propertyType))}
+          showAiMatch={showAiMatch}
+          aiMatchLabel={t('ai_match')}
         />
         <div className="p-4">
           <div className="mb-1 flex items-start justify-between gap-2">
@@ -114,6 +118,8 @@ interface PropertyCardMediaProps {
   imageUrl: string;
   title: string;
   categoryLabel: string;
+  showAiMatch?: boolean;
+  aiMatchLabel?: string;
 }
 
 function PropertyCardMedia({
@@ -121,6 +127,8 @@ function PropertyCardMedia({
   imageUrl,
   title,
   categoryLabel,
+  showAiMatch = false,
+  aiMatchLabel,
 }: PropertyCardMediaProps): React.JSX.Element {
   return (
     <div
@@ -135,9 +143,16 @@ function PropertyCardMedia({
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
         className="object-cover transition-transform duration-500 group-hover:scale-105"
       />
-      <span className="absolute left-3 top-3 inline-flex items-center rounded-md bg-white/90 px-2.5 py-0.5 text-xs font-medium text-neutral-900 shadow-sm backdrop-blur">
-        {categoryLabel}
-      </span>
+      <div className="absolute left-3 top-3 z-10 flex max-w-[calc(100%-3.5rem)] flex-col items-start gap-1.5">
+        {showAiMatch && aiMatchLabel ? (
+          <span className="inline-flex items-center rounded-md bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground shadow-sm">
+            {aiMatchLabel}
+          </span>
+        ) : null}
+        <span className="inline-flex items-center rounded-md bg-white/90 px-2.5 py-0.5 text-xs font-medium text-neutral-900 shadow-sm backdrop-blur">
+          {categoryLabel}
+        </span>
+      </div>
       <FavoriteButton propertyId={propertyId} />
     </div>
   );

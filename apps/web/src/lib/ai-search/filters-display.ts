@@ -1,8 +1,15 @@
 import type { AiSearchExtractedFilters } from '@repo/shared';
 
+import { formatCurrencyAmount } from '@/lib/format/price';
+
 export interface AiSearchFilterChip {
   key: string;
   label: string;
+}
+
+export interface FilterChipsOptions {
+  /** Currency of minPrice/maxPrice (selected display currency). Defaults to AMD. */
+  displayCurrency?: string;
 }
 
 function formatDateRange(checkIn?: string, checkOut?: string): string | undefined {
@@ -34,7 +41,11 @@ function formatFlexibleStay(filters: AiSearchExtractedFilters): string | undefin
   return `${filters.stayNights} nights · ${windowLabel}`;
 }
 
-export function extractedFiltersToChips(filters: AiSearchExtractedFilters): AiSearchFilterChip[] {
+export function extractedFiltersToChips(
+  filters: AiSearchExtractedFilters,
+  options: FilterChipsOptions = {},
+): AiSearchFilterChip[] {
+  const currency = options.displayCurrency || 'AMD';
   const chips: AiSearchFilterChip[] = [];
   const location = filters.locationLabel ?? filters.searchCity ?? filters.region;
   if (location) chips.push({ key: 'location', label: location });
@@ -51,13 +62,12 @@ export function extractedFiltersToChips(filters: AiSearchExtractedFilters): AiSe
   if (filters.minBedrooms)
     chips.push({ key: 'bedrooms', label: `${filters.minBedrooms}+ bedrooms` });
   if (filters.minPrice || filters.maxPrice) {
-    const min = filters.minPrice ? `${filters.minPrice.toLocaleString()} AMD` : null;
-    const max = filters.maxPrice ? `${filters.maxPrice.toLocaleString()} AMD` : null;
+    const min = filters.minPrice ? formatCurrencyAmount(filters.minPrice, currency) : null;
+    const max = filters.maxPrice ? formatCurrencyAmount(filters.maxPrice, currency) : null;
     if (min && max) chips.push({ key: 'price', label: `${min} – ${max}` });
     else if (min) chips.push({ key: 'price', label: `from ${min}` });
     else if (max) chips.push({ key: 'price', label: `up to ${max}` });
   }
-  console.log(filters.amenities, '=======');
   if (filters.propertyType) {
     chips.push({ key: 'type', label: filters.propertyType.replace(/_/g, ' ').toLowerCase() });
   }
@@ -66,6 +76,7 @@ export function extractedFiltersToChips(filters: AiSearchExtractedFilters): AiSe
   }
   if (filters.petsAllowed) chips.push({ key: 'pets', label: 'Pets allowed' });
   if (filters.smokingAllowed) chips.push({ key: 'smoking', label: 'Smoking allowed' });
+  if (filters.partiesAllowed) chips.push({ key: 'parties', label: 'Parties allowed' });
   if (filters.minAvgRating) chips.push({ key: 'rating', label: `${filters.minAvgRating}+ rating` });
   if (filters.q) chips.push({ key: 'q', label: `"${filters.q}"` });
   return chips;
