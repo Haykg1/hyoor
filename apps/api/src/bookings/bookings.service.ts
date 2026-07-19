@@ -33,6 +33,7 @@ export interface BookingGuestProfile {
   firstName: string | null;
   lastName: string | null;
   avatarUrl: string | null;
+  email: string | null;
 }
 
 export interface BookingPropertySummary {
@@ -554,6 +555,7 @@ export class BookingsService {
         firstName: guest.profile?.firstName ?? null,
         lastName: guest.profile?.lastName ?? null,
         avatarUrl: guest.profile?.avatarKey ?? null,
+        email: guest.email,
       },
       promotionSummary: promotion
         ? this.promotionsService.toAppliedPromotionSummary(promotion)

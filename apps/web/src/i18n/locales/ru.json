@@ -69,6 +69,7 @@
     "trips": "Мои поездки",
     "messages": "Сообщения",
     "dashboard": "Панель",
+    "analytics": "Аналитика",
     "explore": "Поиск",
     "ai_search": "AI поиск",
     "become_host": "Стать хозяином",
@@ -400,7 +401,38 @@
     "confirmation": {
       "title": "Бронирование подтверждено!",
       "subtitle": "Ваше проживание забронировано. Мы отправили вам подтверждение.",
-      "continue_payment": "Перейти к оплате"
+      "continue_payment": "Перейти к оплате",
+      "host_title": "Детали бронирования",
+      "host_subtitle": "Распределение оплаты и данные гостя по этому проживанию.",
+      "back_to_dashboard": "Назад в кабинет",
+      "guest_label": "Гость",
+      "guest_fallback": "Гость",
+      "guest_paid": "Гость оплатил",
+      "platform_fee": "Комиссия платформы",
+      "your_payout": "Ваша выплата",
+      "refunded": "Возвращено",
+      "payout_status": "Статус выплаты",
+      "payment_status": "Статус оплаты",
+      "booking_status": "Статус бронирования:",
+      "nights_label": "Длительность",
+      "nightly_rate": "Цена за ночь",
+      "payout_status_values": {
+        "NONE": "Не запланировано",
+        "SCHEDULED": "Запланировано",
+        "PAID": "Выплачено",
+        "FAILED": "Ошибка выплаты"
+      },
+      "payment_status_values": {
+        "UNPAID": "Не оплачено",
+        "PENDING": "В обработке",
+        "PAID": "Оплачено",
+        "AUTHORIZED": "Авторизовано",
+        "CAPTURED": "Списано",
+        "PARTIALLY_REFUNDED": "Частичный возврат",
+        "REFUNDED": "Возвращено",
+        "FAILED": "Ошибка",
+        "CANCELLED": "Отменено"
+      }
     }
   },
   "payment": {
@@ -509,6 +541,66 @@
     "welcome": "С возвращением, {name}",
     "add_listing": "Добавить объект",
     "upload_bulk": "Массовая загрузка",
+    "analytics": {
+      "title": "Аналитика",
+      "subtitle": "Обзор эффективности · {period}",
+      "subtitle_loading": "Обзор эффективности",
+      "back_to_dashboard": "Назад к панели",
+      "range_label": "Период",
+      "from": "С",
+      "to": "По",
+      "export": "Экспорт",
+      "nav": "Аналитика",
+      "presets": {
+        "last_30_days": "Последние 30 дней",
+        "last_90_days": "Последние 90 дней",
+        "this_year": "Этот год",
+        "custom": "Свой период"
+      },
+      "kpis": {
+        "adr": "Средняя суточная ставка (ADR)",
+        "revpar": "RevPAR",
+        "nights_booked": "Забронированные ночи",
+        "cancellation_rate": "Доля отмен",
+        "across_properties": "по {count, plural, one {# объекту} few {# объектам} other {# объектам}}",
+        "cancellations": "{count, plural, one {# отмена} few {# отмены} other {# отмен}}",
+        "vs_prior_abs": "{value} к прошлому периоду"
+      },
+      "charts": {
+        "earnings_title": "Месячный доход",
+        "earnings_subtitle": "Выплаты хосту по месяцу заезда за выбранный период",
+        "earnings": "Доход",
+        "occupancy_title": "Динамика загрузки",
+        "occupancy_subtitle": "Ваша загрузка vs средняя по платформе за выбранный период",
+        "host_occupancy": "Ваша загрузка",
+        "market_occupancy": "Среднее по рынку",
+        "empty": "Пока нет данных за этот период."
+      },
+      "origins": {
+        "title": "Страны гостей",
+        "empty": "Нет данных о гражданстве гостей за этот период.",
+        "bookings": "{count, plural, one {# бронирование} few {# бронирования} other {# бронирований}}",
+        "nights": "{count, plural, one {# ночь} few {# ночи} other {# ночей}}"
+      },
+      "property_label": "Объект",
+      "property_all": "Все объекты",
+      "hints": {
+        "adr_desc": "Средняя выплата хосту за забронированную ночь.",
+        "adr_calc": "ADR = сумма выплат хосту ÷ число забронированных ночей для подтверждённых и завершённых бронирований с заездом в выбранном периоде.",
+        "revpar_desc": "Эффективность дохода по ночам, которые можно было продать.",
+        "revpar_calc": "RevPAR = сумма выплат хосту ÷ (открытые ночи календаря + забронированные ночи) за выбранный период.",
+        "nights_desc": "Всего ночей по подтверждённым и завершённым бронированиям.",
+        "nights_calc": "Сумма nightsCount бронирований, у которых заезд попадает в выбранный период (confirmed или completed).",
+        "cancellation_desc": "Доля отменённых проживаний за период.",
+        "cancellation_calc": "Процент отмен = отменённые бронирования ÷ подходящие бронирования (confirmed, completed, no-show или cancelled) с заездом в периоде.",
+        "earnings_desc": "Выплаты хосту по месяцу заезда за выбранный период.",
+        "earnings_calc": "Каждый столбец суммирует hostPayoutAmount для confirmed/completed бронирований с заездом в этом месяце в выбранном диапазоне.",
+        "occupancy_desc": "Ваша загрузка против средней по платформе за выбранный период.",
+        "occupancy_calc": "Загрузка = забронированные ночи ÷ (забронированные + открытые доступные ночи) по месяцам выбранного диапазона. Рынок считается так же по всем объектам.",
+        "origins_desc": "Топ стран гостей по выплатам хосту за выбранный период.",
+        "origins_calc": "Ранжирование по сумме выплат хосту для confirmed/completed бронирований с указанной национальностью гостя, топ-5 стран."
+      }
+    },
     "bulk_upload": {
       "title": "Массовая загрузка объявлений",
       "subtitle": "Загрузите файл CSV или XLSX, чтобы создать несколько объявлений сразу. Искусственный интеллект нормализует данные и геокодирует адреса.",
@@ -552,10 +644,19 @@
       "column_guide_security_deposit_note": "Необязательно — по умолчанию 0. Нулевые сборы не отображаются при оформлении бронирования."
     },
     "per_night": "ночь",
+    "total_earnings": "{amount} всего",
+    "listing": {
+      "guests_up_to": "До {count} гостей"
+    },
     "actions": {
       "view": "Просмотр",
       "edit": "Редактировать",
       "calendar": "Календарь",
+      "availability": "Доступность",
+      "pause_listing": "Приостановить",
+      "activate_listing": "Активировать",
+      "preview": "Просмотр",
+      "more": "Ещё действия",
       "soft_delete": "Отключить",
       "reactivate": "Включить",
       "enable": "Включить",
@@ -579,7 +680,11 @@
       "tab_upcoming": "Предстоящие",
       "tab_past": "Прошедшие",
       "empty_upcoming": "Нет предстоящих бронирований.",
-      "empty_past": "Нет прошедших бронирований."
+      "empty_past": "Нет прошедших бронирований.",
+      "guest_label": "Гость",
+      "your_payout": "Ваша выплата",
+      "platform_fee": "Комиссия платформы",
+      "guest_paid": "Гость оплатил"
     },
     "promotions": {
       "pick_property": "Объект",
@@ -781,7 +886,6 @@
     "properties": "Properties",
     "bookings": "Bookings",
     "messages": "Messages",
-    "analytics": "Analytics",
     "reviews": "Reviews",
     "settings": "Settings",
     "stats": {

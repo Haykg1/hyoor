@@ -16,6 +16,12 @@ export function formatAmd(amount: number): string {
   return formatCurrencyAmount(amount, 'AMD');
 }
 
+/** Formats an amount with the Armenian dram symbol (e.g. "֏18,500"). */
+export function formatDramSymbol(amount: number): string {
+  const value = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(amount);
+  return `֏${value}`;
+}
+
 /** Formats Stripe minor units (cents) as major USD, e.g. 2000 → "20.00 USD". */
 export function formatUsdFromMinor(amount: number): string {
   const major = amount / 100;

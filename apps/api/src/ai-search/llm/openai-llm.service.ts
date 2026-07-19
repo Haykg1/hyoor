@@ -86,7 +86,6 @@ export class OpenAiLlmService extends LlmService {
     const toolCall = choice.message.tool_calls?.[0];
     if (toolCall?.type === 'function' && toolCall.function.name === SEARCH_PROPERTIES_TOOL_NAME) {
       const args = this.parseToolArgs(toolCall.function.arguments);
-      console.log('args', args);
       const message =
         choice.message.content?.trim() || 'Here are some places that match your search.';
       return {

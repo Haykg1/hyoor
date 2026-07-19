@@ -109,9 +109,11 @@ model Booking {
   paymentFailures      PaymentFailure[]
 
   @@index([propertyId])
+  @@index([propertyId, checkIn])
   @@index([promotionId])
   @@index([guestId])
   @@index([checkIn])
+  @@index([checkIn, status])
   @@index([checkOut])
   @@index([status])
   @@index([paymentStatus])

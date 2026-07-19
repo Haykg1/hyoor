@@ -46,7 +46,7 @@ export function FavoriteButton({ propertyId }: FavoriteButtonProps): React.JSX.E
         aria-pressed={isActive}
         disabled={isPending}
         onClick={(event) => void handleClick(event)}
-        className="absolute right-3 top-3 rounded-full bg-white/80 p-1.5 transition-colors hover:bg-white disabled:opacity-60"
+        className="absolute bottom-3 right-3 rounded-full bg-white/80 p-1.5 transition-colors hover:bg-white disabled:opacity-60"
       >
         <Heart
           className={

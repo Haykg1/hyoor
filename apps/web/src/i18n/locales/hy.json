@@ -69,6 +69,7 @@
     "trips": "Իմ ուղևորությունները",
     "messages": "Հաղորդագրություններ",
     "dashboard": "Վահանակ",
+    "analytics": "Վերլուծություն",
     "explore": "Փնտրել",
     "ai_search": "AI որոնում",
     "become_host": "Դառնալ տանտեր",
@@ -398,9 +399,40 @@
       "cancel": "Չեղարկել"
     },
     "confirmation": {
-      "title": "Ամրագրումը հաստատված է։",
-      "subtitle": "Ձեր կեցությունը ամրագրված է։ Հաստատումն ուղարկվել է ձեզ։",
-      "continue_payment": "Անցնել վճարմանը"
+      "title": "Ամրագրումը հաստատված է՝",
+      "subtitle": "Ձեր կեցությունը ամրագրված է՝ Հաստատումն ուղարկվել է ձեզ՝",
+      "continue_payment": "Անցնել վճարմանը",
+      "host_title": "Ամրագրման մանրամասներ",
+      "host_subtitle": "Վճարման բաժանում և հյուրի տվյալներ այս կեցության համար՝",
+      "back_to_dashboard": "Վերադառնալ վահանակ",
+      "guest_label": "Հյուր",
+      "guest_fallback": "Հյուր",
+      "guest_paid": "Հյուրը վճարել է",
+      "platform_fee": "Հարթակի վճար",
+      "your_payout": "Ձեր վճարումը",
+      "refunded": "Վերադարձված",
+      "payout_status": "Վճարման կարգավիճակ",
+      "payment_status": "Վճարման կարգավիճակ",
+      "booking_status": "Ամրագրման կարգավիճակ՝",
+      "nights_label": "Կեցության տևողություն",
+      "nightly_rate": "Գիշերավարձ",
+      "payout_status_values": {
+        "NONE": "Չի պլանավորված",
+        "SCHEDULED": "Պլանավորված",
+        "PAID": "Վճարված",
+        "FAILED": "Վճարումը ձախողվեց"
+      },
+      "payment_status_values": {
+        "UNPAID": "Չվճարված",
+        "PENDING": "Սպասման մեջ",
+        "PAID": "Վճարված",
+        "AUTHORIZED": "Լիազորված",
+        "CAPTURED": "Գանձված",
+        "PARTIALLY_REFUNDED": "Մասամբ վերադարձված",
+        "REFUNDED": "Վերադարձված",
+        "FAILED": "Ձախողված",
+        "CANCELLED": "Չեղարկված"
+      }
     }
   },
   "payment": {
@@ -509,6 +541,66 @@
     "welcome": "Բարի վերադարձ, {name}",
     "add_listing": "Ավելացնել հայտ",
     "upload_bulk": "Վերբեռնել bulk",
+    "analytics": {
+      "title": "Վերլուծություն",
+      "subtitle": "Արդյունավետության ամփոփում · {period}",
+      "subtitle_loading": "Արդյունավետության ամփոփում",
+      "back_to_dashboard": "Վերադառնալ վահանակ",
+      "range_label": "Ժամանակահատված",
+      "from": "Սկիզբ",
+      "to": "Վերջ",
+      "export": "Արտահանել",
+      "nav": "Վերլուծություն",
+      "presets": {
+        "last_30_days": "Վերջին 30 օր",
+        "last_90_days": "Վերջին 90 օր",
+        "this_year": "Այս տարի",
+        "custom": "Այլ"
+      },
+      "kpis": {
+        "adr": "Միջին օրական գին (ADR)",
+        "revpar": "RevPAR",
+        "nights_booked": "Ամրագրված գիշերներ",
+        "cancellation_rate": "Չեղարկման տոկոս",
+        "across_properties": "{count} գույքով",
+        "cancellations": "{count} չեղարկում",
+        "vs_prior_abs": "{value} նախորդ ժամանակահատվածի համեմատ"
+      },
+      "charts": {
+        "earnings_title": "Ամսական եկամուտ",
+        "earnings_subtitle": "Հյուրընկալողի վճարումները check-in ամսով՝ ընտրված միջակայքում",
+        "earnings": "Եկամուտ",
+        "occupancy_title": "Զբաղվածության միտում",
+        "occupancy_subtitle": "Ձեր զբաղվածությունը vs հարթակի միջինը՝ ընտրված միջակայքում",
+        "host_occupancy": "Ձեր զբաղվածությունը",
+        "market_occupancy": "Շուկայի միջին",
+        "empty": "Այս ժամանակահատվածի համար տվյալներ չկան՝"
+      },
+      "origins": {
+        "title": "Հյուրերի ծագման երկրներ",
+        "empty": "Այս ժամանակահատվածում ազգության տվյալներ չկան՝",
+        "bookings": "{count} ամրագրում",
+        "nights": "{count} գիշեր"
+      },
+      "property_label": "Գույք",
+      "property_all": "Բոլոր գույքերը",
+      "hints": {
+        "adr_desc": "Միջին վճարում հյուրընկալողին մեկ ամրագրված գիշերում։",
+        "adr_calc": "ADR = հյուրընկալողի վճարումների գումար ÷ ամրագրված գիշերներ՝ ընտրված ժամանակահատվածում check-in ունեցող confirmed/completed ամրագրումների համար։",
+        "revpar_desc": "Եկամտի արդյունավետություն վաճառելի գիշերների հաշվով։",
+        "revpar_calc": "RevPAR = հյուրընկալողի վճարում ÷ (օրացույցի բաց գիշերներ + ամրագրված գիշերներ) ընտրված ժամանակահատվածում։",
+        "nights_desc": "Confirmed/completed ամրագրումների գիշերների ընդհանուր քանակ։",
+        "nights_calc": "Ամրագրումների nightsCount-ի գումար, երբ check-in-ը ընկնում է ընտրված ժամանակահատվածում։",
+        "cancellation_desc": "Ժամանակահատվածում չեղարկված կեցությունների մասնաբաժին։",
+        "cancellation_calc": "Չեղարկման տոկոս = չեղարկվածներ ÷ հաշվառվող ամրագրումներ (confirmed, completed, no-show կամ cancelled)՝ check-in-ով ժամանակահատվածում։",
+        "earnings_desc": "Հյուրընկալողի վճարումները check-in ամսով՝ ընտրված ժամանակահատվածում։",
+        "earnings_calc": "Յուրաքանչյուր սյունակ գումարում է hostPayoutAmount-ը այդ ամսվա check-in ունեցող confirmed/completed ամրագրումների համար՝ ընտրված միջակայքում։",
+        "occupancy_desc": "Ձեր զբաղվածությունը՝ համեմատած հարթակի միջինի հետ՝ ընտրված ժամանակահատվածում։",
+        "occupancy_calc": "Զբաղվածություն = ամրագրված գիշերներ ÷ (ամրագրված + բաց հասանելի գիշերներ)՝ ընտրված միջակայքի ամիսներով։ Շուկան հաշվարկվում է նույն բանաձևով՝ բոլոր հայտերի համար։",
+        "origins_desc": "Հյուրերի ազգությունների թոփը՝ ըստ հյուրընկալողի վճարումների։",
+        "origins_calc": "Դասակարգվում է host payout-ի գումարով confirmed/completed ամրագրումների համար, որոնք ունեն հյուրի ազգություն՝ առավելագույնը 5 երկիր։"
+      }
+    },
     "bulk_upload": {
       "title": "Bulk գույքի վերբեռնում",
       "subtitle": "Վերբեռնեք CSV կամ XLSX ֆայլ՝ միանգամից բազմաթիվ հայտեր ստեղծելու համար։ AI-ն կնորմալացնի տվյալները և կառաջացնի հասցեների կոորդինատները։",
@@ -552,10 +644,19 @@
       "column_guide_security_deposit_note": "Կամընտիր — կանխադրված արժեք՝ 0։ Զրոյական վճարներ չեն ցուցադրվում ամրագրման ժամանակ։"
     },
     "per_night": "գիշեր",
+    "total_earnings": "{amount} ընդամենը",
+    "listing": {
+      "guests_up_to": "Մինչև {count} հյուր"
+    },
     "actions": {
       "view": "Դիտել",
       "edit": "Խմբագրել",
       "calendar": "Օրացույց",
+      "availability": "Հասանելիություն",
+      "pause_listing": "Դադարեցնել",
+      "activate_listing": "Ակտիվացնել",
+      "preview": "Նախադիտում",
+      "more": "Այլ գործողություններ",
       "soft_delete": "Անջատել",
       "reactivate": "Միացնել",
       "enable": "Միացնել",
@@ -579,7 +680,11 @@
       "tab_upcoming": "Առաջիկա",
       "tab_past": "Անցած",
       "empty_upcoming": "Առաջիկա ամրագրումներ չկան։",
-      "empty_past": "Անցած ամրագրումներ չկան։"
+      "empty_past": "Անցած ամրագրումներ չկան։",
+      "guest_label": "Հյուր",
+      "your_payout": "Ձեր վճարումը",
+      "platform_fee": "Հարթակի վճար",
+      "guest_paid": "Հյուրը վճարել է"
     },
     "promotions": {
       "pick_property": "Գույք",
@@ -781,7 +886,6 @@
     "properties": "Properties",
     "bookings": "Bookings",
     "messages": "Messages",
-    "analytics": "Analytics",
     "reviews": "Reviews",
     "settings": "Settings",
     "stats": {

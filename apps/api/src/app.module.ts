@@ -21,6 +21,7 @@ import { DatabaseModule } from './database/database.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { GeocodingModule } from './geocoding/geocoding.module';
 import { HealthController } from './health/health.controller';
+import { HostAnalyticsModule } from './host-analytics/host-analytics.module';
 import { HostProfilesModule } from './host-profiles/host-profiles.module';
 import { MailModule } from './mail/mail.module';
 import { MessagingModule } from './messaging/messaging.module';
@@ -65,6 +66,7 @@ const isTestEnv = process.env.NODE_ENV === 'test';
     AuthModule,
     UsersModule,
     HostProfilesModule,
+    HostAnalyticsModule,
     PropertiesModule,
     CurrencyModule,
     GeocodingModule,

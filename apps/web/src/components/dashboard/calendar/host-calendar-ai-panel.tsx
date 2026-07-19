@@ -19,11 +19,13 @@ import { HostCalendarAiSuggestionChips } from './host-calendar-ai-suggestion-chi
 interface HostCalendarAiPanelProps {
   propertyId: string;
   propertyTitle: string;
+  currency: string;
 }
 
 export function HostCalendarAiPanel({
   propertyId,
   propertyTitle,
+  currency,
 }: HostCalendarAiPanelProps): React.JSX.Element {
   const t = useTranslations('dashboard.calendar.ai');
   const { quota, isLoading: isQuotaLoading, refreshQuota } = useHostCalendarAiQuota();
@@ -102,6 +104,7 @@ export function HostCalendarAiPanel({
             <HostCalendarAiMessage
               message={welcomeMessage}
               basePricePerNight={basePricePerNight}
+              currency={currency}
               isConfirming={false}
               onConfirm={() => {}}
               onCancel={() => {}}
@@ -112,6 +115,7 @@ export function HostCalendarAiPanel({
               key={message.id}
               message={message}
               basePricePerNight={basePricePerNight}
+              currency={currency}
               isConfirming={isConfirming}
               onConfirm={(entries) => void confirmProposal(message.id, entries)}
               onCancel={() => cancelProposal(message.id)}

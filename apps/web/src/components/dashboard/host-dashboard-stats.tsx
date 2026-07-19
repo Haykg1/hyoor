@@ -5,7 +5,8 @@ import { CircleCheckBig, Clock, DollarSign, House } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { StatCard, StatCardGrid } from '@/components/ui/stat-card';
-import { formatAmd, formatUsdFromMinor } from '@/lib/format/price';
+import { useDisplayMoney } from '@/hooks/use-display-money';
+import { formatUsdFromMinor } from '@/lib/format/price';
 
 interface HostDashboardStatsProps {
   stats: HostDashboardStats;
@@ -26,10 +27,11 @@ export function HostDashboardStatsPanel({
   variant = 'host',
 }: HostDashboardStatsProps): React.JSX.Element {
   const t = useTranslations('dashboard.stats');
+  const { formatMoney } = useDisplayMoney();
   const isAdmin = variant === 'admin';
   const earningsValue = isAdmin
     ? formatUsdFromMinor(stats.totalEarnings)
-    : formatAmd(stats.totalEarnings);
+    : formatMoney(stats.totalEarnings, stats.earningsCurrency ?? 'USD');
   const earningsLabel = isAdmin ? t('platform_fees_earned') : t('total_earned');
   const rangeHint = isAdmin ? formatEarningsRange(stats.earningsFrom, stats.earningsTo) : null;
   return (

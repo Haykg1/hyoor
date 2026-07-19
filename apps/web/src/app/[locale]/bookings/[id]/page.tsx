@@ -1,42 +1,20 @@
 'use client';
 
 import type { BookingDetail } from '@repo/shared';
-import { getLocalizedTitle } from '@repo/shared';
-import { CheckCircle2, Loader2 } from 'lucide-react';
-import { useParams, useRouter } from 'next/navigation';
-import { useLocale, useTranslations } from 'next-intl';
+import { Loader2 } from 'lucide-react';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { StatusBadge } from '@/components/ui/status-badge';
+import { BookingConfirmationView } from '@/components/bookings/booking-confirmation-view';
+import { useRouter } from '@/i18n/navigation';
 import { getBookingById } from '@/lib/api/bookings';
-
-const PAYABLE_STATUS = 'AWAITING_PAYMENT';
-
-function formatPrice(amount: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
+import { useAuthStore } from '@/store';
 
 export default function BookingConfirmationPage(): React.JSX.Element {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const t = useTranslations('booking.confirmation');
-  const tBooking = useTranslations('booking');
-  const locale = useLocale();
+  const user = useAuthStore((s) => s.user);
+  const authLoading = useAuthStore((s) => s.isLoading);
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +38,7 @@ export default function BookingConfirmationPage(): React.JSX.Element {
     );
   }
 
-  if (!booking) {
+  if (!booking || authLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -68,74 +46,12 @@ export default function BookingConfirmationPage(): React.JSX.Element {
     );
   }
 
+  const isHostView = Boolean(user && user.id !== booking.guestId);
   return (
-    <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
-      <div className="mb-8 flex flex-col items-center gap-3 text-center">
-        <CheckCircle2 className="h-16 w-16 text-emerald-500" />
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-muted-foreground">{t('subtitle')}</p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            {getLocalizedTitle(booking.property.titleLabels, locale, booking.property.title)}
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {booking.property.city}, {booking.property.country}
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Check-in</span>
-            <span>{formatDate(booking.checkIn)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Check-out</span>
-            <span>{formatDate(booking.checkOut)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Guests</span>
-            <span>{booking.guestCount}</span>
-          </div>
-          {booking.discountAmount > 0 && (
-            <div className="flex justify-between text-emerald-600">
-              <span>{tBooking('promotion_discount')}</span>
-              <span>−{formatPrice(booking.discountAmount, booking.currency)}</span>
-            </div>
-          )}
-          {booking.cleaningFee > 0 && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">{tBooking('cleaning_fee')}</span>
-              <span>{formatPrice(booking.cleaningFee, booking.currency)}</span>
-            </div>
-          )}
-          {booking.securityDeposit > 0 && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">{tBooking('security_deposit')}</span>
-              <span>{formatPrice(booking.securityDeposit, booking.currency)}</span>
-            </div>
-          )}
-          <Separator />
-          <div className="flex justify-between font-semibold">
-            <span>{tBooking('total')}</span>
-            <span>{formatPrice(booking.totalAmount, booking.currency)}</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="mt-6 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground">
-        Booking status: <StatusBadge status={booking.status} namespace="booking" />
-      </div>
-
-      {booking.status === PAYABLE_STATUS && (
-        <Button
-          className="mt-6 w-full"
-          onClick={() => router.push(`/${locale}/bookings/${id}/payment`)}
-        >
-          {t('continue_payment')}
-        </Button>
-      )}
-    </div>
+    <BookingConfirmationView
+      booking={booking}
+      variant={isHostView ? 'host' : 'guest'}
+      onContinuePayment={() => router.push(`/bookings/${id}/payment`)}
+    />
   );
 }

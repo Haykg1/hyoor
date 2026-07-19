@@ -7,29 +7,34 @@ import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
+import { StatusBadge } from '@/components/ui/status-badge';
+import { useDisplayMoney } from '@/hooks/use-display-money';
 import { Link, useRouter } from '@/i18n/navigation';
 import { ApiError } from '@/lib/api';
 import { listMyBookings } from '@/lib/api/bookings';
-import { formatAmd } from '@/lib/format/price';
+import {
+  guestDisplayName,
+  resolveHostPayoutAmount,
+  resolvePlatformFeeAmount,
+} from '@/lib/bookings/host-money';
+import { formatBookingDate } from '@/lib/format/booking-date';
 import { splitHostReservations } from '@/lib/host-reservations';
 
 type ReservationTab = 'upcoming' | 'past';
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
-
 function ReservationCard({ booking }: { booking: BookingDetail }): React.JSX.Element {
   const locale = useLocale();
+  const t = useTranslations('dashboard.reservations');
+  const tConfirm = useTranslations('booking.confirmation');
+  const { formatMoney } = useDisplayMoney();
   const localizedTitle = getLocalizedTitle(
     booking.property.titleLabels,
     locale,
     booking.property.title,
   );
+  const guestName = guestDisplayName(booking.guest) ?? tConfirm('guest_fallback');
+  const hostPayout = resolveHostPayoutAmount(booking);
+  const platformFee = resolvePlatformFeeAmount(booking);
   return (
     <Link
       href={`/bookings/${booking.id}`}
@@ -51,14 +56,30 @@ function ReservationCard({ booking }: { booking: BookingDetail }): React.JSX.Ele
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium">{localizedTitle}</p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="truncate font-medium">{localizedTitle}</p>
+          <StatusBadge status={booking.status} namespace="booking" />
+        </div>
         <p className="text-sm text-muted-foreground">
           {booking.property.city}, {booking.property.country}
         </p>
-        <p className="mt-1 text-sm">
-          {formatDate(booking.checkIn)} – {formatDate(booking.checkOut)}
+        <p className="mt-1 text-sm text-muted-foreground">
+          {t('guest_label')}: <span className="text-foreground">{guestName}</span>
         </p>
-        <p className="mt-1 text-sm font-semibold">{formatAmd(booking.totalAmount)}</p>
+        <p className="mt-1 text-sm">
+          {formatBookingDate(booking.checkIn)} – {formatBookingDate(booking.checkOut)}
+        </p>
+        <div className="mt-2 space-y-0.5 text-sm">
+          <p className="font-semibold text-emerald-700 dark:text-emerald-400">
+            {t('your_payout')}: {formatMoney(hostPayout, booking.currency)}
+          </p>
+          <p className="text-muted-foreground">
+            {t('platform_fee')}: {formatMoney(platformFee, booking.currency)}
+          </p>
+          <p className="text-muted-foreground">
+            {t('guest_paid')}: {formatMoney(booking.totalAmount, booking.currency)}
+          </p>
+        </div>
       </div>
     </Link>
   );

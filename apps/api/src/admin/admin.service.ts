@@ -282,7 +282,14 @@ export class AdminService {
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
-        include: { photos: { where: { isCover: true }, take: 1 } },
+        include: {
+          photos: { orderBy: [{ isCover: 'desc' }, { sortOrder: 'asc' }], take: 1 },
+          _count: { select: { reviews: { where: { isPublished: true, target: 'PROPERTY' } } } },
+          reviews: {
+            where: { isPublished: true, target: 'PROPERTY' },
+            select: { rating: true },
+          },
+        },
       }),
       this.prisma.property.count({ where }),
       this.getDashboardStats({
@@ -291,7 +298,13 @@ export class AdminService {
         to: dto.earningsTo,
       }),
     ]);
-    const data = await Promise.all(properties.map((p) => this.toListingSummary(p)));
+    const propertyIds = properties.map((property) => property.id);
+    const earningsByPropertyId = await this.getPaidEarningsByPropertyId(propertyIds);
+    const data = await Promise.all(
+      properties.map((property) =>
+        this.toListingSummary(property, earningsByPropertyId.get(property.id) ?? 0),
+      ),
+    );
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) || 1, stats };
   }
 
@@ -429,11 +442,35 @@ export class AdminService {
     }
   }
 
+  private async getPaidEarningsByPropertyId(propertyIds: string[]): Promise<Map<string, number>> {
+    const result = new Map<string, number>();
+    if (propertyIds.length === 0) return result;
+    const groups = await this.prisma.booking.groupBy({
+      by: ['propertyId'],
+      where: { propertyId: { in: propertyIds }, payoutStatus: 'PAID' },
+      _sum: { hostPayoutAmount: true },
+    });
+    for (const group of groups) {
+      result.set(group.propertyId, group._sum.hostPayoutAmount ?? 0);
+    }
+    return result;
+  }
+
   private async toListingSummary(
-    property: Property & { photos: PropertyPhoto[] },
+    property: Property & {
+      photos: PropertyPhoto[];
+      reviews: { rating: number }[];
+      _count: { reviews: number };
+    },
+    totalEarnings: number,
   ): Promise<HostListingSummary> {
     const coverPhoto = property.photos[0];
     const coverPhotoUrl = coverPhoto ? await this.safePresignedUrl(coverPhoto.key) : undefined;
+    const reviewCount = property._count.reviews;
+    const avgRating =
+      property.reviews.length > 0
+        ? property.reviews.reduce((sum, review) => sum + review.rating, 0) / property.reviews.length
+        : undefined;
     return {
       id: property.id,
       title: property.title,
@@ -448,6 +485,11 @@ export class AdminService {
       pricePerNight: property.pricePerNight,
       currency: property.currency,
       coverPhotoUrl,
+      bedrooms: property.bedrooms,
+      maxGuests: property.maxGuests,
+      avgRating,
+      reviewCount,
+      totalEarnings,
     };
   }
 

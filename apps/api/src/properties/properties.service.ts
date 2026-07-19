@@ -969,12 +969,15 @@ export class PropertiesService {
   }
 
   private searchPropertyInclude(): {
-    photos: { where: { isCover: true }; take: number };
+    photos: {
+      orderBy: [{ isCover: 'desc' }, { sortOrder: 'asc' }];
+      take: number;
+    };
     _count: { select: { reviews: { where: { isPublished: true; target: 'PROPERTY' } } } };
     reviews: { where: { isPublished: true; target: 'PROPERTY' }; select: { rating: true } };
   } {
     return {
-      photos: { where: { isCover: true }, take: 1 },
+      photos: { orderBy: [{ isCover: 'desc' }, { sortOrder: 'asc' }], take: 5 },
       _count: { select: { reviews: { where: { isPublished: true, target: 'PROPERTY' } } } },
       reviews: {
         where: { isPublished: true, target: 'PROPERTY' },
@@ -1183,7 +1186,14 @@ export class PropertiesService {
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
-        include: { photos: { where: { isCover: true }, take: 1 } },
+        include: {
+          photos: { orderBy: [{ isCover: 'desc' }, { sortOrder: 'asc' }], take: 1 },
+          _count: { select: { reviews: { where: { isPublished: true, target: 'PROPERTY' } } } },
+          reviews: {
+            where: { isPublished: true, target: 'PROPERTY' },
+            select: { rating: true },
+          },
+        },
       }),
       this.prisma.property.count({ where }),
       this.prisma.property.count({
@@ -1211,7 +1221,13 @@ export class PropertiesService {
         _sum: { hostPayoutAmount: true },
       }),
     ]);
-    const data = await Promise.all(properties.map((p) => this.toHostListingSummary(p)));
+    const propertyIds = properties.map((property) => property.id);
+    const earningsByPropertyId = await this.getPaidEarningsByPropertyId(propertyIds);
+    const data = await Promise.all(
+      properties.map((property) =>
+        this.toHostListingSummary(property, earningsByPropertyId.get(property.id) ?? 0),
+      ),
+    );
     const stats: HostDashboardStats = {
       totalListings,
       activeListings,
@@ -1617,8 +1633,12 @@ export class PropertiesService {
     displayCurrency?: string,
     rates?: CurrencyRates | null,
   ): Promise<PropertySummary> {
-    const coverPhoto = property.photos[0];
-    const coverPhotoUrl = coverPhoto ? await this.safePresignedUrl(coverPhoto.key) : undefined;
+    const photoUrls = (
+      await Promise.all(
+        property.photos.slice(0, 5).map(async (photo) => this.safePresignedUrl(photo.key)),
+      )
+    ).filter((url): url is string => Boolean(url));
+    const coverPhotoUrl = photoUrls[0];
     const reviewCount = property._count.reviews;
     const avgRating =
       property.reviews.length > 0
@@ -1642,6 +1662,7 @@ export class PropertiesService {
         rates ?? null,
       ),
       coverPhotoUrl,
+      photoUrls: photoUrls.length > 0 ? photoUrls : undefined,
       maxGuests: property.maxGuests,
       bedrooms: property.bedrooms,
       avgRating,
@@ -1661,11 +1682,35 @@ export class PropertiesService {
     return value as PropertyTitleLabels;
   }
 
+  private async getPaidEarningsByPropertyId(propertyIds: string[]): Promise<Map<string, number>> {
+    const result = new Map<string, number>();
+    if (propertyIds.length === 0) return result;
+    const groups = await this.prisma.booking.groupBy({
+      by: ['propertyId'],
+      where: { propertyId: { in: propertyIds }, payoutStatus: 'PAID' },
+      _sum: { hostPayoutAmount: true },
+    });
+    for (const group of groups) {
+      result.set(group.propertyId, group._sum.hostPayoutAmount ?? 0);
+    }
+    return result;
+  }
+
   private async toHostListingSummary(
-    property: Property & { photos: PropertyPhoto[] },
+    property: Property & {
+      photos: PropertyPhoto[];
+      reviews: { rating: number }[];
+      _count: { reviews: number };
+    },
+    totalEarnings: number,
   ): Promise<HostListingSummary> {
     const coverPhoto = property.photos[0];
     const coverPhotoUrl = coverPhoto ? await this.safePresignedUrl(coverPhoto.key) : undefined;
+    const reviewCount = property._count.reviews;
+    const avgRating =
+      property.reviews.length > 0
+        ? property.reviews.reduce((sum, review) => sum + review.rating, 0) / property.reviews.length
+        : undefined;
     return {
       id: property.id,
       title: property.title,
@@ -1677,6 +1722,11 @@ export class PropertiesService {
       pricePerNight: property.pricePerNight,
       currency: property.currency,
       coverPhotoUrl,
+      bedrooms: property.bedrooms,
+      maxGuests: property.maxGuests,
+      avgRating,
+      reviewCount,
+      totalEarnings,
     };
   }
 }

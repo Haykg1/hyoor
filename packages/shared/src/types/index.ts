@@ -157,6 +157,8 @@ export interface PropertySummary {
   currency: string;
   displayPrice?: DisplayPrice | null;
   coverPhotoUrl?: string;
+  /** Up to 5 photo URLs for card hover preview; first matches coverPhotoUrl when present. */
+  photoUrls?: string[];
   maxGuests: number;
   bedrooms: number;
   avgRating?: number;
@@ -335,6 +337,8 @@ export interface BookingGuestProfile {
   firstName: string | null;
   lastName: string | null;
   avatarUrl: string | null;
+  /** Present for viewers of the booking (guest/host/admin). */
+  email?: string | null;
 }
 
 export interface BookingDetail {
@@ -354,6 +358,12 @@ export interface BookingDetail {
   promotionId: string | null;
   totalAmount: number;
   currency: string;
+  /** Platform fee taken from the booking (settlement units). Null until payment is settled. */
+  platformFeeAmount: number | null;
+  /** Host payout amount (settlement units). Null until payment is settled. */
+  hostPayoutAmount: number | null;
+  payoutStatus: PayoutStatus;
+  refundedAmount: number;
   specialRequests: string | null;
   cancellationReason: string | null;
   paymentProvider: string | null;
@@ -391,10 +401,95 @@ export interface HostListingSummary {
   pricePerNight: number;
   currency: string;
   coverPhotoUrl?: string;
+  bedrooms: number;
+  maxGuests: number;
+  avgRating?: number;
+  reviewCount: number;
+  /** Sum of paid host payouts for this listing (same units as pricePerNight). */
+  totalEarnings: number;
 }
 
 export const EarningsPresets = ['last_30_days', 'last_year', 'custom'] as const;
 export type EarningsPreset = (typeof EarningsPresets)[number];
+
+export const HostAnalyticsPresets = [
+  'last_30_days',
+  'last_90_days',
+  'this_year',
+  'custom',
+] as const;
+export type HostAnalyticsPreset = (typeof HostAnalyticsPresets)[number];
+
+export interface HostAnalyticsPeriod {
+  from: string;
+  to: string;
+  preset: HostAnalyticsPreset;
+}
+
+export interface HostAnalyticsKpiMetric {
+  /** Primary money value in settlement currency (USD), or percent for cancellationRate. */
+  value: number | null;
+  previous: number | null;
+  /** Percent change vs previous period. Null when previous is 0/null or current is null. */
+  deltaPct: number | null;
+  /** Absolute delta (used for nights booked). */
+  deltaAbs: number | null;
+  /** USD amount for money KPIs (same units as `value` when settlement is USD). */
+  valueUsd: number | null;
+  secondary?: {
+    propertyCount?: number;
+    cancellationCount?: number;
+  };
+}
+
+export interface HostAnalyticsKpis {
+  adr: HostAnalyticsKpiMetric;
+  revpar: HostAnalyticsKpiMetric;
+  nightsBooked: HostAnalyticsKpiMetric;
+  cancellationRate: HostAnalyticsKpiMetric;
+}
+
+export interface HostAnalyticsMonthlyEarning {
+  /** ISO month start (UTC). */
+  month: string;
+  earnings: number;
+}
+
+export interface HostAnalyticsOccupancyPoint {
+  /** ISO month start (UTC). */
+  month: string;
+  hostPct: number | null;
+  marketPct: number | null;
+}
+
+export interface HostAnalyticsGuestOrigin {
+  country: string;
+  bookings: number;
+  nights: number;
+  revenue: number;
+}
+
+export interface HostAnalyticsResponse {
+  period: HostAnalyticsPeriod;
+  previousPeriod: { from: string; to: string };
+  /** Selected listing id, or null when analytics cover all host properties. */
+  propertyId: string | null;
+  kpis: HostAnalyticsKpis;
+  monthlyEarnings: HostAnalyticsMonthlyEarning[];
+  occupancyTrend: HostAnalyticsOccupancyPoint[];
+  guestOrigins: HostAnalyticsGuestOrigin[];
+  /** ISO currency code for money fields (host settlement). */
+  settlementCurrency: HostSettlementCurrency;
+  /** @deprecated Prefer `settlementCurrency`. Kept for older clients. */
+  amdPerUsd?: number | null;
+}
+
+/** Cached FX table used for cosmetic display conversion (USD pivot). */
+export interface CurrencyRatesPayload {
+  base: string;
+  rates: Record<string, number>;
+  fetchedAt: string | null;
+}
 
 export interface HostDashboardStats {
   totalListings: number;

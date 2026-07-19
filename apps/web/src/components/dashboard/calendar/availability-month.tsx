@@ -2,7 +2,7 @@
 
 import type { AvailabilityDayView } from '@repo/shared';
 
-import { formatAmd } from '@/lib/format/price';
+import { useDisplayMoney } from '@/hooks/use-display-money';
 import { cn } from '@/lib/utils';
 
 interface AvailabilityMonthProps {
@@ -10,6 +10,7 @@ interface AvailabilityMonthProps {
   daysByDate: Record<string, AvailabilityDayView>;
   selectedDates: Set<string>;
   basePricePerNight: number;
+  currency: string;
   onDayClick: (iso: string) => void;
 }
 
@@ -60,8 +61,10 @@ export function AvailabilityMonth({
   daysByDate,
   selectedDates,
   basePricePerNight,
+  currency,
   onDayClick,
 }: AvailabilityMonthProps): React.JSX.Element {
+  const { formatMoney } = useDisplayMoney();
   const cells = buildGrid(monthDate);
   const heading = `${MONTH_NAMES[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
   return (
@@ -83,6 +86,8 @@ export function AvailabilityMonth({
               day={daysByDate[iso]}
               isSelected={selectedDates.has(iso)}
               basePricePerNight={basePricePerNight}
+              currency={currency}
+              formatMoney={formatMoney}
               isPast={iso < TODAY_ISO}
               isToday={iso === TODAY_ISO}
               onClick={() => onDayClick(iso)}
@@ -101,6 +106,8 @@ interface DayCellProps {
   day: AvailabilityDayView | undefined;
   isSelected: boolean;
   basePricePerNight: number;
+  currency: string;
+  formatMoney: (amount: number, fromCurrency?: string) => string;
   isPast: boolean;
   isToday: boolean;
   onClick: () => void;
@@ -111,6 +118,8 @@ function DayCell({
   day,
   isSelected,
   basePricePerNight,
+  currency,
+  formatMoney,
   isPast,
   isToday,
   onClick,
@@ -148,7 +157,7 @@ function DayCell({
           <span className="text-muted-foreground">Closed</span>
         ) : (
           <span className={cn(hasOverride ? 'text-primary' : 'text-muted-foreground')}>
-            {formatAmd(price)}
+            {formatMoney(price, currency)}
           </span>
         )}
       </span>

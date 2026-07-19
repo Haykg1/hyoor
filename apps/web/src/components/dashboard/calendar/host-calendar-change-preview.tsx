@@ -4,13 +4,14 @@ import type { HostCalendarChangeEntry } from '@repo/shared';
 import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
-import { formatAmd } from '@/lib/format/price';
+import { useDisplayMoney } from '@/hooks/use-display-money';
 
 interface HostCalendarChangePreviewProps {
   entries: HostCalendarChangeEntry[];
   dateFrom: string;
   dateTo: string;
   basePricePerNight: number;
+  currency: string;
   isConfirming: boolean;
   status: 'pending' | 'confirmed' | 'cancelled' | undefined;
   onConfirm: () => void;
@@ -22,12 +23,14 @@ export function HostCalendarChangePreview({
   dateFrom,
   dateTo,
   basePricePerNight,
+  currency,
   isConfirming,
   status,
   onConfirm,
   onCancel,
 }: HostCalendarChangePreviewProps): React.JSX.Element | null {
   const t = useTranslations('dashboard.calendar.ai');
+  const { formatMoney } = useDisplayMoney();
   if (status === 'cancelled') {
     return <p className="text-sm text-muted-foreground">{t('preview_cancelled')}</p>;
   }
@@ -57,8 +60,10 @@ export function HostCalendarChangePreview({
                 </td>
                 <td className="py-1">
                   {entry.priceOverride === null || entry.priceOverride === undefined
-                    ? t('preview_base_rate', { base: formatAmd(basePricePerNight) })
-                    : formatAmd(entry.priceOverride)}
+                    ? t('preview_base_rate', {
+                        base: formatMoney(basePricePerNight, currency),
+                      })
+                    : formatMoney(entry.priceOverride, currency)}
                 </td>
               </tr>
             ))}

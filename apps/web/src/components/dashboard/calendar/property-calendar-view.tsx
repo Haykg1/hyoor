@@ -6,9 +6,10 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
+import { DisplayCurrencyToggle } from '@/components/currency/display-currency-toggle';
+import { useDisplayMoney } from '@/hooks/use-display-money';
 import { useSelectionDates, usePropertyCalendar } from '@/hooks/use-property-calendar';
 import { Link } from '@/i18n/navigation';
-import { formatAmd } from '@/lib/format/price';
 import { usePropertyCalendarStore } from '@/store';
 
 import { AvailabilityMonth } from './availability-month';
@@ -26,6 +27,7 @@ interface PropertyCalendarViewProps {
 export function PropertyCalendarView({ property }: PropertyCalendarViewProps): React.JSX.Element {
   const t = useTranslations('dashboard.calendar');
   const locale = useLocale();
+  const { displayCurrency, setDisplayCurrency, formatMoney } = useDisplayMoney();
   usePropertyCalendar(property);
   const monthCursor = usePropertyCalendarStore((s) => s.monthCursor);
   const isLoading = usePropertyCalendarStore((s) => s.isLoading);
@@ -74,11 +76,16 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
             <h1 className="text-2xl font-bold sm:text-3xl">{t('title')}</h1>
             <p className="text-sm text-muted-foreground">{localizedTitle}</p>
           </div>
-          <div className="text-right">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              {t('base_rate')}
-            </p>
-            <p className="text-lg font-semibold">{formatAmd(basePricePerNight)}</p>
+          <div className="flex flex-wrap items-end gap-3">
+            <DisplayCurrencyToggle value={displayCurrency} onChange={setDisplayCurrency} />
+            <div className="text-right">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                {t('base_rate')}
+              </p>
+              <p className="text-lg font-semibold">
+                {formatMoney(basePricePerNight, property.currency)}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -107,6 +114,7 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
               daysByDate={daysByDate}
               selectedDates={selectedDates}
               basePricePerNight={basePricePerNight}
+              currency={property.currency}
               onDayClick={handleDayClick}
             />
             <AvailabilityMonth
@@ -114,6 +122,7 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
               daysByDate={daysByDate}
               selectedDates={selectedDates}
               basePricePerNight={basePricePerNight}
+              currency={property.currency}
               onDayClick={handleDayClick}
             />
           </div>
@@ -128,7 +137,11 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
 
       <SelectionEditor basePricePerNight={basePricePerNight} />
 
-      <HostCalendarAiPanel propertyId={property.id} propertyTitle={localizedTitle} />
+      <HostCalendarAiPanel
+        propertyId={property.id}
+        propertyTitle={localizedTitle}
+        currency={property.currency}
+      />
 
       <OpenYearDialog open={openYearOpen} onOpenChange={setOpenYearOpen} />
       <RangeRateDialog open={rangeRateOpen} onOpenChange={setRangeRateOpen} />

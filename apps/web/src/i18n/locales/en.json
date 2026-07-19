@@ -69,6 +69,7 @@
     "trips": "My Trips",
     "messages": "Messages",
     "dashboard": "Dashboard",
+    "analytics": "Analytics",
     "explore": "Explore",
     "ai_search": "AI Search",
     "become_host": "Become a Host",
@@ -400,7 +401,38 @@
     "confirmation": {
       "title": "Reservation confirmed!",
       "subtitle": "Your stay is booked. We sent you a confirmation.",
-      "continue_payment": "Continue to payment"
+      "continue_payment": "Continue to payment",
+      "host_title": "Reservation details",
+      "host_subtitle": "Payment split and guest information for this stay.",
+      "back_to_dashboard": "Back to dashboard",
+      "guest_label": "Guest",
+      "guest_fallback": "Guest",
+      "guest_paid": "Guest paid",
+      "platform_fee": "Platform fee",
+      "your_payout": "Your payout",
+      "refunded": "Refunded",
+      "payout_status": "Payout status",
+      "payment_status": "Payment status",
+      "booking_status": "Booking status:",
+      "nights_label": "Stay length",
+      "nightly_rate": "Nightly rate",
+      "payout_status_values": {
+        "NONE": "Not scheduled",
+        "SCHEDULED": "Scheduled",
+        "PAID": "Paid out",
+        "FAILED": "Payout failed"
+      },
+      "payment_status_values": {
+        "UNPAID": "Unpaid",
+        "PENDING": "Pending",
+        "PAID": "Paid",
+        "AUTHORIZED": "Authorized",
+        "CAPTURED": "Captured",
+        "PARTIALLY_REFUNDED": "Partially refunded",
+        "REFUNDED": "Refunded",
+        "FAILED": "Failed",
+        "CANCELLED": "Cancelled"
+      }
     }
   },
   "payment": {
@@ -509,6 +541,66 @@
     "welcome": "Welcome back, {name}",
     "add_listing": "Add Listing",
     "upload_bulk": "Upload bulk",
+    "analytics": {
+      "title": "Analytics",
+      "subtitle": "Performance overview · {period}",
+      "subtitle_loading": "Performance overview",
+      "back_to_dashboard": "Back to dashboard",
+      "range_label": "Date range",
+      "property_label": "Property",
+      "property_all": "All properties",
+      "from": "From",
+      "to": "To",
+      "export": "Export",
+      "nav": "Analytics",
+      "presets": {
+        "last_30_days": "Last 30 days",
+        "last_90_days": "Last 90 days",
+        "this_year": "This year",
+        "custom": "Custom"
+      },
+      "kpis": {
+        "adr": "Avg daily rate (ADR)",
+        "revpar": "RevPAR",
+        "nights_booked": "Nights booked",
+        "cancellation_rate": "Cancellation rate",
+        "across_properties": "across {count, plural, one {# property} other {# properties}}",
+        "cancellations": "{count, plural, one {# cancellation} other {# cancellations}}",
+        "vs_prior_abs": "{value} vs prior period"
+      },
+      "hints": {
+        "adr_desc": "Average host payout earned per booked night.",
+        "adr_calc": "ADR = host payout revenue ÷ nights booked for confirmed and completed stays with check-in in the selected period.",
+        "revpar_desc": "Revenue efficiency across nights you could have sold.",
+        "revpar_calc": "RevPAR = host payout revenue ÷ (open calendar nights + booked nights) in the selected period.",
+        "nights_desc": "Total nights from confirmed and completed bookings.",
+        "nights_calc": "Sum of each booking’s nightsCount when check-in falls in the selected period (confirmed or completed).",
+        "cancellation_desc": "Share of stays that were cancelled in the period.",
+        "cancellation_calc": "Cancellation rate = cancelled bookings ÷ eligible bookings (confirmed, completed, no-show, or cancelled) with check-in in the period.",
+        "earnings_desc": "Host payouts grouped by check-in month for the selected date range.",
+        "earnings_calc": "Each bar sums hostPayoutAmount for confirmed/completed bookings whose check-in falls in that month within the selected range.",
+        "occupancy_desc": "Your occupancy versus the platform market average for the selected date range.",
+        "occupancy_calc": "Occupancy = booked nights ÷ (booked nights + open available nights) per month in the selected range. Market average uses the same formula across all listings.",
+        "origins_desc": "Top guest nationalities by host payout revenue in the selected period.",
+        "origins_calc": "Ranked by sum of host payouts for confirmed/completed bookings with a guest nationality, limited to the top 5 countries."
+      },
+      "charts": {
+        "earnings_title": "Monthly earnings",
+        "earnings_subtitle": "Host payouts by check-in month for the selected range",
+        "earnings": "Earnings",
+        "occupancy_title": "Occupancy rate trend",
+        "occupancy_subtitle": "Your occupancy vs platform market average for the selected range",
+        "host_occupancy": "Your occupancy",
+        "market_occupancy": "Market average",
+        "empty": "No data for this period yet."
+      },
+      "origins": {
+        "title": "Top guest origins",
+        "empty": "No guest nationality data for this period.",
+        "bookings": "{count, plural, one {# booking} other {# bookings}}",
+        "nights": "{count, plural, one {# night} other {# nights}}"
+      }
+    },
     "bulk_upload": {
       "title": "Bulk property upload",
       "subtitle": "Upload a CSV or XLSX file to create multiple listings at once. We'll use AI to normalize your data and geocode addresses.",
@@ -552,10 +644,19 @@
       "column_guide_security_deposit_note": "Optional — defaults to 0. Zero fees are hidden at checkout."
     },
     "per_night": "night",
+    "total_earnings": "{amount} total",
+    "listing": {
+      "guests_up_to": "Up to {count} guests"
+    },
     "actions": {
       "view": "View",
       "edit": "Edit",
       "calendar": "Calendar",
+      "availability": "Availability",
+      "pause_listing": "Pause Listing",
+      "activate_listing": "Activate",
+      "preview": "Preview",
+      "more": "More actions",
       "soft_delete": "Disable",
       "reactivate": "Re-enable",
       "enable": "Enable",
@@ -579,7 +680,11 @@
       "tab_upcoming": "Upcoming",
       "tab_past": "Past",
       "empty_upcoming": "No upcoming reservations yet.",
-      "empty_past": "No past reservations yet."
+      "empty_past": "No past reservations yet.",
+      "guest_label": "Guest",
+      "your_payout": "Your payout",
+      "platform_fee": "Platform fee",
+      "guest_paid": "Guest paid"
     },
     "promotions": {
       "pick_property": "Property",
@@ -781,7 +886,6 @@
     "properties": "My Properties",
     "bookings": "Bookings",
     "messages": "Messages",
-    "analytics": "Analytics",
     "reviews": "Reviews",
     "settings": "Settings",
     "stats": {
