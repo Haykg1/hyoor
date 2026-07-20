@@ -31,13 +31,6 @@ function validateBasicsAddress(
   data: z.infer<typeof stepBasicsFieldsSchema>,
   ctx: z.RefinementCtx,
 ): void {
-  if (data.placeKind !== 'house') {
-    ctx.addIssue({
-      code: 'custom',
-      message: 'address_verification_required',
-      path: ['formattedAddress'],
-    });
-  }
   if (!data.buildingNumber.trim() || !data.street.trim()) {
     ctx.addIssue({
       code: 'custom',

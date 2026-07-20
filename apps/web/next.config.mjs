@@ -16,6 +16,7 @@ const nextConfig = {
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'img.rocket.new' },
       { protocol: 'https', hostname: '*.amazonaws.com' },
       { protocol: 'http', hostname: 'localhost' },
       { protocol: 'http', hostname: '*.localhost' },

@@ -1,61 +1,29 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { BookingStatuses, DepositStatuses, PaymentStatuses, PayoutStatuses } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '@repo/shared/constants';
 import { Type } from 'class-transformer';
 import { IsDateString, IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
-export const ADMIN_BOOKING_STATUSES = [
-  'AWAITING_PAYMENT',
-  'PENDING',
-  'CONFIRMED',
-  'CANCELLED_BY_GUEST',
-  'CANCELLED_BY_HOST',
-  'PAYMENT_EXPIRED',
-  'COMPLETED',
-  'NO_SHOW',
-] as const;
-
-export const ADMIN_PAYMENT_STATUSES = [
-  'UNPAID',
-  'PENDING',
-  'PAID',
-  'AUTHORIZED',
-  'CAPTURED',
-  'PARTIALLY_REFUNDED',
-  'REFUNDED',
-  'FAILED',
-  'CANCELLED',
-] as const;
-
-export const ADMIN_PAYOUT_STATUSES = ['NONE', 'SCHEDULED', 'PAID', 'FAILED'] as const;
-
-export const ADMIN_DEPOSIT_STATUSES = [
-  'NONE',
-  'AUTHORIZED',
-  'RELEASED',
-  'CAPTURED',
-  'FAILED',
-] as const;
-
 export class QueryAdminBookingsDto {
-  @ApiPropertyOptional({ enum: ADMIN_BOOKING_STATUSES })
+  @ApiPropertyOptional({ enum: BookingStatuses })
   @IsOptional()
-  @IsIn(ADMIN_BOOKING_STATUSES)
-  status?: (typeof ADMIN_BOOKING_STATUSES)[number];
+  @IsIn(BookingStatuses)
+  status?: (typeof BookingStatuses)[number];
 
-  @ApiPropertyOptional({ enum: ADMIN_PAYMENT_STATUSES })
+  @ApiPropertyOptional({ enum: PaymentStatuses })
   @IsOptional()
-  @IsIn(ADMIN_PAYMENT_STATUSES)
-  paymentStatus?: (typeof ADMIN_PAYMENT_STATUSES)[number];
+  @IsIn(PaymentStatuses)
+  paymentStatus?: (typeof PaymentStatuses)[number];
 
-  @ApiPropertyOptional({ enum: ADMIN_PAYOUT_STATUSES })
+  @ApiPropertyOptional({ enum: PayoutStatuses })
   @IsOptional()
-  @IsIn(ADMIN_PAYOUT_STATUSES)
-  payoutStatus?: (typeof ADMIN_PAYOUT_STATUSES)[number];
+  @IsIn(PayoutStatuses)
+  payoutStatus?: (typeof PayoutStatuses)[number];
 
-  @ApiPropertyOptional({ enum: ADMIN_DEPOSIT_STATUSES })
+  @ApiPropertyOptional({ enum: DepositStatuses })
   @IsOptional()
-  @IsIn(ADMIN_DEPOSIT_STATUSES)
-  depositStatus?: (typeof ADMIN_DEPOSIT_STATUSES)[number];
+  @IsIn(DepositStatuses)
+  depositStatus?: (typeof DepositStatuses)[number];
 
   @ApiPropertyOptional({ example: 'clxyz123property456' })
   @IsOptional()
@@ -72,7 +40,10 @@ export class QueryAdminBookingsDto {
   @IsString()
   hostId?: string;
 
-  @ApiPropertyOptional({ example: 'apartment' })
+  @ApiPropertyOptional({
+    example: 'apartment',
+    description: 'Match booking id, guest/host name, email, or property title',
+  })
   @IsOptional()
   @IsString()
   search?: string;

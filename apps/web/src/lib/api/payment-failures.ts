@@ -37,3 +37,7 @@ export async function listPaymentFailures(
 export async function resolvePaymentFailure(id: string): Promise<void> {
   await api.patch(`/admin/payment-failures/${id}/resolve`, {});
 }
+
+export async function resolvePaymentFailures(ids: string[]): Promise<{ resolvedCount: number }> {
+  return api.patch<{ resolvedCount: number }>('/admin/payment-failures/resolve', { ids });
+}

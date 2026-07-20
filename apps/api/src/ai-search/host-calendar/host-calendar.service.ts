@@ -8,10 +8,13 @@ import type {
   HostCalendarSuggestionsResponse,
   ProposeCalendarChangesToolArgs,
 } from '@repo/shared';
+import { isIsoDateInEditableWindow, maxEditableIsoDate, todayIsoUtc } from '@repo/shared';
 
 import type { RequestUser } from '../../auth/decorators/current-user.decorator';
 import { AvailabilityService } from '../../availability/availability.service';
 import type { AppConfig } from '../../config/configuration';
+import type { CurrencyRates } from '../../currency/currency.service';
+import { CurrencyService } from '../../currency/currency.service';
 import { PrismaService } from '../../database/prisma.service';
 import { HostProfilesService } from '../../host-profiles/host-profiles.service';
 import { RedisService } from '../../redis/redis.service';
@@ -28,6 +31,7 @@ import {
   HOST_CALENDAR_ALL_BOOKED_MESSAGES,
   HOST_CALENDAR_ALREADY_APPLIED_MESSAGES,
   HOST_CALENDAR_NO_CHANGES_MESSAGES,
+  HOST_CALENDAR_OUT_OF_WINDOW_MESSAGES,
   HOST_CALENDAR_REVERT_HINTS,
   normalizeChatLocale,
 } from '../utils/chat-locale';
@@ -40,9 +44,26 @@ import {
   buildHostCalendarSnapshot,
   type HostCalendarPropertySnapshot,
 } from '../utils/host-calendar-snapshot';
+import {
+  buildSuggestionPricingFromUsd,
+  normalizeDisplayCurrency,
+  type HostCalendarSuggestionPricing,
+} from '../utils/host-calendar-suggestion-pricing';
 import { finalizeHostCalendarSuggestions } from '../utils/host-calendar-suggestion-validator';
 
 const HOST_CALENDAR_SUGGESTIONS_CACHE_PREFIX = 'ai-search:host-calendar:suggestions:';
+
+function formatFxRatesHint(rates: CurrencyRates | null, settlementCurrency: string): string {
+  if (!rates) {
+    return `FX rates unavailable; if the host quotes a non-${settlementCurrency} currency, ask them to confirm the ${settlementCurrency} amount.`;
+  }
+  const parts = [`1 ${settlementCurrency} = 1 ${settlementCurrency}`];
+  const amd = rates.rates['AMD'];
+  const eur = rates.rates['EUR'];
+  if (typeof amd === 'number') parts.push(`1 ${settlementCurrency} ≈ ${Math.round(amd)} AMD`);
+  if (typeof eur === 'number') parts.push(`1 ${settlementCurrency} ≈ ${eur.toFixed(2)} EUR`);
+  return `Live FX (approx): ${parts.join('; ')}. Convert host-quoted AMD/EUR to ${settlementCurrency} integers before setting priceOverride.`;
+}
 
 @Injectable()
 export class HostCalendarService {
@@ -56,6 +77,7 @@ export class HostCalendarService {
     private readonly quotaService: AiSearchQuotaService,
     private readonly redis: RedisService,
     private readonly config: ConfigService<AppConfig, true>,
+    private readonly currencyService: CurrencyService,
   ) {}
 
   async chat(
@@ -73,12 +95,17 @@ export class HostCalendarService {
     }
     await this.quotaService.assertHostCalendarTokenBudget(user.userId);
     await this.quotaService.consumeHostCalendarRequest(user.userId);
+    const rates = await this.currencyService.getRates();
+    const todayIso = todayIsoUtc();
     const llmContext: HostCalendarLlmContext = {
       propertyId,
       propertyTitle: property.title,
       basePricePerNight: property.pricePerNight,
       currency: property.currency,
       locale,
+      fxRatesHint: formatFxRatesHint(rates, property.currency),
+      todayIso,
+      maxEditableIso: maxEditableIsoDate(todayIso),
     };
     const llmResult = await this.llmService.completeHostCalendar(messages, llmContext);
     await this.quotaService.recordHostCalendarTokenUsage(user.userId, llmResult.usage.totalTokens);
@@ -100,11 +127,13 @@ export class HostCalendarService {
     propertyId: string,
     user: RequestUser,
     locale = 'en',
+    displayCurrencyRaw?: string,
   ): Promise<HostCalendarSuggestionsResponse> {
     const property = await this.assertHostOwnsProperty(propertyId, user.userId);
     const chatLocale = normalizeChatLocale(locale);
-    const todayIso = new Date().toISOString().slice(0, 10);
-    const cacheKey = `${HOST_CALENDAR_SUGGESTIONS_CACHE_PREFIX}${propertyId}:${chatLocale}:${todayIso}`;
+    const displayCurrency = normalizeDisplayCurrency(displayCurrencyRaw);
+    const todayIso = todayIsoUtc();
+    const cacheKey = `${HOST_CALENDAR_SUGGESTIONS_CACHE_PREFIX}${propertyId}:${chatLocale}:${displayCurrency}:${todayIso}`;
     if (this.redis.isConfigured) {
       const cached = await this.redis.get(cacheKey);
       if (cached) {
@@ -141,6 +170,7 @@ export class HostCalendarService {
       todayIso,
       rangeDays,
     );
+    const pricing = await this.resolveSuggestionPricing(property.pricePerNight, displayCurrency);
     let llmSuggestions: string[] = [];
     try {
       await this.quotaService.assertHostCalendarTokenBudget(user.userId);
@@ -148,6 +178,7 @@ export class HostCalendarService {
         locale: chatLocale,
         snapshot,
         suggestionCount,
+        pricing,
       });
       await this.quotaService.recordHostCalendarTokenUsage(
         user.userId,
@@ -165,6 +196,7 @@ export class HostCalendarService {
       guardContext,
       chatLocale,
       suggestionCount,
+      pricing,
     );
     const response: HostCalendarSuggestionsResponse = { suggestions };
     if (this.redis.isConfigured) {
@@ -182,7 +214,13 @@ export class HostCalendarService {
   ): Promise<HostCalendarChatResponse> {
     const chatLocale = normalizeChatLocale(locale);
     const property = await this.assertHostOwnsProperty(propertyId, user.userId);
-    const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
+    const todayIso = todayIsoUtc();
+    const sorted = [...entries]
+      .filter((e) => isIsoDateInEditableWindow(e.date, todayIso))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    if (entries.length > 0 && sorted.length === 0) {
+      return { type: 'clarify', message: HOST_CALENDAR_OUT_OF_WINDOW_MESSAGES[chatLocale] };
+    }
     if (sorted.length === 0) {
       return { type: 'clarify', message: HOST_CALENDAR_NO_CHANGES_MESSAGES[chatLocale] };
     }
@@ -215,7 +253,12 @@ export class HostCalendarService {
       isAvailable: first.isAvailable,
       priceOverride: first.priceOverride ?? null,
     };
-    const message = buildHostCalendarAppliedMessage(summary, property.title, chatLocale);
+    const message = buildHostCalendarAppliedMessage(
+      summary,
+      property.title,
+      chatLocale,
+      property.currency,
+    );
     const quota = await this.quotaService.getHostCalendarQuota(user.userId);
     return {
       type: 'calendar_applied',
@@ -242,11 +285,18 @@ export class HostCalendarService {
       isAvailable,
       args.useBaseRate ? null : priceOverride,
     );
-    const range = await this.availabilityService.getForRange(
-      propertyId,
-      args.dateFrom,
-      args.dateTo,
-    );
+    const todayIso = todayIsoUtc();
+    const inWindow = fullEntries.filter((entry) => isIsoDateInEditableWindow(entry.date, todayIso));
+    if (inWindow.length === 0) {
+      return {
+        type: 'clarify',
+        message: HOST_CALENDAR_OUT_OF_WINDOW_MESSAGES[normalizeChatLocale(locale)],
+        quota,
+      };
+    }
+    const dateFrom = inWindow[0]!.date;
+    const dateTo = inWindow[inWindow.length - 1]!.date;
+    const range = await this.availabilityService.getForRange(propertyId, dateFrom, dateTo);
     const currentByDate = new Map<string, CalendarDayState>(
       range.entries.map((e) => [
         e.date,
@@ -258,7 +308,7 @@ export class HostCalendarService {
         },
       ]),
     );
-    const delta = diffProposedVsCurrent(fullEntries, currentByDate, basePricePerNight);
+    const delta = diffProposedVsCurrent(inWindow, currentByDate, basePricePerNight);
     if (delta.length === 0) {
       return {
         type: 'already_applied',
@@ -271,11 +321,24 @@ export class HostCalendarService {
       message: llmMessage,
       proposedChanges: {
         entries: delta,
-        dateFrom: args.dateFrom,
-        dateTo: args.dateTo,
+        dateFrom: delta[0]!.date,
+        dateTo: delta[delta.length - 1]!.date,
       },
       quota,
     };
+  }
+
+  private async resolveSuggestionPricing(
+    baseUsd: number,
+    displayCurrency: ReturnType<typeof normalizeDisplayCurrency>,
+  ): Promise<HostCalendarSuggestionPricing> {
+    const rates = await this.currencyService.getRates();
+    const convertUsdToDisplay =
+      rates === null
+        ? null
+        : (amountUsd: number): number | null =>
+            this.currencyService.convert(amountUsd, 'USD', displayCurrency, rates);
+    return buildSuggestionPricingFromUsd(baseUsd, displayCurrency, convertUsdToDisplay);
   }
 
   private async buildGuardContext(

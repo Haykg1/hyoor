@@ -10,7 +10,7 @@ import {
   type TimeseriesMetric,
   type TimeseriesRange,
 } from '@/lib/api/admin';
-import { formatAmd } from '@/lib/format/price';
+import { formatUsdFromMinor } from '@/lib/format/price';
 import { cn } from '@/lib/utils';
 
 const METRICS: TimeseriesMetric[] = ['bookings', 'users', 'revenue'];
@@ -29,7 +29,7 @@ function formatBucketLabel(iso: string, range: TimeseriesRange): string {
 }
 
 function formatValue(value: number, metric: TimeseriesMetric): string {
-  if (metric === 'revenue') return formatAmd(value);
+  if (metric === 'revenue') return formatUsdFromMinor(value);
   return new Intl.NumberFormat('en-US').format(value);
 }
 

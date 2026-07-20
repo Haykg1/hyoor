@@ -195,6 +195,29 @@ describe('Admin payment failures (e2e)', () => {
     expect(updated?.resolvedByUserId).toBe(admin.userId);
   });
 
+  it('marks multiple payment failures resolved', async () => {
+    const admin = await registerAdmin(app);
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const first = await createBookingWithFailure(app, host, guest, 'RENT_CAPTURE_FAILED');
+    const second = await createBookingWithFailure(app, host, guest, 'PAYOUT_TRANSFER_FAILED');
+
+    const response = await request(app.getHttpServer())
+      .patch('/api/v1/admin/payment-failures/resolve')
+      .set(authHeader(admin.accessToken))
+      .send({ ids: [first.failureId, second.failureId] })
+      .expect(200);
+    expect(response.body.data.resolvedCount).toBe(2);
+
+    const prisma = app.get(PrismaService);
+    const updated = await prisma.paymentFailure.findMany({
+      where: { id: { in: [first.failureId, second.failureId] } },
+    });
+    expect(updated).toHaveLength(2);
+    expect(updated.every((row) => row.resolved)).toBe(true);
+    expect(updated.every((row) => row.resolvedByUserId === admin.userId)).toBe(true);
+  });
+
   it('returns 404 when resolving an unknown payment failure', async () => {
     const admin = await registerAdmin(app);
     await request(app.getHttpServer())

@@ -181,9 +181,17 @@ describe('AI search (e2e)', () => {
     expect(data.message).toContain('Yerevan');
     expect(data.properties).toHaveLength(1);
     expect(data.properties[0].title).toBe('E2E Favorites Apartment');
-    expect(data.filters.searchCity).toBe('Yerevan');
+    expect(data.filters.locationLabel).toMatch(/Yerevan/i);
+    // Geo coords win over city text — searchCity is cleared when lat/lng are present.
+    const hasGeo =
+      data.filters.searchLatitude !== undefined && data.filters.searchLongitude !== undefined;
+    expect(hasGeo || data.filters.searchCity === 'Yerevan').toBe(true);
+    if (hasGeo) {
+      expect(data.filters.searchCity).toBeUndefined();
+    }
     expect(data.searchPath).toContain('/search?');
-    expect(data.searchPath).toContain('checkIn=2026-07-01');
+    // Past check-in is clamped to today (e2e clock is 2026-07-15).
+    expect(data.searchPath).toContain('checkIn=2026-07-15');
     expect(mockPropertiesSearch).toHaveBeenCalledTimes(1);
   });
 
@@ -245,14 +253,16 @@ describe('AI search (e2e)', () => {
     const data = response.body.data;
     expect(data.type).toBe('search');
     expect(data.filters.stayNights).toBe(5);
-    expect(data.filters.availableFrom).toBe('2026-07-01');
+    // Past window start is clamped to today (e2e clock is 2026-07-15).
+    expect(data.filters.availableFrom).toBe('2026-07-15');
     expect(data.properties[0].suggestedCheckIn).toBe('2026-07-04');
     expect(data.properties[0].suggestedCheckOut).toBe('2026-07-09');
-    expect(data.searchPath).toContain('checkIn=2026-07-04');
+    // Suggested past stays are sanitized when building searchPath.
+    expect(data.searchPath).toContain('checkIn=2026-07-15');
     expect(mockPropertiesSearch).toHaveBeenCalledWith(
       expect.objectContaining({
         stayNights: 5,
-        availableFrom: '2026-07-01',
+        availableFrom: '2026-07-15',
         availableTo: '2026-07-27',
         maxPrice: 24000,
       }),
@@ -322,19 +332,29 @@ describe('AI search (e2e)', () => {
     expect(mockLlm.complete).not.toHaveBeenCalled();
   });
 
-  it('clarifies when the tool call lacks required fields', async () => {
+  it('applies current-month date defaults when the tool omits timing', async () => {
     mockLlm.complete.mockResolvedValue({
       kind: 'tool',
       message: 'Searching now.',
       args: { locationQuery: 'Yerevan' },
       usage: mockUsage,
     });
+    mockPropertiesSearch.mockResolvedValue({
+      data: [],
+      total: 0,
+      page: 1,
+      limit: 8,
+      totalPages: 1,
+    });
     const response = await request(app.getHttpServer())
       .post('/api/v1/ai-search/chat')
       .send({ messages: [{ role: 'user', content: 'Yerevan please' }] })
       .expect(201);
-    expect(response.body.data.type).toBe('clarify');
-    expect(response.body.data.message).toContain('dates');
+    expect(response.body.data.type).toBe('search');
+    expect(response.body.data.filters.stayNights).toBe(1);
+    expect(response.body.data.filters.availableFrom).toBeDefined();
+    expect(response.body.data.filters.availableTo).toBeDefined();
+    expect(mockPropertiesSearch).toHaveBeenCalledTimes(1);
   });
 
   it('defaults AI search rate limit to 20 requests per window', () => {

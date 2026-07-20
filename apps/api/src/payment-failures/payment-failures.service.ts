@@ -134,4 +134,20 @@ export class PaymentFailuresService {
       data: { resolved: true, resolvedAt: new Date(), resolvedByUserId: adminUserId },
     });
   }
+
+  async resolveMany(ids: string[], adminUserId: string): Promise<{ resolvedCount: number }> {
+    const uniqueIds = [...new Set(ids)];
+    const existing = await this.prisma.paymentFailure.findMany({
+      where: { id: { in: uniqueIds } },
+      select: { id: true },
+    });
+    if (existing.length !== uniqueIds.length) {
+      throw new NotFoundException('One or more payment failures not found');
+    }
+    const result = await this.prisma.paymentFailure.updateMany({
+      where: { id: { in: uniqueIds }, resolved: false },
+      data: { resolved: true, resolvedAt: new Date(), resolvedByUserId: adminUserId },
+    });
+    return { resolvedCount: result.count };
+  }
 }

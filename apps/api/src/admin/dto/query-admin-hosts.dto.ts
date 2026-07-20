@@ -1,16 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '@repo/shared/constants';
-import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export const HOST_TYPES = ['INDIVIDUAL', 'COMPANY'] as const;
 
-function toOptionalBoolean(value: unknown): boolean | undefined {
-  if (value === 'true') return true;
-  if (value === 'false') return false;
-  if (typeof value === 'boolean') return value;
-  return undefined;
-}
+const BOOLEAN_STRINGS = ['true', 'false'] as const;
 
 export class QueryAdminHostsDto {
   @ApiPropertyOptional({ example: 'anna' })
@@ -23,20 +18,23 @@ export class QueryAdminHostsDto {
   @IsIn(HOST_TYPES)
   hostType?: (typeof HOST_TYPES)[number];
 
-  @ApiPropertyOptional({ example: true })
+  @ApiPropertyOptional({
+    enum: BOOLEAN_STRINGS,
+    example: 'true',
+    description: 'Filter by host verification status',
+  })
   @IsOptional()
-  @Transform(({ value }) => toOptionalBoolean(value))
-  @IsBoolean()
-  isVerified?: boolean;
+  @IsIn(BOOLEAN_STRINGS)
+  isVerified?: (typeof BOOLEAN_STRINGS)[number];
 
   @ApiPropertyOptional({
-    example: true,
+    enum: BOOLEAN_STRINGS,
+    example: 'true',
     description: 'When true, only hosts with a custom platformFeePercent',
   })
   @IsOptional()
-  @Transform(({ value }) => toOptionalBoolean(value))
-  @IsBoolean()
-  hasFeeOverride?: boolean;
+  @IsIn(BOOLEAN_STRINGS)
+  hasFeeOverride?: (typeof BOOLEAN_STRINGS)[number];
 
   @ApiPropertyOptional({ example: 1, minimum: 1, default: 1 })
   @IsOptional()

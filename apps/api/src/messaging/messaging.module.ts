@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 
 import { AuthModule } from '../auth/auth.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { StorageModule } from '../storage/storage.module';
 
 import { WsJwtGuard } from './guards/ws-jwt.guard';
@@ -9,7 +10,7 @@ import { MessagingGateway } from './messaging.gateway';
 import { MessagingService } from './messaging.service';
 
 @Module({
-  imports: [forwardRef(() => AuthModule), StorageModule],
+  imports: [forwardRef(() => AuthModule), NotificationsModule, StorageModule],
   controllers: [MessagingController],
   providers: [MessagingService, MessagingGateway, WsJwtGuard],
   exports: [MessagingService],

@@ -82,11 +82,27 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     this.logger.log(`Redis subscriber re-subscribed to ${channels.length} channel(s)`);
   }
 
+  /**
+   * Returns the shared client. `isConfigured` means REDIS_URL is set; the client
+   * may still be null if RedisService.onModuleInit has not run yet (module order),
+   * so we create it lazily when needed.
+   */
   private getClient(): Redis {
+    if (!this.isConfigured) {
+      throw new Error('Redis is not configured (REDIS_URL is empty)');
+    }
     if (!this.client) {
-      throw new Error('Redis is not configured');
+      this.client = this.createConnection('client');
     }
     return this.client;
+  }
+
+  private async ensureConnectedClient(): Promise<Redis> {
+    const client = this.getClient();
+    if (client.status === 'wait') {
+      await client.connect();
+    }
+    return client;
   }
 
   async zcard(key: string): Promise<number> {
@@ -114,11 +130,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async setWithTtl(key: string, value: string, ttlSeconds: number): Promise<void> {
-    await this.getClient().set(key, value, 'EX', ttlSeconds);
+    const client = await this.ensureConnectedClient();
+    await client.set(key, value, 'EX', ttlSeconds);
   }
 
   async get(key: string): Promise<string | null> {
-    return this.getClient().get(key);
+    const client = await this.ensureConnectedClient();
+    return client.get(key);
   }
 
   async del(key: string): Promise<void> {

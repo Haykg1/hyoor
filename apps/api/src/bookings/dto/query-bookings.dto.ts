@@ -1,22 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { BookingStatuses } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '@repo/shared/constants';
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
-export const BOOKING_STATUSES = [
-  'PENDING',
-  'CONFIRMED',
-  'CANCELLED_BY_GUEST',
-  'CANCELLED_BY_HOST',
-  'COMPLETED',
-  'NO_SHOW',
-] as const;
-
 export class QueryBookingsDto {
-  @ApiPropertyOptional({ enum: BOOKING_STATUSES })
+  @ApiPropertyOptional({ enum: BookingStatuses })
   @IsOptional()
-  @IsIn(BOOKING_STATUSES)
-  status?: (typeof BOOKING_STATUSES)[number];
+  @IsIn(BookingStatuses)
+  status?: (typeof BookingStatuses)[number];
 
   @ApiPropertyOptional({ example: 'clxyz123property456' })
   @IsOptional()

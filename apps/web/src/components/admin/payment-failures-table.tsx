@@ -3,9 +3,19 @@
 import type { AdminPaymentFailure } from '@repo/shared';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
   Table,
@@ -26,6 +36,7 @@ interface PaymentFailuresTableProps {
   total: number;
   onPageChange: (page: number) => void;
   onResolve: (id: string) => Promise<void>;
+  onResolveMany: (ids: string[]) => Promise<void>;
 }
 
 function formatDateTime(iso: string): string {
@@ -46,8 +57,57 @@ export function PaymentFailuresTable({
   total,
   onPageChange,
   onResolve,
+  onResolveMany,
 }: PaymentFailuresTableProps): React.JSX.Element {
   const t = useTranslations('admin.payment_failures');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isResolving, setIsResolving] = useState(false);
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+    setConfirmOpen(false);
+  }, [failures]);
+
+  const unresolvedFailures = failures.filter((failure) => !failure.resolved);
+  const selectableIds = unresolvedFailures.map((failure) => failure.id);
+  const selectedFailures = failures.filter((failure) => selectedIds.has(failure.id));
+  const allSelectableChecked =
+    selectableIds.length > 0 && selectableIds.every((id) => selectedIds.has(id));
+  const someSelectableChecked = selectableIds.some((id) => selectedIds.has(id));
+
+  function toggleOne(id: string, checked: boolean): void {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
+  }
+
+  function toggleAll(checked: boolean): void {
+    if (!checked) {
+      setSelectedIds(new Set());
+      return;
+    }
+    setSelectedIds(new Set(selectableIds));
+  }
+
+  async function handleConfirmResolve(): Promise<void> {
+    const ids = [...selectedIds];
+    if (ids.length < 2) return;
+    setIsResolving(true);
+    try {
+      await onResolveMany(ids);
+      setConfirmOpen(false);
+      setSelectedIds(new Set());
+    } finally {
+      setIsResolving(false);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -66,9 +126,29 @@ export function PaymentFailuresTable({
   return (
     <TooltipProvider>
       <div className="space-y-4">
+        {selectedIds.size > 1 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/40 px-4 py-3">
+            <p className="text-sm text-muted-foreground">
+              {t('bulk.selected_count', { count: selectedIds.size })}
+            </p>
+            <Button size="sm" onClick={() => setConfirmOpen(true)}>
+              {t('bulk.resolve_all')}
+            </Button>
+          </div>
+        )}
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={
+                    allSelectableChecked ? true : someSelectableChecked ? 'indeterminate' : false
+                  }
+                  disabled={selectableIds.length === 0}
+                  onCheckedChange={(value) => toggleAll(value === true)}
+                  aria-label={t('bulk.select_all')}
+                />
+              </TableHead>
               <TableHead>{t('table.created_at')}</TableHead>
               <TableHead>{t('table.category')}</TableHead>
               <TableHead>{t('table.booking')}</TableHead>
@@ -83,6 +163,14 @@ export function PaymentFailuresTable({
           <TableBody>
             {failures.map((failure) => (
               <TableRow key={failure.id}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedIds.has(failure.id)}
+                    disabled={failure.resolved}
+                    onCheckedChange={(value) => toggleOne(failure.id, value === true)}
+                    aria-label={t('bulk.select_row')}
+                  />
+                </TableCell>
                 <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
                   {formatDateTime(failure.createdAt)}
                 </TableCell>
@@ -163,6 +251,45 @@ export function PaymentFailuresTable({
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
+        <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{t('bulk.confirm_title')}</DialogTitle>
+              <DialogDescription>
+                {t('bulk.confirm_description', { count: selectedFailures.length })}
+              </DialogDescription>
+            </DialogHeader>
+            <ul className="max-h-64 space-y-2 overflow-y-auto rounded-lg border p-3">
+              {selectedFailures.map((failure) => (
+                <li key={failure.id} className="rounded-md bg-muted/50 px-3 py-2 text-sm">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge status={failure.category} namespace="payment_failure" />
+                    <span className="font-medium">{failure.propertyTitle}</span>
+                  </div>
+                  <p className="mt-1 text-muted-foreground">
+                    {t('bulk.summary_line', {
+                      guest: failure.guestName,
+                      host: failure.hostName,
+                      booking: failure.bookingId.slice(0, 10),
+                    })}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setConfirmOpen(false)}
+                disabled={isResolving}
+              >
+                {t('bulk.cancel')}
+              </Button>
+              <Button onClick={() => void handleConfirmResolve()} disabled={isResolving}>
+                {isResolving ? t('bulk.resolving') : t('bulk.confirm')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );

@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { AuthModule } from '../auth/auth.module';
 import { AvailabilityModule } from '../availability/availability.module';
+import { CurrencyModule } from '../currency/currency.module';
 import { GeocodingModule } from '../geocoding/geocoding.module';
 import { HostProfilesModule } from '../host-profiles/host-profiles.module';
 import { PropertiesModule } from '../properties/properties.module';
@@ -21,6 +22,7 @@ import { OpenAiLlmService } from './llm/openai-llm.service';
     GeocodingModule,
     AvailabilityModule,
     HostProfilesModule,
+    CurrencyModule,
   ],
   controllers: [AiSearchController, HostCalendarController],
   providers: [

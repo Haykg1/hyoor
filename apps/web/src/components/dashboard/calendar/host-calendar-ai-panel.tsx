@@ -19,11 +19,13 @@ import { HostCalendarAiSuggestionChips } from './host-calendar-ai-suggestion-chi
 interface HostCalendarAiPanelProps {
   propertyId: string;
   propertyTitle: string;
+  currency: string;
 }
 
 export function HostCalendarAiPanel({
   propertyId,
   propertyTitle,
+  currency,
 }: HostCalendarAiPanelProps): React.JSX.Element {
   const t = useTranslations('dashboard.calendar.ai');
   const { quota, isLoading: isQuotaLoading, refreshQuota } = useHostCalendarAiQuota();
@@ -50,6 +52,7 @@ export function HostCalendarAiPanel({
   const [input, setInput] = useState('');
   const exhausted = quota !== null && quota.remaining <= 0;
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const welcomeMessage = {
     id: 'welcome',
     role: 'assistant' as const,
@@ -93,7 +96,10 @@ export function HostCalendarAiPanel({
           suggestions={suggestions}
           isLoading={isSuggestionsLoading}
           disabled={isLoading || exhausted || isConfirming}
-          onSelect={(value) => void sendMessage(value)}
+          onSelect={(value) => {
+            setInput(value);
+            inputRef.current?.focus();
+          }}
         />
       ) : null}
       <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
@@ -102,6 +108,7 @@ export function HostCalendarAiPanel({
             <HostCalendarAiMessage
               message={welcomeMessage}
               basePricePerNight={basePricePerNight}
+              currency={currency}
               isConfirming={false}
               onConfirm={() => {}}
               onCancel={() => {}}
@@ -112,6 +119,7 @@ export function HostCalendarAiPanel({
               key={message.id}
               message={message}
               basePricePerNight={basePricePerNight}
+              currency={currency}
               isConfirming={isConfirming}
               onConfirm={(entries) => void confirmProposal(message.id, entries)}
               onCancel={() => cancelProposal(message.id)}
@@ -128,6 +136,7 @@ export function HostCalendarAiPanel({
       </ScrollArea>
       <div className="mt-3 shrink-0 space-y-2 border-t border-border pt-3">
         <Textarea
+          ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}

@@ -100,6 +100,14 @@ export function UserMenu({ variant = 'default' }: UserMenuProps = {}): React.JSX
             </Link>
           </DropdownMenuItem>
         ) : null}
+        {user.role === 'HOST' ? (
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard/analytics" className="cursor-pointer">
+              <BarChart3 className="mr-2 h-4 w-4" />
+              {t('analytics')}
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
         {isAdminLike ? (
           <DropdownMenuItem asChild>
             <Link href="/admin/stats" className="cursor-pointer">

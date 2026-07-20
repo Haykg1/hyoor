@@ -1,5 +1,6 @@
 export { useAccountSettingsStore } from './account-settings.store';
 export { useAuthStore } from './auth.store';
+export { useDisplayCurrencyStore } from './display-currency.store';
 export { useFavoritesStore } from './favorites.store';
 export { useMessagingStore } from './messaging.store';
 export { useNotificationsStore } from './notifications.store';

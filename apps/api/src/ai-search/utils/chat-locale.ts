@@ -24,9 +24,9 @@ export const AI_SEARCH_OFF_TOPIC_MESSAGES: LocalizedCopy = {
 };
 
 export const HOST_CALENDAR_OFF_TOPIC_MESSAGES: LocalizedCopy = {
-  en: 'I can only help you manage availability and nightly rates for this property. Try: "Close June 10–15" or "Set 55,000 AMD for next weekend."',
-  hy: 'Կարող եմ օգնել միայն այս գույքի հասանելիության և գիշերակացի գների կառավարման հարցում։ Օրինակ՝ «Փակիր հունիսի 10-15» կամ «55,000 դրամ հաջորդ շաբաթ-կիրակի»։',
-  ru: 'Я могу помочь только с доступностью и ценами за ночь для этого объекта. Например: «Закрой 10–15 июня» или «55 000 драм на следующие выходные».',
+  en: 'I can only help you manage availability and nightly rates for this property. Try: "Close June 10–15" or "Set 120 USD for next weekend."',
+  hy: 'Կարող եմ օգնել միայն այս գույքի հասանելիության և գիշերակացի գների կառավարման հարցում։ Օրինակ՝ «Փակիր հունիսի 10-15» կամ «120 USD հաջորդ շաբաթ-կիրակի»։',
+  ru: 'Я могу помочь только с доступностью и ценами за ночь для этого объекта. Например: «Закрой 10–15 июня» или «120 USD на следующие выходные».',
 };
 
 export function getAiSearchOffTopicMessage(locale?: string): string {
@@ -65,16 +65,16 @@ export const HOST_CALENDAR_ALL_BOOKED_MESSAGES: LocalizedCopy = {
   ru: 'Все выбранные даты забронированы и не могут быть изменены.',
 };
 
+export const HOST_CALENDAR_OUT_OF_WINDOW_MESSAGES: LocalizedCopy = {
+  en: 'I can only change dates from today through the next 365 days. Please pick a date in that range.',
+  hy: 'Կարող եմ փոխել միայն այսօրվանից մինչև հաջորդ 365 օրը։ Խնդրում եմ ընտրել այդ միջակայքի ամսաթիվ։',
+  ru: 'Я могу менять только даты с сегодняшнего дня и на следующие 365 дней. Выберите дату в этом диапазоне.',
+};
+
 export const HOST_CALENDAR_REVERT_HINTS: LocalizedCopy = {
   en: 'To revert, ask me to open those dates again, set the rate back to base, or edit the dates directly on the calendar grid.',
   hy: 'Չեղարկելու համար խնդրեք կրկին բացել այդ ամսաթվերը, վերադարձնել հիմնական գինը կամ խմբագրել օրացույցից։',
   ru: 'Чтобы отменить, попросите снова открыть эти даты, вернуть базовую цену или изменить даты прямо в календаре.',
-};
-
-export const AI_SEARCH_MISSING_FIELDS_MESSAGES: LocalizedCopy = {
-  en: 'I need a destination and travel dates before I can search. Where would you like to stay, and when? Exact dates or a flexible window like "5 nights in July" both work.',
-  hy: 'Որոնելու համար պետք են վայրը և ամսաթվերը։ Որտե՞ղ եք ցանկանում մնալ, և երբե՞։ Կարող են լինել ճշգրիտ ամսաթվեր կամ ճկուն պատուհան, օրինակ «5 գիշեր հուլիսին»։',
-  ru: 'Для поиска нужны место и даты. Где вы хотите остановиться и когда? Подойдут точные даты или гибкое окно, например «5 ночей в июле».',
 };
 
 export const AI_SEARCH_NO_MATCHES_SUFFIX: LocalizedCopy = {
@@ -94,6 +94,7 @@ export function buildHostCalendarAppliedMessage(
   },
   propertyTitle: string,
   locale?: string,
+  currency = 'USD',
 ): string {
   const key = normalizeChatLocale(locale);
   const action =
@@ -105,9 +106,9 @@ export function buildHostCalendarAppliedMessage(
       ? { en: ' at base rate', hy: ' հիմնական գնով', ru: ' по базовой цене' }[key]
       : summary.priceOverride !== undefined
         ? {
-            en: ` with rate ${summary.priceOverride} AMD`,
-            hy: ` ${summary.priceOverride} AMD գնով`,
-            ru: ` с ценой ${summary.priceOverride} AMD`,
+            en: ` with rate ${summary.priceOverride} ${currency}`,
+            hy: ` ${summary.priceOverride} ${currency} գնով`,
+            ru: ` с ценой ${summary.priceOverride} ${currency}`,
           }[key]
         : '';
   const skipped =

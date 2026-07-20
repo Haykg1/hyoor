@@ -15,7 +15,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { listMyBookings } from '@/lib/api/bookings';
 import { createReview, uploadReviewPhoto } from '@/lib/api/reviews';
 
 const MAX_PHOTOS = 5;
@@ -27,7 +26,7 @@ interface PendingPhoto {
 }
 
 interface WriteReviewModalProps {
-  propertyId: string;
+  eligibleBookingId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onReviewSubmitted: () => Promise<void>;
@@ -35,15 +34,13 @@ interface WriteReviewModalProps {
 }
 
 export function WriteReviewModal({
-  propertyId,
+  eligibleBookingId,
   open,
   onOpenChange,
   onReviewSubmitted,
   hasReviewed = false,
 }: WriteReviewModalProps): React.JSX.Element {
   const t = useTranslations('property_detail.reviews');
-  const [eligibleBookingId, setEligibleBookingId] = useState<string | null>(null);
-  const [checkingEligibility, setCheckingEligibility] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -53,21 +50,15 @@ export function WriteReviewModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!open || hasReviewed) return;
-    setCheckingEligibility(true);
-    setEligibleBookingId(null);
+    if (!open) return;
     setServerConflict(false);
     setRating(0);
     setComment('');
-    setPhotos([]);
-    listMyBookings({ status: 'COMPLETED', limit: 50 })
-      .then((result) => {
-        const match = result.data.find((b) => b.propertyId === propertyId);
-        setEligibleBookingId(match?.id ?? null);
-      })
-      .catch(() => setEligibleBookingId(null))
-      .finally(() => setCheckingEligibility(false));
-  }, [open, propertyId, hasReviewed]);
+    setPhotos((prev) => {
+      prev.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+      return [];
+    });
+  }, [open]);
 
   function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -122,12 +113,6 @@ export function WriteReviewModal({
         </DialogHeader>
         {hasReviewed || serverConflict ? (
           <p className="py-4 text-center text-sm text-muted-foreground">{t('already_reviewed')}</p>
-        ) : checkingEligibility ? (
-          <p className="py-4 text-center text-sm text-muted-foreground">{t('checking')}</p>
-        ) : eligibleBookingId === null ? (
-          <p className="py-4 text-center text-sm text-muted-foreground">
-            {t('no_eligible_booking')}
-          </p>
         ) : (
           <div className="space-y-5 pt-2">
             <div className="space-y-2">
@@ -165,7 +150,6 @@ export function WriteReviewModal({
               />
             </div>
 
-            {/* Photo picker */}
             <div className="space-y-2">
               <p className="text-sm font-medium">
                 {t('photos_label', { defaultValue: 'Photos (optional)' })}
@@ -174,14 +158,14 @@ export function WriteReviewModal({
                 {photos.map((p, i) => (
                   <div
                     key={i}
-                    className="relative h-16 w-16 shrink-0 rounded-lg overflow-hidden border border-border"
+                    className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.previewUrl} alt="" className="h-full w-full object-cover" />
                     <button
                       type="button"
                       onClick={() => removePhoto(i)}
-                      className="absolute top-0.5 right-0.5 rounded-full bg-black/60 p-0.5 text-white hover:bg-black/80"
+                      className="absolute right-0.5 top-0.5 rounded-full bg-black/60 p-0.5 text-white hover:bg-black/80"
                       aria-label="Remove photo"
                     >
                       <X className="h-3 w-3" />
@@ -192,7 +176,7 @@ export function WriteReviewModal({
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-border text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
+                    className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
                     aria-label="Add photo"
                   >
                     <ImagePlus className="h-5 w-5" />

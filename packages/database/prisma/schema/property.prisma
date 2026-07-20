@@ -87,6 +87,7 @@ model Property {
   messageCards   Message[]
 
   @@index([hostId])
+  @@index([hostId, status])
   @@index([city])
   @@index([region])
   @@index([street])

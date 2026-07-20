@@ -16,16 +16,21 @@ function buildService(overrides?: {
   isConfigured?: boolean;
   get?: jest.Mock;
   setWithTtl?: jest.Mock;
-}): { service: CurrencyService; redis: RedisService } {
+  fetchOnBoot?: boolean;
+}): { service: CurrencyService; redis: RedisService; config: ConfigService<AppConfig, true> } {
   const redis = {
     isConfigured: overrides?.isConfigured ?? true,
     get: overrides?.get ?? jest.fn().mockResolvedValue(null),
     setWithTtl: overrides?.setWithTtl ?? jest.fn().mockResolvedValue(undefined),
   } as unknown as RedisService;
   const config = {
-    get: jest.fn().mockReturnValue('https://open.er-api.com/v6/latest/USD'),
+    get: jest.fn((key: string) => {
+      if (key === 'currency.ratesApiUrl') return 'https://open.er-api.com/v6/latest/USD';
+      if (key === 'currency.fetchOnBoot') return overrides?.fetchOnBoot ?? false;
+      return undefined;
+    }),
   } as unknown as ConfigService<AppConfig, true>;
-  return { service: new CurrencyService(redis, config), redis };
+  return { service: new CurrencyService(redis, config), redis, config };
 }
 
 describe('CurrencyService', () => {
@@ -82,8 +87,32 @@ describe('CurrencyService', () => {
     });
   });
 
+  describe('onModuleInit', () => {
+    it('skips the boot fetch when CURRENCY_RATES_FETCH_ON_BOOT is not true', async () => {
+      const { service } = buildService({ fetchOnBoot: false });
+      const refreshSpy = jest.spyOn(service, 'refreshRates');
+      await service.onModuleInit();
+      expect(refreshSpy).not.toHaveBeenCalled();
+    });
+
+    it('fetches rates on boot when CURRENCY_RATES_FETCH_ON_BOOT is true', async () => {
+      const { service } = buildService({ fetchOnBoot: true, isConfigured: false });
+      const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          result: 'success',
+          base_code: 'USD',
+          rates: sampleRates.rates,
+        }),
+      } as Response);
+      await service.onModuleInit();
+      expect(await service.getRates()).toMatchObject({ base: 'USD' });
+      fetchMock.mockRestore();
+    });
+  });
+
   describe('getRates', () => {
-    it('returns null when Redis is not configured', async () => {
+    it('returns null when Redis is not configured and memory is empty', async () => {
       const { service } = buildService({ isConfigured: false });
       expect(await service.getRates()).toBeNull();
     });
@@ -102,10 +131,23 @@ describe('CurrencyService', () => {
   });
 
   describe('refreshRates', () => {
-    it('does nothing when Redis is not configured', async () => {
+    it('keeps rates in memory when Redis is not configured', async () => {
       const { service, redis } = buildService({ isConfigured: false });
+      const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          result: 'success',
+          base_code: 'USD',
+          rates: sampleRates.rates,
+        }),
+      } as Response);
       await service.refreshRates();
       expect(redis.setWithTtl).not.toHaveBeenCalled();
+      expect(await service.getRates()).toMatchObject({
+        base: 'USD',
+        rates: expect.objectContaining({ AMD: 400, EUR: 0.92 }),
+      });
+      fetchMock.mockRestore();
     });
 
     it('fetches, filters to the curated set, and caches the result', async () => {

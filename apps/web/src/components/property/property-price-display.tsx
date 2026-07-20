@@ -5,8 +5,7 @@ import { formatCurrencyAmount } from '@/lib/format/price';
 interface PropertyPriceDisplayProps {
   pricePerNight: number;
   currency: string;
-  /** Cosmetic, non-charged estimate in the guest's local currency — never rendered if it
-   * matches `currency` (nothing to estimate) or is missing (rates unavailable). */
+  /** Guest-selected display estimate. When present, this is the primary shown amount. */
   displayPrice?: { amount: number; currency: string } | null;
   mainClassName?: string;
   secondaryClassName?: string;
@@ -22,19 +21,22 @@ export function PropertyPriceDisplay({
   secondaryClassName = 'text-xs text-muted-foreground',
   suffix,
 }: PropertyPriceDisplayProps): React.JSX.Element {
-  const showEstimate = Boolean(displayPrice) && displayPrice?.currency !== currency;
-  const mainText = showEstimate
-    ? `~${formatCurrencyAmount(displayPrice!.amount, displayPrice!.currency)}`
+  const hasDisplay = Boolean(displayPrice);
+  const isEstimate =
+    hasDisplay && displayPrice!.currency !== currency && displayPrice!.amount !== pricePerNight;
+  const mainText = hasDisplay
+    ? `${isEstimate ? '~' : ''}${formatCurrencyAmount(displayPrice!.amount, displayPrice!.currency)}`
     : formatCurrencyAmount(pricePerNight, currency);
+  const showListingCurrency = hasDisplay && displayPrice!.currency !== currency;
   return (
     <span className="inline-flex flex-col">
       <span className={mainClassName}>
         {mainText}
         {suffix}
       </span>
-      {showEstimate && (
+      {showListingCurrency ? (
         <span className={secondaryClassName}>{formatCurrencyAmount(pricePerNight, currency)}</span>
-      )}
+      ) : null}
     </span>
   );
 }

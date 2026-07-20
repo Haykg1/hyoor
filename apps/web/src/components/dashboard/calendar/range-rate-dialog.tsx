@@ -19,6 +19,11 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  endOfEditableLocalDay,
+  isLocalIsoEditable,
+  startOfLocalToday,
+} from '@/lib/calendar/editable-window';
 import { usePropertyCalendarStore } from '@/store';
 
 interface RangeRateDialogProps {
@@ -32,11 +37,6 @@ function pad(n: number): string {
 
 function toIso(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-function startOfToday(): Date {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
 function eachIsoInclusive(from: Date, to: Date): string[] {
@@ -73,7 +73,9 @@ export function RangeRateDialog({ open, onOpenChange }: RangeRateDialogProps): R
   const fromDate = range?.from;
   const toDate = range?.to ?? range?.from;
   const dates = fromDate && toDate ? eachIsoInclusive(fromDate, toDate) : [];
-  const editable = dates.filter((iso) => !daysByDate[iso]?.isBlockedByBooking);
+  const editable = dates.filter(
+    (iso) => isLocalIsoEditable(iso) && !daysByDate[iso]?.isBlockedByBooking,
+  );
   const locked = dates.length - editable.length;
 
   async function handleApply(): Promise<void> {
@@ -119,7 +121,11 @@ export function RangeRateDialog({ open, onOpenChange }: RangeRateDialogProps): R
               selected={range}
               onSelect={setRange}
               numberOfMonths={1}
-              disabled={(date) => date < startOfToday()}
+              disabled={(date) => {
+                const start = startOfLocalToday();
+                const end = endOfEditableLocalDay();
+                return date < start || date > end;
+              }}
             />
           </div>
 

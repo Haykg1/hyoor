@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '@repo/shared/constants';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export class CursorPaginationDto {
   @ApiPropertyOptional({ description: 'Opaque cursor from a previous page' })
@@ -21,4 +21,15 @@ export class CursorPaginationDto {
   @Max(MAX_PAGE_SIZE)
   @Type(() => Number)
   limit?: number = DEFAULT_PAGE_SIZE;
+}
+
+export class QueryConversationsDto extends CursorPaginationDto {
+  @ApiPropertyOptional({
+    description: 'Case-insensitive match against guest/host name or company name',
+    maxLength: 100,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  search?: string;
 }

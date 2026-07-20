@@ -18,6 +18,9 @@ export function useAdminListings() {
     statusFilter,
     propertyTypeFilter,
     searchQuery,
+    earningsPreset,
+    earningsFrom,
+    earningsTo,
     isLoading,
     error,
     fetchListings,
@@ -27,6 +30,9 @@ export function useAdminListings() {
     setStatusFilter,
     setPropertyTypeFilter,
     setSearchQuery,
+    setEarningsPreset,
+    setEarningsFrom,
+    setEarningsTo,
     resetFilters,
     disableListing,
     enableListing,
@@ -34,7 +40,17 @@ export function useAdminListings() {
 
   useEffect(() => {
     void fetchListings();
-  }, [page, limit, tab, statusFilter, propertyTypeFilter, fetchListings]);
+  }, [
+    page,
+    limit,
+    tab,
+    statusFilter,
+    propertyTypeFilter,
+    earningsPreset,
+    earningsFrom,
+    earningsTo,
+    fetchListings,
+  ]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -54,6 +70,9 @@ export function useAdminListings() {
     statusFilter,
     propertyTypeFilter,
     searchQuery,
+    earningsPreset,
+    earningsFrom,
+    earningsTo,
     isLoading,
     error,
     setTab,
@@ -62,6 +81,9 @@ export function useAdminListings() {
     setStatusFilter,
     setPropertyTypeFilter,
     setSearchQuery,
+    setEarningsPreset,
+    setEarningsFrom,
+    setEarningsTo,
     resetFilters,
     disableListing,
     enableListing,

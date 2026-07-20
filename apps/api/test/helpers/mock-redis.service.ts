@@ -103,6 +103,8 @@ export class MockRedisService {
 
   async del(key: string): Promise<void> {
     this.kvEntries.delete(key);
+    this.geoEntries.delete(key);
+    this.metaEntries.delete(key);
   }
 
   async decr(key: string): Promise<number> {

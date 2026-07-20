@@ -1,7 +1,31 @@
 import type { PropertyType } from '../types';
 
-export const PROPERTY_SORT_VALUES = ['createdAt', 'pricePerNight'] as const;
+export const PROPERTY_SORT_VALUES = [
+  'recommended',
+  'priceAsc',
+  'priceDesc',
+  'topRated',
+  'mostReviewed',
+] as const;
 export type PropertySortValue = (typeof PROPERTY_SORT_VALUES)[number];
+
+/** Legacy URL/API values still accepted and mapped to the new sort keys. */
+export const LEGACY_PROPERTY_SORT_VALUES = ['createdAt', 'pricePerNight'] as const;
+export type LegacyPropertySortValue = (typeof LEGACY_PROPERTY_SORT_VALUES)[number];
+
+export function normalizePropertySortBy(value: string | undefined): PropertySortValue | undefined {
+  if (!value) return undefined;
+  if ((PROPERTY_SORT_VALUES as readonly string[]).includes(value)) {
+    return value as PropertySortValue;
+  }
+  if (value === 'createdAt') return 'recommended';
+  if (value === 'pricePerNight') return 'priceAsc';
+  return undefined;
+}
+
+/** Currencies the marketplace search UI always offers. */
+export const SEARCH_DISPLAY_CURRENCIES = ['AMD', 'USD', 'EUR'] as const;
+export type SearchDisplayCurrency = (typeof SEARCH_DISPLAY_CURRENCIES)[number];
 
 export interface SearchPropertiesQuery {
   featured?: boolean;
@@ -31,6 +55,8 @@ export interface SearchPropertiesQuery {
   maxGuests?: number;
   minPrice?: number;
   maxPrice?: number;
+  /** Currency of minPrice/maxPrice and requested display estimate. */
+  displayCurrency?: string;
   sortBy?: PropertySortValue;
   minAdults?: number;
   minChildren?: number;

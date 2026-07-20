@@ -90,7 +90,7 @@ function profileFormFromApi(profile: MyProfile): ProfileForm {
 }
 
 function isHostRole(role: string): boolean {
-  return role === 'HOST' || role === 'ADMIN' || role === 'STAFF';
+  return role === 'HOST';
 }
 
 export const useAccountSettingsStore = create<AccountSettingsState & AccountSettingsActions>()(

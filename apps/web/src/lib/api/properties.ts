@@ -82,6 +82,7 @@ export async function listProperties(
   setOptionalNumber(query, 'minPrice', params.minPrice);
   setOptionalNumber(query, 'maxPrice', params.maxPrice);
   if (params.sortBy) query.set('sortBy', params.sortBy);
+  if (params.displayCurrency) query.set('displayCurrency', params.displayCurrency);
   setOptionalNumber(query, 'minAdults', params.minAdults);
   setOptionalNumber(query, 'minChildren', params.minChildren);
   setOptionalNumber(query, 'minInfants', params.minInfants);

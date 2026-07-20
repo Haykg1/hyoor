@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { HostListingTabs, PropertyTypes } from '@repo/shared';
+import { EarningsPresets, HostListingTabs, PropertyTypes } from '@repo/shared';
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Length, Min } from 'class-validator';
 
@@ -56,4 +56,23 @@ export class QueryAdminPropertiesDto {
   @IsString()
   @Length(1, 200)
   search?: string;
+
+  @ApiPropertyOptional({
+    enum: EarningsPresets,
+    default: 'last_30_days',
+    description: 'Earnings window for dashboard stats embedded in this response',
+  })
+  @IsOptional()
+  @IsIn([...EarningsPresets])
+  earningsPreset?: (typeof EarningsPresets)[number];
+
+  @ApiPropertyOptional({ example: '2025-01-01' })
+  @IsOptional()
+  @IsString()
+  earningsFrom?: string;
+
+  @ApiPropertyOptional({ example: '2025-12-31' })
+  @IsOptional()
+  @IsString()
+  earningsTo?: string;
 }

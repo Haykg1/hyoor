@@ -4,13 +4,15 @@ import type { HostCalendarChangeEntry } from '@repo/shared';
 import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
-import { formatAmd } from '@/lib/format/price';
+import { useDisplayMoney } from '@/hooks/use-display-money';
+import { formatCurrencyAmount } from '@/lib/format/price';
 
 interface HostCalendarChangePreviewProps {
   entries: HostCalendarChangeEntry[];
   dateFrom: string;
   dateTo: string;
   basePricePerNight: number;
+  currency: string;
   isConfirming: boolean;
   status: 'pending' | 'confirmed' | 'cancelled' | undefined;
   onConfirm: () => void;
@@ -22,12 +24,28 @@ export function HostCalendarChangePreview({
   dateFrom,
   dateTo,
   basePricePerNight,
+  currency,
   isConfirming,
   status,
   onConfirm,
   onCancel,
 }: HostCalendarChangePreviewProps): React.JSX.Element | null {
   const t = useTranslations('dashboard.calendar.ai');
+  const { displayCurrency, formatMoney } = useDisplayMoney();
+  function formatRate(amount: number): React.JSX.Element {
+    const primary = formatMoney(amount, currency);
+    if (displayCurrency === currency) {
+      return <>{primary}</>;
+    }
+    return (
+      <>
+        {primary}
+        <span className="ml-1 text-muted-foreground">
+          (~{formatCurrencyAmount(Math.round(amount), currency)})
+        </span>
+      </>
+    );
+  }
   if (status === 'cancelled') {
     return <p className="text-sm text-muted-foreground">{t('preview_cancelled')}</p>;
   }
@@ -56,9 +74,20 @@ export function HostCalendarChangePreview({
                   {entry.isAvailable ? t('preview_open') : t('preview_closed')}
                 </td>
                 <td className="py-1">
-                  {entry.priceOverride === null || entry.priceOverride === undefined
-                    ? t('preview_base_rate', { base: formatAmd(basePricePerNight) })
-                    : formatAmd(entry.priceOverride)}
+                  {entry.priceOverride === null || entry.priceOverride === undefined ? (
+                    <>
+                      {t('preview_base_rate', {
+                        base: formatMoney(basePricePerNight, currency),
+                      })}
+                      {displayCurrency !== currency ? (
+                        <span className="ml-1 text-muted-foreground">
+                          (~{formatCurrencyAmount(Math.round(basePricePerNight), currency)})
+                        </span>
+                      ) : null}
+                    </>
+                  ) : (
+                    formatRate(entry.priceOverride)
+                  )}
                 </td>
               </tr>
             ))}

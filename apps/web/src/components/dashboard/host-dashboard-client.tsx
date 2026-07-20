@@ -1,10 +1,12 @@
 'use client';
 
-import { CirclePlus, Upload } from 'lucide-react';
+import { BarChart3, CirclePlus, Upload } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { DisplayCurrencyToggle } from '@/components/currency/display-currency-toggle';
 import { Button } from '@/components/ui/button';
+import { useDisplayMoney } from '@/hooks/use-display-money';
 import { useHostListings } from '@/hooks/use-host-listings';
 import { Link } from '@/i18n/navigation';
 
@@ -24,6 +26,7 @@ const TABS: TabKey[] = ['active', 'disabled', 'reservations', 'promotions'];
 
 export function HostDashboardClient({ welcomeName }: HostDashboardClientProps): React.JSX.Element {
   const t = useTranslations('dashboard');
+  const { displayCurrency, setDisplayCurrency } = useDisplayMoney();
   const {
     listings,
     stats,
@@ -79,7 +82,14 @@ export function HostDashboardClient({ welcomeName }: HostDashboardClientProps): 
             {t('welcome', { name: welcomeName })}
           </p>
         </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <DisplayCurrencyToggle value={displayCurrency} onChange={setDisplayCurrency} />
+          <Button variant="outline" className="gap-2" asChild>
+            <Link href="/dashboard/analytics">
+              <BarChart3 className="h-4 w-4" />
+              {t('analytics.nav')}
+            </Link>
+          </Button>
           <Button variant="outline" className="gap-2" asChild>
             <Link href="/dashboard/listings/bulk-upload">
               <Upload className="h-4 w-4" />

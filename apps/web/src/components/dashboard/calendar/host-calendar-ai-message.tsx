@@ -8,6 +8,7 @@ import { HostCalendarChangePreview } from './host-calendar-change-preview';
 interface HostCalendarAiMessageProps {
   message: HostCalendarUiMessage;
   basePricePerNight: number;
+  currency: string;
   isConfirming: boolean;
   onConfirm: (entries: NonNullable<HostCalendarUiMessage['proposedChanges']>['entries']) => void;
   onCancel: () => void;
@@ -16,6 +17,7 @@ interface HostCalendarAiMessageProps {
 export function HostCalendarAiMessage({
   message,
   basePricePerNight,
+  currency,
   isConfirming,
   onConfirm,
   onCancel,
@@ -39,6 +41,7 @@ export function HostCalendarAiMessage({
             dateFrom={message.proposedChanges.dateFrom}
             dateTo={message.proposedChanges.dateTo}
             basePricePerNight={basePricePerNight}
+            currency={currency}
             isConfirming={isConfirming}
             status={message.confirmStatus}
             onConfirm={() => onConfirm(message.proposedChanges!.entries)}

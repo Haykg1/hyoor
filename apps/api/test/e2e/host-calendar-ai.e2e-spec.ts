@@ -268,15 +268,15 @@ describe('Host calendar AI (e2e)', () => {
   it('returns calendar suggestions for property owner', async () => {
     mockLlm.generateHostCalendarSuggestions.mockResolvedValue({
       suggestions: [
-        'Set 60000 AMD per night for June 1–August 31',
-        'Set 55000 AMD for next weekend',
+        'Set 120 USD per night for June 1–August 31',
+        'Set 110 USD for next weekend',
         'Close this property for the next 7 days',
       ],
       usage: mockUsage,
     });
     const response = await request(app.getHttpServer())
       .get(`/api/v1/ai-search/host-calendar/${propertyId}/suggestions`)
-      .query({ locale: 'en' })
+      .query({ locale: 'en', displayCurrency: 'USD' })
       .set(authHeader(host.accessToken))
       .expect(200);
     expect(response.body.data.suggestions.length).toBeGreaterThanOrEqual(3);

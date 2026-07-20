@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Property, PropertyPhoto } from '@repo/database/client';
+import type { Prisma, Property, PropertyPhoto } from '@repo/database/client';
 import type { PaginatedResponse, PropertySummary } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 
@@ -11,7 +11,10 @@ import type { QueryFavoritesDto } from './dto/query-favorites.dto';
 const propertyInclude = {
   property: {
     include: {
-      photos: { where: { isCover: true }, take: 1 },
+      photos: {
+        orderBy: [{ isCover: 'desc' }, { sortOrder: 'asc' }],
+        take: 5,
+      },
       _count: { select: { reviews: { where: { isPublished: true, target: 'PROPERTY' } } } },
       reviews: {
         where: { isPublished: true, target: 'PROPERTY' },
@@ -19,7 +22,7 @@ const propertyInclude = {
       },
     },
   },
-} as const;
+} satisfies Prisma.PropertyFavoriteInclude;
 
 type FavoriteWithProperty = {
   id: string;

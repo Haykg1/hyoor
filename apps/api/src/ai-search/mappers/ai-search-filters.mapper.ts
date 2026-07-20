@@ -1,7 +1,14 @@
-import type { AiSearchExtractedFilters, SearchPropertiesToolArgs } from '@repo/shared';
+import type {
+  AiSearchExtractedFilters,
+  PoiDestination,
+  SearchPropertiesToolArgs,
+} from '@repo/shared';
 import type { PlaceResult } from '@repo/shared';
+import { resolveAiSearchDateFields, todayIsoUtc } from '@repo/shared';
 
 import { SearchPropertiesDto } from '../../properties/dto/search-properties.dto';
+
+export const NEAR_LANDMARK_RADIUS_KM = 1.2;
 
 export interface ResolvedLocation {
   locationLabel: string;
@@ -11,6 +18,7 @@ export interface ResolvedLocation {
   searchPlaceKind?: string;
   searchLatitude?: number;
   searchLongitude?: number;
+  searchRadiusKm?: number;
   region?: string;
   city?: string;
 }
@@ -27,6 +35,17 @@ export function placeToResolvedLocation(place: PlaceResult): ResolvedLocation {
     searchLongitude: place.lng,
     region: place.region ?? undefined,
     city: city ?? undefined,
+  };
+}
+
+export function destinationPoiToResolvedLocation(poi: PoiDestination): ResolvedLocation {
+  return {
+    locationLabel: poi.nameLabels.en,
+    searchPlaceKind: 'landmark',
+    searchLatitude: poi.latitude,
+    searchLongitude: poi.longitude,
+    searchRadiusKm: NEAR_LANDMARK_RADIUS_KM,
+    region: poi.region,
   };
 }
 
@@ -47,22 +66,37 @@ function setOptionalBoolean(query: URLSearchParams, key: string, value: boolean 
   if (value !== undefined) query.set(key, String(value));
 }
 
+function hasGeoCoords(location: ResolvedLocation): boolean {
+  return location.searchLatitude !== undefined && location.searchLongitude !== undefined;
+}
+
 export function buildSearchPathFromFilters(
   filters: AiSearchExtractedFilters,
   suggestedDates?: { checkIn: string; checkOut: string },
 ): string {
+  const today = todayIsoUtc();
+  const sanitized = resolveAiSearchDateFields(
+    {
+      checkIn: suggestedDates?.checkIn ?? filters.checkIn,
+      checkOut: suggestedDates?.checkOut ?? filters.checkOut,
+      stayNights: filters.stayNights,
+      availableFrom: filters.availableFrom,
+      availableTo: filters.availableTo,
+    },
+    today,
+  );
   const query = new URLSearchParams();
-  if (filters.searchCity) query.set('searchCity', filters.searchCity);
+  const hasCoords = filters.searchLatitude !== undefined && filters.searchLongitude !== undefined;
+  if (!hasCoords && filters.searchCity) query.set('searchCity', filters.searchCity);
   if (filters.region) query.set('region', filters.region);
   if (filters.searchStreet) query.set('searchStreet', filters.searchStreet);
   if (filters.searchBuildingNumber) query.set('searchBuildingNumber', filters.searchBuildingNumber);
   if (filters.searchPlaceKind) query.set('searchPlaceKind', filters.searchPlaceKind);
   setOptionalNumber(query, 'searchLatitude', filters.searchLatitude);
   setOptionalNumber(query, 'searchLongitude', filters.searchLongitude);
-  const checkIn = suggestedDates?.checkIn ?? filters.checkIn;
-  const checkOut = suggestedDates?.checkOut ?? filters.checkOut;
-  if (checkIn) query.set('checkIn', checkIn);
-  if (checkOut) query.set('checkOut', checkOut);
+  setOptionalNumber(query, 'searchRadiusKm', filters.searchRadiusKm);
+  if (sanitized.checkIn) query.set('checkIn', sanitized.checkIn);
+  if (sanitized.checkOut) query.set('checkOut', sanitized.checkOut);
   if (filters.guests && filters.guests > 1) query.set('guests', String(filters.guests));
   setOptionalNumber(query, 'minBedrooms', filters.minBedrooms);
   setOptionalNumber(query, 'minBeds', filters.minBeds);
@@ -87,20 +121,27 @@ export function toExtractedFilters(
   args: SearchPropertiesToolArgs,
   location: ResolvedLocation,
 ): AiSearchExtractedFilters {
+  const dates = resolveAiSearchDateFields(args, todayIsoUtc());
+  const geo = hasGeoCoords(location);
+  const searchRadiusKm =
+    args.searchRadiusKm ??
+    location.searchRadiusKm ??
+    (location.searchPlaceKind === 'landmark' ? NEAR_LANDMARK_RADIUS_KM : undefined);
   return {
     locationLabel: location.locationLabel,
-    searchCity: location.searchCity,
+    searchCity: geo ? undefined : location.searchCity,
     searchStreet: location.searchStreet,
     searchBuildingNumber: location.searchBuildingNumber,
     searchPlaceKind: location.searchPlaceKind,
     searchLatitude: location.searchLatitude,
     searchLongitude: location.searchLongitude,
+    searchRadiusKm,
     region: location.region,
-    checkIn: args.checkIn,
-    checkOut: args.checkOut,
-    stayNights: args.stayNights,
-    availableFrom: args.availableFrom,
-    availableTo: args.availableTo,
+    checkIn: dates.checkIn,
+    checkOut: dates.checkOut,
+    stayNights: dates.stayNights,
+    availableFrom: dates.availableFrom,
+    availableTo: dates.availableTo,
     guests: args.maxGuests,
     minBedrooms: args.minBedrooms,
     minBeds: args.minBeds,
@@ -133,24 +174,30 @@ export function toSearchPropertiesDto(
   args: SearchPropertiesToolArgs,
   location: ResolvedLocation,
 ): SearchPropertiesDto {
+  const dates = resolveAiSearchDateFields(args, todayIsoUtc());
+  const geo = hasGeoCoords(location);
   const dto = new SearchPropertiesDto();
-  dto.searchCity = location.searchCity;
+  dto.searchCity = geo ? undefined : location.searchCity;
   dto.searchStreet = location.searchStreet;
   dto.searchBuildingNumber = location.searchBuildingNumber;
   dto.searchPlaceKind = location.searchPlaceKind;
   dto.searchLatitude = location.searchLatitude;
   dto.searchLongitude = location.searchLongitude;
+  dto.searchRadiusKm =
+    args.searchRadiusKm ??
+    location.searchRadiusKm ??
+    (location.searchPlaceKind === 'landmark' ? NEAR_LANDMARK_RADIUS_KM : undefined);
   dto.region = location.region;
-  dto.city = location.city;
-  if (hasExactSearchDates(args)) {
-    dto.checkIn = args.checkIn;
-    dto.checkOut = args.checkOut;
-  } else if (hasFlexibleSearchDates(args)) {
-    dto.stayNights = args.stayNights;
-    dto.availableFrom = args.availableFrom;
-    dto.availableTo = args.availableTo;
-    dto.minNights = args.stayNights;
-    dto.maxNights = args.stayNights;
+  dto.city = geo ? undefined : location.city;
+  if (hasExactSearchDates(dates)) {
+    dto.checkIn = dates.checkIn;
+    dto.checkOut = dates.checkOut;
+  } else if (hasFlexibleSearchDates(dates)) {
+    dto.stayNights = dates.stayNights;
+    dto.availableFrom = dates.availableFrom;
+    dto.availableTo = dates.availableTo;
+    dto.minNights = dates.stayNights;
+    dto.maxNights = dates.stayNights;
   }
   dto.maxGuests = args.maxGuests;
   dto.minBedrooms = args.minBedrooms;

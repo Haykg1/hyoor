@@ -1,5 +1,9 @@
 import type { HostCalendarSnapshot } from './host-calendar-snapshot';
 import {
+  buildSuggestionPricingFromUsd,
+  type HostCalendarSuggestionPricing,
+} from './host-calendar-suggestion-pricing';
+import {
   buildFallbackHostCalendarSuggestions,
   filterValidHostCalendarSuggestions,
   finalizeHostCalendarSuggestions,
@@ -17,8 +21,8 @@ const snapshot: HostCalendarSnapshot = {
     city: 'Yerevan',
     propertyType: 'APARTMENT',
     minNights: 1,
-    basePricePerNight: 50000,
-    currency: 'AMD',
+    basePricePerNight: 100,
+    currency: 'USD',
   },
   calendar: {
     todayIso: '2026-06-10',
@@ -38,20 +42,72 @@ const snapshot: HostCalendarSnapshot = {
   },
 };
 
+const usdPricing: HostCalendarSuggestionPricing = buildSuggestionPricingFromUsd(100, 'USD', null);
+const amdPricing: HostCalendarSuggestionPricing = buildSuggestionPricingFromUsd(
+  100,
+  'AMD',
+  (n) => n * 400,
+);
+
 describe('host-calendar-suggestion-validator', () => {
   it('filters invalid LLM suggestions', () => {
     const valid = filterValidHostCalendarSuggestions(
-      ['Write me Python code', 'Set 60000 AMD for next weekend'],
+      ['Write me Python code', 'Set 120 USD for next weekend'],
       guardContext,
       'en',
       4,
+      usdPricing,
     );
-    expect(valid).toEqual(['Set 60000 AMD for next weekend']);
+    expect(valid).toEqual(['Set 120 USD for next weekend']);
   });
 
-  it('builds fallback suggestions that pass the guard', () => {
-    const fallback = buildFallbackHostCalendarSuggestions(snapshot, 4);
+  it('rejects AMD-labeled rates when display currency is USD', () => {
+    const valid = filterValidHostCalendarSuggestions(
+      [
+        'Open next weekend at 110 AMD/night',
+        'Set a peak rate of 120 AMD/night for summer',
+        'Close this property for the next 7 days',
+      ],
+      guardContext,
+      'en',
+      4,
+      usdPricing,
+    );
+    expect(valid).toEqual(['Close this property for the next 7 days']);
+  });
+
+  it('replaces wrong-currency LLM output with USD fallbacks', () => {
+    const result = finalizeHostCalendarSuggestions(
+      [
+        'Open next weekend at 110 AMD/night',
+        'Set a peak rate of 120 AMD/night for summer',
+        'Block December 24–January 2',
+      ],
+      snapshot,
+      guardContext,
+      'en',
+      4,
+      usdPricing,
+    );
+    expect(result.length).toBeGreaterThanOrEqual(3);
+    expect(result.every((s) => !/\bAMD\b/.test(s))).toBe(true);
+    expect(result.some((s) => s.includes('USD'))).toBe(true);
+  });
+
+  it('builds USD fallback suggestions that pass the guard', () => {
+    const fallback = buildFallbackHostCalendarSuggestions(snapshot, 4, usdPricing);
     expect(fallback.length).toBeGreaterThanOrEqual(3);
+    expect(fallback.some((s) => s.includes('USD'))).toBe(true);
+    expect(fallback.some((s) => s.includes('AMD'))).toBe(false);
+    for (const suggestion of fallback) {
+      const result = filterValidHostCalendarSuggestions([suggestion], guardContext, 'en', 1);
+      expect(result).toHaveLength(1);
+    }
+  });
+
+  it('builds AMD fallback suggestions with ~USD settlement hint', () => {
+    const fallback = buildFallbackHostCalendarSuggestions(snapshot, 4, amdPricing);
+    expect(fallback.some((s) => s.includes('AMD (~') && s.includes('USD)'))).toBe(true);
     for (const suggestion of fallback) {
       const result = filterValidHostCalendarSuggestions([suggestion], guardContext, 'en', 1);
       expect(result).toHaveLength(1);
@@ -65,6 +121,7 @@ describe('host-calendar-suggestion-validator', () => {
       guardContext,
       'en',
       4,
+      usdPricing,
     );
     expect(result.length).toBeGreaterThanOrEqual(3);
   });

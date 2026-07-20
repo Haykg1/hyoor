@@ -5,18 +5,25 @@ import { getLocalizedAddress, getLocalizedTitle, propertyTypeLabelKey } from '@r
 import { Star } from 'lucide-react';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
+import { useCallback, useState } from 'react';
 
 import { TransitionLink } from '@/i18n/transition-link';
 import { formatSuggestedStayRange } from '@/lib/ai-search/filters-display';
 import { PROPERTY_PLACEHOLDER_IMAGE } from '@/lib/constants/property-placeholder';
 import { propertyImageTransitionStyle } from '@/lib/constants/view-transitions';
+import { cn } from '@/lib/utils';
 
 import { FavoriteButton } from './favorite-button';
 import { PropertyPriceDisplay } from './property-price-display';
 
+const CARD_PHOTO_MAX = 5;
+const CARD_IMAGE_QUALITY = 70;
+const CARD_IMAGE_SIZES = '(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw';
+
 interface PropertyCardProps {
   property: PropertySummary | AiSearchPropertyResult;
   showSuggestedDates?: boolean;
+  showAiMatch?: boolean;
 }
 
 function buildPropertyHref(
@@ -35,9 +42,18 @@ function buildPropertyHref(
   return `${base}?${query.toString()}`;
 }
 
+function resolveCardPhotoUrls(property: PropertySummary): string[] {
+  if (property.photoUrls && property.photoUrls.length > 0) {
+    return property.photoUrls.slice(0, CARD_PHOTO_MAX);
+  }
+  if (property.coverPhotoUrl) return [property.coverPhotoUrl];
+  return [PROPERTY_PLACEHOLDER_IMAGE];
+}
+
 export function PropertyCard({
   property,
   showSuggestedDates = false,
+  showAiMatch = false,
 }: PropertyCardProps): React.JSX.Element {
   const locale = useLocale();
   const t = useTranslations('property_card');
@@ -64,9 +80,11 @@ export function PropertyCard({
       <article className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
         <PropertyCardMedia
           propertyId={property.id}
-          imageUrl={property.coverPhotoUrl ?? PROPERTY_PLACEHOLDER_IMAGE}
+          photoUrls={resolveCardPhotoUrls(property)}
           title={localizedTitle}
           categoryLabel={tc(propertyTypeLabelKey(property.propertyType))}
+          showAiMatch={showAiMatch}
+          aiMatchLabel={t('ai_match')}
         />
         <div className="p-4">
           <div className="mb-1 flex items-start justify-between gap-2">
@@ -111,34 +129,117 @@ export function PropertyCard({
 
 interface PropertyCardMediaProps {
   propertyId: string;
-  imageUrl: string;
+  photoUrls: string[];
   title: string;
   categoryLabel: string;
+  showAiMatch?: boolean;
+  aiMatchLabel?: string;
 }
 
 function PropertyCardMedia({
   propertyId,
-  imageUrl,
+  photoUrls,
   title,
   categoryLabel,
+  showAiMatch = false,
+  aiMatchLabel,
 }: PropertyCardMediaProps): React.JSX.Element {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [activatedIndexes, setActivatedIndexes] = useState<Set<number>>(() => new Set([0]));
+  const zoneCount = Math.min(photoUrls.length, CARD_PHOTO_MAX);
+  const canScrub = zoneCount > 1;
+  const visibleIndex = Math.min(activeIndex, zoneCount - 1);
+  const activateIndex = useCallback(
+    (index: number) => {
+      const clamped = Math.min(Math.max(index, 0), zoneCount - 1);
+      setActiveIndex(clamped);
+      setActivatedIndexes((prev) => {
+        if (prev.has(clamped)) return prev;
+        const next = new Set(prev);
+        next.add(clamped);
+        return next;
+      });
+    },
+    [zoneCount],
+  );
+  const handleZoneEnter = useCallback(
+    (zoneIndex: number) => {
+      if (!canScrub) return;
+      activateIndex(zoneIndex);
+    },
+    [activateIndex, canScrub],
+  );
+  const handleLeave = useCallback(() => {
+    setActiveIndex(0);
+  }, []);
   return (
     <div
       className="relative aspect-[4/3] overflow-hidden"
       style={propertyImageTransitionStyle(propertyId)}
+      onMouseLeave={canScrub ? handleLeave : undefined}
     >
-      <Image
-        src={imageUrl}
-        alt={title}
-        fill
-        loading="lazy"
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
-        className="object-cover transition-transform duration-500 group-hover:scale-105"
-      />
-      <span className="absolute left-3 top-3 inline-flex items-center rounded-md bg-white/90 px-2.5 py-0.5 text-xs font-medium text-neutral-900 shadow-sm backdrop-blur">
-        {categoryLabel}
-      </span>
-      <FavoriteButton propertyId={propertyId} />
+      {photoUrls.slice(0, zoneCount).map((url, index) => {
+        if (!activatedIndexes.has(index)) return null;
+        return (
+          <Image
+            key={`${url}-${index}`}
+            src={url}
+            alt={title}
+            fill
+            loading={index === 0 ? 'lazy' : 'eager'}
+            quality={CARD_IMAGE_QUALITY}
+            sizes={CARD_IMAGE_SIZES}
+            className={cn(
+              'object-cover transition-opacity duration-150',
+              index === visibleIndex ? 'opacity-100' : 'opacity-0',
+            )}
+          />
+        );
+      })}
+      {canScrub ? (
+        <div
+          className="absolute inset-0 z-[1] hidden [@media(pointer:fine)]:grid"
+          style={{ gridTemplateColumns: `repeat(${zoneCount}, minmax(0, 1fr))` }}
+          aria-hidden
+        >
+          {Array.from({ length: zoneCount }, (_, zoneIndex) => (
+            <div
+              key={zoneIndex}
+              className="h-full w-full"
+              onMouseEnter={() => handleZoneEnter(zoneIndex)}
+            />
+          ))}
+        </div>
+      ) : null}
+      {canScrub ? (
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-2 z-[2] hidden justify-center gap-1 [@media(pointer:fine)]:flex"
+          aria-hidden
+        >
+          {Array.from({ length: zoneCount }, (_, index) => (
+            <span
+              key={index}
+              className={cn(
+                'h-1 w-1 rounded-full transition-colors',
+                index === visibleIndex ? 'bg-white' : 'bg-white/50',
+              )}
+            />
+          ))}
+        </div>
+      ) : null}
+      <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-3.5rem)] flex-col items-start gap-1.5">
+        {showAiMatch && aiMatchLabel ? (
+          <span className="inline-flex items-center rounded-md bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground shadow-sm">
+            {aiMatchLabel}
+          </span>
+        ) : null}
+        <span className="inline-flex items-center rounded-md bg-white/90 px-2.5 py-0.5 text-xs font-medium text-neutral-900 shadow-sm backdrop-blur">
+          {categoryLabel}
+        </span>
+      </div>
+      <div className="absolute inset-0 z-10 pointer-events-none [&>*]:pointer-events-auto">
+        <FavoriteButton propertyId={propertyId} />
+      </div>
     </div>
   );
 }

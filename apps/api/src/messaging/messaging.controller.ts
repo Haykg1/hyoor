@@ -34,7 +34,7 @@ import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
 import { MESSAGING_THROTTLE } from '../common/throttle/throttle.constants';
 
 import { CreateConversationDto } from './dto/create-conversation.dto';
-import { CursorPaginationDto } from './dto/cursor-pagination.dto';
+import { CursorPaginationDto, QueryConversationsDto } from './dto/cursor-pagination.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { MessagingService } from './messaging.service';
 
@@ -70,7 +70,7 @@ export class MessagingController {
   @ApiStandardErrors()
   getConversations(
     @CurrentUser() user: RequestUser,
-    @Query() dto: CursorPaginationDto,
+    @Query() dto: QueryConversationsDto,
   ): Promise<CursorPage<ConversationPreview>> {
     return this.messagingService.getConversations(user.userId, dto);
   }

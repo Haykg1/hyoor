@@ -15,7 +15,7 @@ export function buildSearchPropertiesToolDefinition(): {
     function: {
       name: SEARCH_PROPERTIES_TOOL_NAME,
       description:
-        'Search short-term rental properties. Call when the guest provided a location and either (a) exact checkIn and checkOut dates, or (b) stayNights plus availableFrom and availableTo for a flexible window (e.g. "5 nights anytime in July").',
+        'Search short-term rental properties. Never use past dates (checkIn/availableFrom must be today or later). Call when the guest wants to find a stay — locationQuery is optional (omit to search without a place filter). If timing is omitted, use stayNights=1 and availableFrom/availableTo for the remainder of the current month. Exact checkIn/checkOut or a flexible window (stayNights + availableFrom + availableTo) also work.',
       parameters: {
         type: 'object',
         additionalProperties: false,
@@ -23,39 +23,58 @@ export function buildSearchPropertiesToolDefinition(): {
           locationQuery: {
             type: 'string',
             description:
-              'City, region, or landmark in Armenia (e.g. Yerevan, Dilijan, Lake Sevan).',
+              'Optional city, region, or landmark in Armenia. For "near X" landmark intent use "X, City" (e.g. "Republic Square, Yerevan") — never the city alone. Omit when the guest did not name a place.',
+          },
+          searchRadiusKm: {
+            type: 'number',
+            minimum: 0.1,
+            maximum: 50,
+            description:
+              'Optional geo radius in km around the resolved location. For near-landmark searches use about 1.2.',
           },
           checkIn: {
             type: 'string',
-            description: 'Exact check-in date in YYYY-MM-DD format. Use with checkOut.',
+            description:
+              'Exact check-in date in YYYY-MM-DD. Must be today or later. Use with checkOut.',
           },
           checkOut: {
             type: 'string',
-            description: 'Exact check-out date in YYYY-MM-DD format. Use with checkIn.',
+            description:
+              'Exact check-out date in YYYY-MM-DD. Must be after checkIn. Use with checkIn.',
           },
           stayNights: {
             type: 'integer',
             minimum: 1,
             description:
-              'Length of stay in nights when the guest did not give exact dates (e.g. "5 nights").',
+              'Stay LENGTH in nights (e.g. "2 nights in July" → 2). Not the width of the month window. Default to 1 when unspecified.',
           },
           availableFrom: {
             type: 'string',
             description:
-              'Earliest possible check-in (YYYY-MM-DD) for flexible search. Use with stayNights and availableTo.',
+              'Earliest possible check-in (YYYY-MM-DD) for the flexible WINDOW. Must be today or later. When unspecified, use today. Use with stayNights and availableTo.',
           },
           availableTo: {
             type: 'string',
             description:
-              'Latest possible check-in (YYYY-MM-DD) for flexible search. Use with stayNights and availableFrom.',
+              'Latest possible check-in (YYYY-MM-DD) for the flexible WINDOW. Must be on/after availableFrom. For "in July", use end of July — this is NOT the stay length. Use with stayNights and availableFrom.',
           },
-          maxGuests: { type: 'integer', minimum: 1, description: 'Total number of guests.' },
+          maxGuests: {
+            type: 'integer',
+            minimum: 1,
+            description:
+              'Total guests only when explicitly stated (e.g. "2 guests", "for 3 people"). Do NOT set from night counts like "two nights".',
+          },
           minBedrooms: { type: 'integer', minimum: 0 },
           minBeds: { type: 'integer', minimum: 0 },
           minBathrooms: { type: 'integer', minimum: 0 },
           minPrice: { type: 'integer', minimum: 0, description: 'Minimum price per night in AMD.' },
           maxPrice: { type: 'integer', minimum: 0, description: 'Maximum price per night in AMD.' },
-          propertyType: { type: 'string', enum: [...PropertyTypes] },
+          propertyType: {
+            type: 'string',
+            enum: [...PropertyTypes],
+            description:
+              'Property type filter. Set when the guest asks for apartment, house, villa, studio, guesthouse, hotel room, etc. Use exact enum values (e.g. apartment → APARTMENT).',
+          },
           amenities: {
             type: 'array',
             items: { type: 'string', enum: [...AMENITY_NAMES] },
@@ -66,7 +85,6 @@ export function buildSearchPropertiesToolDefinition(): {
           minAvgRating: { type: 'number', minimum: 0, maximum: 5 },
           q: { type: 'string', description: 'Free-text search in property titles.' },
         },
-        required: ['locationQuery'],
       },
     },
   };

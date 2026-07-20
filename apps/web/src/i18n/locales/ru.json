@@ -69,6 +69,7 @@
     "trips": "Мои поездки",
     "messages": "Сообщения",
     "dashboard": "Панель",
+    "analytics": "Аналитика",
     "explore": "Поиск",
     "ai_search": "AI поиск",
     "become_host": "Стать хозяином",
@@ -156,13 +157,32 @@
     "guests": "Гости",
     "search_button": "Найти",
     "filters_button": "Фильтры",
+    "filters_close": "Закрыть фильтры",
+    "ai_section_title": "AI-поиск",
+    "ai_results_count": "{count, plural, =0 {Нет результатов} one {# результат} few {# результата} many {# результатов} other {# результатов}}",
+    "ai_interpreted_as": "Интерпретация:",
+    "ai_interpreted_fallback": "Показаны объекты по текущим фильтрам.",
+    "ai_prompt_placeholder": "Опишите жильё, которое ищете…",
+    "ai_update": "Обновить",
+    "ai_collapse": "Свернуть AI-поиск",
+    "ai_expand": "Развернуть AI-поиск",
+    "ai_remove_chip": "Убрать фильтр",
+    "ai_search_tip": "Добавьте город, даты или количество гостей — так проще найти подходящие варианты.",
     "sort": {
       "label": "Сортировка",
-      "newest": "Сначала добавленные",
-      "price_asc": "Цена: по возрастанию"
+      "recommended": "Рекомендуемые",
+      "price_asc": "Цена: по возрастанию",
+      "price_desc": "Цена: по убыванию",
+      "top_rated": "С высоким рейтингом",
+      "most_reviewed": "Больше всего отзывов",
+      "newest": "Сначала добавленные"
+    },
+    "currency": {
+      "label": "Валюта отображения"
     },
     "count": "{count, plural, =0 {Ничего не найдено} one {Найден # объект} few {Найдено # объекта} many {Найдено # объектов} other {Найдено # объектов}}",
     "map_button": "Карта",
+    "map_coming_soon": "Скоро",
     "empty": {
       "title": "Подходящих избранных объектов нет",
       "description": "Попробуйте другое направление или сбросьте фильтры.",
@@ -173,17 +193,31 @@
       "apply": "Применить",
       "reset": "Сбросить",
       "cancel": "Отмена",
+      "more_filters": "Ещё фильтры",
       "min": "Мин",
       "max": "Макс",
       "region": "Регион",
       "region_placeholder": "напр. Тавуш",
-      "min_bedrooms": "Спальни (минимум)",
-      "min_beds": "Кровати (минимум)",
-      "min_bathrooms": "Ванные (минимум)",
+      "dates": "Даты",
+      "guests": "Гости",
+      "min_bedrooms": "Спальни",
+      "bedrooms_any": "Любые",
+      "bedrooms_plus": "{count}+",
+      "min_beds": "Кровати",
+      "beds_any": "Любые",
+      "beds_plus": "{count}+",
+      "min_bathrooms": "Ванные",
+      "bathrooms_any": "Любые",
+      "bathrooms_plus": "{count}+",
+      "guest_rating": "Оценка гостей",
+      "rating_any": "Любая",
+      "rating_plus": "{rating}+",
       "min_adults": "Взрослые (минимум)",
       "min_children": "Дети (минимум)",
       "min_infants": "Младенцы (минимум)",
-      "price_per_night_range": "Цена за ночь (AMD)",
+      "price_per_night_range": "Цена за ночь",
+      "price_up_to": "До {amount}",
+      "property_type": "Тип жилья",
       "cleaning_fee_range": "Уборка (AMD)",
       "security_deposit_range": "Залог (AMD)",
       "min_nights": "Ночей (минимум)",
@@ -206,7 +240,11 @@
       "search_street_placeholder": "напр. проспект Азатутян",
       "search_building_number": "Номер дома",
       "search_building_number_placeholder": "напр. 11"
-    }
+    },
+    "where": "Где",
+    "where_placeholder": "Где угодно",
+    "add_dates": "Добавить даты",
+    "search": "Найти"
   },
   "footer": {
     "tagline": "Откройте Армению — одно жильё за раз",
@@ -363,7 +401,38 @@
     "confirmation": {
       "title": "Бронирование подтверждено!",
       "subtitle": "Ваше проживание забронировано. Мы отправили вам подтверждение.",
-      "continue_payment": "Перейти к оплате"
+      "continue_payment": "Перейти к оплате",
+      "host_title": "Детали бронирования",
+      "host_subtitle": "Распределение оплаты и данные гостя по этому проживанию.",
+      "back_to_dashboard": "Назад в кабинет",
+      "guest_label": "Гость",
+      "guest_fallback": "Гость",
+      "guest_paid": "Гость оплатил",
+      "platform_fee": "Комиссия платформы",
+      "your_payout": "Ваша выплата",
+      "refunded": "Возвращено",
+      "payout_status": "Статус выплаты",
+      "payment_status": "Статус оплаты",
+      "booking_status": "Статус бронирования:",
+      "nights_label": "Длительность",
+      "nightly_rate": "Цена за ночь",
+      "payout_status_values": {
+        "NONE": "Не запланировано",
+        "SCHEDULED": "Запланировано",
+        "PAID": "Выплачено",
+        "FAILED": "Ошибка выплаты"
+      },
+      "payment_status_values": {
+        "UNPAID": "Не оплачено",
+        "PENDING": "В обработке",
+        "PAID": "Оплачено",
+        "AUTHORIZED": "Авторизовано",
+        "CAPTURED": "Списано",
+        "PARTIALLY_REFUNDED": "Частичный возврат",
+        "REFUNDED": "Возвращено",
+        "FAILED": "Ошибка",
+        "CANCELLED": "Отменено"
+      }
     }
   },
   "payment": {
@@ -472,6 +541,66 @@
     "welcome": "С возвращением, {name}",
     "add_listing": "Добавить объект",
     "upload_bulk": "Массовая загрузка",
+    "analytics": {
+      "title": "Аналитика",
+      "subtitle": "Обзор эффективности · {period}",
+      "subtitle_loading": "Обзор эффективности",
+      "back_to_dashboard": "Назад к панели",
+      "range_label": "Период",
+      "from": "С",
+      "to": "По",
+      "export": "Экспорт",
+      "nav": "Аналитика",
+      "presets": {
+        "last_30_days": "Последние 30 дней",
+        "last_90_days": "Последние 90 дней",
+        "this_year": "Этот год",
+        "custom": "Свой период"
+      },
+      "kpis": {
+        "adr": "Средняя суточная ставка (ADR)",
+        "revpar": "RevPAR",
+        "nights_booked": "Забронированные ночи",
+        "cancellation_rate": "Доля отмен",
+        "across_properties": "по {count, plural, one {# объекту} few {# объектам} other {# объектам}}",
+        "cancellations": "{count, plural, one {# отмена} few {# отмены} other {# отмен}}",
+        "vs_prior_abs": "{value} к прошлому периоду"
+      },
+      "charts": {
+        "earnings_title": "Месячный доход",
+        "earnings_subtitle": "Ваш доход по месяцу заезда за выбранный период",
+        "earnings": "Доход",
+        "occupancy_title": "Динамика загрузки",
+        "occupancy_subtitle": "Ваша загрузка vs средняя по платформе за выбранный период",
+        "host_occupancy": "Ваша загрузка",
+        "market_occupancy": "Среднее по рынку",
+        "empty": "Пока нет данных за этот период."
+      },
+      "origins": {
+        "title": "Страны гостей",
+        "empty": "Нет данных о гражданстве гостей за этот период.",
+        "bookings": "{count, plural, one {# бронирование} few {# бронирования} other {# бронирований}}",
+        "nights": "{count, plural, one {# ночь} few {# ночи} other {# ночей}}"
+      },
+      "property_label": "Объект",
+      "property_all": "Все объекты",
+      "hints": {
+        "adr_desc": "Средняя сумма, которую вы зарабатываете за забронированную ночь.",
+        "adr_calc": "Средняя дневная ставка равна вашему доходу, делённому на число забронированных ночей для подтверждённых или завершённых проживаний, начавшихся в выбранном периоде.",
+        "revpar_desc": "Насколько эффективно вы зарабатываете по ночам, которые можно было продать.",
+        "revpar_calc": "Доход на доступную комнату равен вашему доходу, делённому на открытые ночи календаря плюс забронированные ночи за выбранный период.",
+        "nights_desc": "Всего ночей по подтверждённым или завершённым проживаниям.",
+        "nights_calc": "Складывает ночи проживаний, которые начались в выбранном периоде и были подтверждены или уже завершены.",
+        "cancellation_desc": "Доля отменённых проживаний за период.",
+        "cancellation_calc": "Процент отмен равен числу отменённых проживаний, делённому на все проживания, начавшиеся в периоде, включая подтверждённые, завершённые, неявки и отменённые.",
+        "earnings_desc": "Ваш доход по месяцу заезда за выбранный период.",
+        "earnings_calc": "Каждый столбец суммирует ваш доход от подтверждённых или завершённых проживаний, начавшихся в этом месяце в выбранном диапазоне.",
+        "occupancy_desc": "Ваша загрузка против средней по платформе за выбранный период.",
+        "occupancy_calc": "Загрузка равна забронированным ночам, делённым на забронированные плюс открытые доступные ночи, по месяцам выбранного диапазона. Рынок считается так же по всем объектам.",
+        "origins_desc": "Топ стран гостей по вашему доходу за выбранный период.",
+        "origins_calc": "Страны ранжируются по вашему доходу от подтверждённых или завершённых проживаний с известной национальностью гостя, не более пяти стран."
+      }
+    },
     "bulk_upload": {
       "title": "Массовая загрузка объявлений",
       "subtitle": "Загрузите файл CSV или XLSX, чтобы создать несколько объявлений сразу. Искусственный интеллект нормализует данные и геокодирует адреса.",
@@ -515,10 +644,19 @@
       "column_guide_security_deposit_note": "Необязательно — по умолчанию 0. Нулевые сборы не отображаются при оформлении бронирования."
     },
     "per_night": "ночь",
+    "total_earnings": "{amount} всего",
+    "listing": {
+      "guests_up_to": "До {count} гостей"
+    },
     "actions": {
       "view": "Просмотр",
       "edit": "Редактировать",
       "calendar": "Календарь",
+      "availability": "Доступность",
+      "pause_listing": "Приостановить",
+      "activate_listing": "Активировать",
+      "preview": "Просмотр",
+      "more": "Ещё действия",
       "soft_delete": "Отключить",
       "reactivate": "Включить",
       "enable": "Включить",
@@ -542,7 +680,11 @@
       "tab_upcoming": "Предстоящие",
       "tab_past": "Прошедшие",
       "empty_upcoming": "Нет предстоящих бронирований.",
-      "empty_past": "Нет прошедших бронирований."
+      "empty_past": "Нет прошедших бронирований.",
+      "guest_label": "Гость",
+      "your_payout": "Ваша выплата",
+      "platform_fee": "Комиссия платформы",
+      "guest_paid": "Гость оплатил"
     },
     "promotions": {
       "pick_property": "Объект",
@@ -552,14 +694,19 @@
       "empty_promotions": "Для этого объекта акций пока нет.",
       "loading": "Загрузка…",
       "meta": "{start} – {end} · осталось {remaining} · {type}",
-      "types": { "date_range": "Скидка по датам" },
+      "types": {
+        "date_range": "Скидка по датам"
+      },
       "form": {
         "title": "Новая акция",
         "subtitle": "Акция для {title}",
         "no_property": "Сначала выберите объект.",
         "promotion_type": "Тип акции",
         "discount_type": "Тип скидки",
-        "types": { "date_range": "По датам", "promo_code": "Промокод" },
+        "types": {
+          "date_range": "По датам",
+          "promo_code": "Промокод"
+        },
         "discount": {
           "percent": "Процент",
           "fixed": "Фиксированная",
@@ -739,7 +886,6 @@
     "properties": "Properties",
     "bookings": "Bookings",
     "messages": "Messages",
-    "analytics": "Analytics",
     "reviews": "Reviews",
     "settings": "Settings",
     "stats": {
@@ -748,7 +894,16 @@
       "active_bookings": "Active Bookings",
       "pending_requests": "Pending Requests",
       "upcoming_reservations": "Предстоящие бронирования",
-      "total_earned": "Total Earned"
+      "total_earned": "Total Earned",
+      "platform_fees_earned": "Комиссия платформы (USD)",
+      "earnings_preset": "Период дохода",
+      "earnings_presets": {
+        "last_30_days": "Последние 30 дней",
+        "last_year": "Последний год",
+        "custom": "Свой период"
+      },
+      "earnings_from": "С",
+      "earnings_to": "По"
     },
     "sidebar_preview": "Host sidebar preview",
     "capacity": {
@@ -965,6 +1120,7 @@
     "guests_max": "до {count} гостей",
     "bedrooms": "{count} спальня",
     "reviews": "{count} отзывов",
+    "ai_match": "AI Match",
     "categories": {
       "apartment": "Квартира",
       "studio": "Студия",
@@ -1196,6 +1352,9 @@
       "subtitle": "Все бронирования платформы — даты заезда, суммы и цены по ночам.",
       "back_to_dashboard": "Назад в панель",
       "empty_state": "Нет бронирований по выбранным фильтрам.",
+      "copy_id": "Копировать ID",
+      "copy_id_success": "ID бронирования скопирован",
+      "copy_id_error": "Не удалось скопировать ID бронирования",
       "retry_capture": "Повторить списание",
       "retry_payout": "Повторить выплату",
       "retrying": "Повтор…",
@@ -1208,6 +1367,7 @@
         "payment": "Оплата",
         "payout": "Выплата",
         "total": "Итого",
+        "actions": "Действия",
         "nights": "{count, plural, one {# ночь} few {# ночи} other {# ночей}}",
         "nightly_breakdown": "Цена по ночам",
         "toggle_nights": "Показать цены по ночам"
@@ -1216,7 +1376,7 @@
         "page_of": "Страница {page} из {totalPages} (всего {total})"
       },
       "filters": {
-        "search_placeholder": "Поиск по гостю, хозяину или объекту…",
+        "search_placeholder": "Поиск по ID бронирования, гостю, хозяину или объекту…",
         "status": "Статус",
         "all_statuses": "Все статусы",
         "payment_status": "Оплата",
@@ -1307,6 +1467,18 @@
       "resolve_button": "Отметить решённым",
       "resolved_badge": "Решено",
       "unresolved_badge": "Не решено",
+      "bulk": {
+        "select_all": "Выбрать все нерешённые",
+        "select_row": "Выбрать сбой платежа",
+        "selected_count": "{count, plural, one {# выбран} few {# выбрано} other {# выбрано}}",
+        "resolve_all": "Решить все",
+        "confirm_title": "Отметить выбранные как решённые?",
+        "confirm_description": "Вы уверены, что хотите отметить {count, plural, one {# сбой платежа} few {# сбоя платежей} other {# сбоев платежей}} как решённые?",
+        "summary_line": "{guest} · {host} · бронь {booking}…",
+        "cancel": "Отмена",
+        "confirm": "Решить все",
+        "resolving": "Решение…"
+      },
       "table": {
         "created_at": "Время",
         "category": "Категория",
@@ -1345,6 +1517,9 @@
   },
   "messaging": {
     "title": "Сообщения",
+    "rooms": "Чаты",
+    "collapse_rooms": "Свернуть список чатов",
+    "expand_rooms": "Показать список чатов",
     "empty_conversations": "Пока нет диалогов. Начните чат со страницы объявления.",
     "select_conversation": "Выберите диалог, чтобы начать переписку",
     "conversation": "Диалог",

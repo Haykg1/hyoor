@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useAdminListings } from '@/hooks/use-admin-listings';
 import { Link } from '@/i18n/navigation';
 
+import { AdminEarningsRangeToolbar } from './admin-earnings-range-toolbar';
 import { AdminListingsPanel } from './admin-listings-panel';
 import { AdminListingsToolbar } from './admin-listings-toolbar';
 import { HostDashboardStatsPanel } from './host-dashboard-stats';
@@ -33,6 +34,9 @@ export function AdminDashboardClient({
     statusFilter,
     propertyTypeFilter,
     searchQuery,
+    earningsPreset,
+    earningsFrom,
+    earningsTo,
     isLoading,
     setTab,
     setPage,
@@ -40,6 +44,9 @@ export function AdminDashboardClient({
     setStatusFilter,
     setPropertyTypeFilter,
     setSearchQuery,
+    setEarningsPreset,
+    setEarningsFrom,
+    setEarningsTo,
     resetFilters,
     disableListing,
     enableListing,
@@ -77,7 +84,15 @@ export function AdminDashboardClient({
         </div>
       </div>
       <div className="mb-8">
-        <HostDashboardStatsPanel stats={stats} />
+        <AdminEarningsRangeToolbar
+          preset={earningsPreset}
+          from={earningsFrom}
+          to={earningsTo}
+          onPresetChange={setEarningsPreset}
+          onFromChange={setEarningsFrom}
+          onToChange={setEarningsTo}
+        />
+        <HostDashboardStatsPanel stats={stats} variant="admin" />
       </div>
       <div className="mb-6 inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground">
         {TABS.map((key) => {

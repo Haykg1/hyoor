@@ -32,9 +32,10 @@ export function StatCard({
             variant="secondary"
             className={cn(
               'mt-2',
-              deltaPositive
-                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
-                : 'bg-destructive/10 text-destructive',
+              deltaPositive === true &&
+                'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+              deltaPositive === false && 'bg-destructive/10 text-destructive',
+              deltaPositive === undefined && 'bg-muted text-muted-foreground',
             )}
           >
             {delta}

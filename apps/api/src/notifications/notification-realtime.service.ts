@@ -2,17 +2,15 @@ import { EventEmitter } from 'node:events';
 
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import type { MessageEvent } from '@nestjs/common';
-import type { Notification } from '@repo/database/client';
 import {
   buildNotificationChannel,
   NOTIFICATION_SSE_EVENT,
   type NotificationCreatedSsePayload,
+  type NotificationItem,
 } from '@repo/shared';
 import { Observable } from 'rxjs';
 
 import { RedisService } from '../redis/redis.service';
-
-import { toNotificationItem } from './notification.mapper';
 
 const SSE_HEARTBEAT_MS = 30_000;
 
@@ -23,10 +21,9 @@ export class NotificationRealtimeService implements OnModuleDestroy {
 
   constructor(private readonly redis: RedisService) {}
 
-  async publishCreated(notification: Notification): Promise<void> {
-    const item = toNotificationItem(notification);
+  async publishCreated(notification: NotificationItem): Promise<void> {
     const channel = buildNotificationChannel(notification.userId);
-    const payload: NotificationCreatedSsePayload = { notification: item };
+    const payload: NotificationCreatedSsePayload = { notification };
     const message = JSON.stringify(payload);
     if (this.redis.isConfigured) {
       await this.redis.publish(channel, message);

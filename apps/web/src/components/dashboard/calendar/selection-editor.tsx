@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useBuildEntriesForSelection, useSelectionDates } from '@/hooks/use-property-calendar';
+import { isLocalIsoEditable } from '@/lib/calendar/editable-window';
 import { usePropertyCalendarStore } from '@/store';
 
 interface SelectionEditorProps {
@@ -45,7 +46,9 @@ export function SelectionEditor({ basePricePerNight }: SelectionEditorProps): Re
   const isSaving = usePropertyCalendarStore((s) => s.isSaving);
   const buildEntries = useBuildEntriesForSelection();
 
-  const editableDates = selectionDates.filter((d) => !daysByDate[d]?.isBlockedByBooking);
+  const editableDates = selectionDates.filter(
+    (d) => isLocalIsoEditable(d) && !daysByDate[d]?.isBlockedByBooking,
+  );
   const lockedDates = selectionDates.filter((d) => daysByDate[d]?.isBlockedByBooking);
 
   const [useBase, setUseBase] = useState(true);

@@ -1,7 +1,10 @@
+import { resolveAiSearchDateFields } from '@repo/shared';
+
 import {
   hasExactSearchDates,
   hasFlexibleSearchDates,
   hasRequiredSearchFields,
+  toSearchPropertiesDto,
 } from './ai-search-filters.mapper';
 
 describe('ai-search-filters.mapper', () => {
@@ -28,8 +31,34 @@ describe('ai-search-filters.mapper', () => {
     expect(hasRequiredSearchFields(args)).toBe(true);
   });
 
-  it('rejects search without location or dates', () => {
-    expect(hasRequiredSearchFields({ locationQuery: 'Dilijan' })).toBe(false);
+  it('marks search without location as missing required fields', () => {
     expect(hasRequiredSearchFields({ checkIn: '2026-07-01', checkOut: '2026-07-05' })).toBe(false);
+  });
+
+  it('treats location-only as complete after AI date defaults', () => {
+    const dates = resolveAiSearchDateFields({}, '2026-07-15');
+    const resolved = { locationQuery: 'Dilijan', ...dates };
+    expect(hasRequiredSearchFields(resolved)).toBe(true);
+    expect(dates).toMatchObject({
+      stayNights: 1,
+      availableFrom: '2026-07-15',
+      availableTo: '2026-07-31',
+    });
+  });
+
+  it('maps location-only tool args to flexible current-month search', () => {
+    const dto = toSearchPropertiesDto(
+      { locationQuery: 'Yerevan' },
+      {
+        locationLabel: 'Yerevan',
+        searchCity: 'Yerevan',
+        city: 'Yerevan',
+      },
+    );
+    expect(dto.stayNights).toBe(1);
+    expect(dto.availableFrom).toBeDefined();
+    expect(dto.availableTo).toBeDefined();
+    expect(dto.checkIn).toBeUndefined();
+    expect(dto.checkOut).toBeUndefined();
   });
 });

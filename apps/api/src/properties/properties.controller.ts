@@ -45,6 +45,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
 import { WRITE_THROTTLE } from '../common/throttle/throttle.constants';
 import { resolveCountryFromRequest } from '../common/utils/geo-ip';
+import { CACHED_CURRENCIES } from '../currency/currency.constants';
 import { CurrencyService } from '../currency/currency.service';
 
 import { ConfirmPhotoUploadDto } from './dto/confirm-photo-upload.dto';
@@ -91,9 +92,9 @@ export class PropertiesController {
     @Query() dto: SearchPropertiesDto,
     @Req() req: Request,
   ): Promise<PaginatedResponse<PropertySummary>> {
-    const displayCurrency = this.currencyService.resolveDisplayCurrency(
-      resolveCountryFromRequest(req),
-    );
+    const displayCurrency =
+      dto.displayCurrency ??
+      this.currencyService.resolveDisplayCurrency(resolveCountryFromRequest(req));
     return this.propertiesService.search(dto, displayCurrency);
   }
 
@@ -120,10 +121,15 @@ export class PropertiesController {
     @Param('id') id: string,
     @CurrentUser() user: RequestUser | null,
     @Req() req: Request,
+    @Query('displayCurrency') displayCurrencyQuery?: string,
   ): Promise<PropertyDetail> {
-    const displayCurrency = this.currencyService.resolveDisplayCurrency(
-      resolveCountryFromRequest(req),
-    );
+    const override =
+      displayCurrencyQuery &&
+      (CACHED_CURRENCIES as readonly string[]).includes(displayCurrencyQuery)
+        ? displayCurrencyQuery
+        : undefined;
+    const displayCurrency =
+      override ?? this.currencyService.resolveDisplayCurrency(resolveCountryFromRequest(req));
     return this.propertiesService.findById(id, user?.userId, displayCurrency);
   }
 
