@@ -12,6 +12,8 @@ import type {
 import type { RequestUser } from '../../auth/decorators/current-user.decorator';
 import { AvailabilityService } from '../../availability/availability.service';
 import type { AppConfig } from '../../config/configuration';
+import type { CurrencyRates } from '../../currency/currency.service';
+import { CurrencyService } from '../../currency/currency.service';
 import { PrismaService } from '../../database/prisma.service';
 import { HostProfilesService } from '../../host-profiles/host-profiles.service';
 import { RedisService } from '../../redis/redis.service';
@@ -40,9 +42,26 @@ import {
   buildHostCalendarSnapshot,
   type HostCalendarPropertySnapshot,
 } from '../utils/host-calendar-snapshot';
+import {
+  buildSuggestionPricingFromUsd,
+  normalizeDisplayCurrency,
+  type HostCalendarSuggestionPricing,
+} from '../utils/host-calendar-suggestion-pricing';
 import { finalizeHostCalendarSuggestions } from '../utils/host-calendar-suggestion-validator';
 
 const HOST_CALENDAR_SUGGESTIONS_CACHE_PREFIX = 'ai-search:host-calendar:suggestions:';
+
+function formatFxRatesHint(rates: CurrencyRates | null, settlementCurrency: string): string {
+  if (!rates) {
+    return `FX rates unavailable; if the host quotes a non-${settlementCurrency} currency, ask them to confirm the ${settlementCurrency} amount.`;
+  }
+  const parts = [`1 ${settlementCurrency} = 1 ${settlementCurrency}`];
+  const amd = rates.rates['AMD'];
+  const eur = rates.rates['EUR'];
+  if (typeof amd === 'number') parts.push(`1 ${settlementCurrency} ≈ ${Math.round(amd)} AMD`);
+  if (typeof eur === 'number') parts.push(`1 ${settlementCurrency} ≈ ${eur.toFixed(2)} EUR`);
+  return `Live FX (approx): ${parts.join('; ')}. Convert host-quoted AMD/EUR to ${settlementCurrency} integers before setting priceOverride.`;
+}
 
 @Injectable()
 export class HostCalendarService {
@@ -56,6 +75,7 @@ export class HostCalendarService {
     private readonly quotaService: AiSearchQuotaService,
     private readonly redis: RedisService,
     private readonly config: ConfigService<AppConfig, true>,
+    private readonly currencyService: CurrencyService,
   ) {}
 
   async chat(
@@ -73,12 +93,14 @@ export class HostCalendarService {
     }
     await this.quotaService.assertHostCalendarTokenBudget(user.userId);
     await this.quotaService.consumeHostCalendarRequest(user.userId);
+    const rates = await this.currencyService.getRates();
     const llmContext: HostCalendarLlmContext = {
       propertyId,
       propertyTitle: property.title,
       basePricePerNight: property.pricePerNight,
       currency: property.currency,
       locale,
+      fxRatesHint: formatFxRatesHint(rates, property.currency),
     };
     const llmResult = await this.llmService.completeHostCalendar(messages, llmContext);
     await this.quotaService.recordHostCalendarTokenUsage(user.userId, llmResult.usage.totalTokens);
@@ -100,11 +122,13 @@ export class HostCalendarService {
     propertyId: string,
     user: RequestUser,
     locale = 'en',
+    displayCurrencyRaw?: string,
   ): Promise<HostCalendarSuggestionsResponse> {
     const property = await this.assertHostOwnsProperty(propertyId, user.userId);
     const chatLocale = normalizeChatLocale(locale);
+    const displayCurrency = normalizeDisplayCurrency(displayCurrencyRaw);
     const todayIso = new Date().toISOString().slice(0, 10);
-    const cacheKey = `${HOST_CALENDAR_SUGGESTIONS_CACHE_PREFIX}${propertyId}:${chatLocale}:${todayIso}`;
+    const cacheKey = `${HOST_CALENDAR_SUGGESTIONS_CACHE_PREFIX}${propertyId}:${chatLocale}:${displayCurrency}:${todayIso}`;
     if (this.redis.isConfigured) {
       const cached = await this.redis.get(cacheKey);
       if (cached) {
@@ -141,6 +165,7 @@ export class HostCalendarService {
       todayIso,
       rangeDays,
     );
+    const pricing = await this.resolveSuggestionPricing(property.pricePerNight, displayCurrency);
     let llmSuggestions: string[] = [];
     try {
       await this.quotaService.assertHostCalendarTokenBudget(user.userId);
@@ -148,6 +173,7 @@ export class HostCalendarService {
         locale: chatLocale,
         snapshot,
         suggestionCount,
+        pricing,
       });
       await this.quotaService.recordHostCalendarTokenUsage(
         user.userId,
@@ -165,6 +191,7 @@ export class HostCalendarService {
       guardContext,
       chatLocale,
       suggestionCount,
+      pricing,
     );
     const response: HostCalendarSuggestionsResponse = { suggestions };
     if (this.redis.isConfigured) {
@@ -215,7 +242,12 @@ export class HostCalendarService {
       isAvailable: first.isAvailable,
       priceOverride: first.priceOverride ?? null,
     };
-    const message = buildHostCalendarAppliedMessage(summary, property.title, chatLocale);
+    const message = buildHostCalendarAppliedMessage(
+      summary,
+      property.title,
+      chatLocale,
+      property.currency,
+    );
     const quota = await this.quotaService.getHostCalendarQuota(user.userId);
     return {
       type: 'calendar_applied',
@@ -276,6 +308,19 @@ export class HostCalendarService {
       },
       quota,
     };
+  }
+
+  private async resolveSuggestionPricing(
+    baseUsd: number,
+    displayCurrency: ReturnType<typeof normalizeDisplayCurrency>,
+  ): Promise<HostCalendarSuggestionPricing> {
+    const rates = await this.currencyService.getRates();
+    const convertUsdToDisplay =
+      rates === null
+        ? null
+        : (amountUsd: number): number | null =>
+            this.currencyService.convert(amountUsd, 'USD', displayCurrency, rates);
+    return buildSuggestionPricingFromUsd(baseUsd, displayCurrency, convertUsdToDisplay);
   }
 
   private async buildGuardContext(

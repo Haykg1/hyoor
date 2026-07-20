@@ -1,6 +1,6 @@
 export const PROPOSE_CALENDAR_CHANGES_TOOL_NAME = 'propose_calendar_changes';
 
-export function buildProposeCalendarChangesToolDefinition(): {
+export function buildProposeCalendarChangesToolDefinition(currency: string): {
   type: 'function';
   function: {
     name: string;
@@ -27,7 +27,7 @@ export function buildProposeCalendarChangesToolDefinition(): {
           priceOverride: {
             type: 'integer',
             minimum: 0,
-            description: 'Custom nightly price in AMD minor units for each day in the range.',
+            description: `Custom nightly price in ${currency} (settlement currency) for each day in the range. Integer whole units, not cents.`,
           },
           useBaseRate: {
             type: 'boolean',

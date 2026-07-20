@@ -45,9 +45,15 @@ export class HostCalendarController {
   getSuggestions(
     @Param('propertyId') propertyId: string,
     @Query('locale') locale: string | undefined,
+    @Query('displayCurrency') displayCurrency: string | undefined,
     @CurrentUser() user: RequestUser,
   ): Promise<HostCalendarSuggestionsResponse> {
-    return this.hostCalendarService.getSuggestions(propertyId, user, locale ?? 'en');
+    return this.hostCalendarService.getSuggestions(
+      propertyId,
+      user,
+      locale ?? 'en',
+      displayCurrency,
+    );
   }
 
   @Post(':propertyId/chat')

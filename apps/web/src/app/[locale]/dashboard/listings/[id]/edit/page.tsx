@@ -16,10 +16,21 @@ export default function EditListingPage({ params }: EditListingPageProps): React
   const [property, setProperty] = useState<PropertyDetail | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
     getMyPropertyDetail(params.id)
-      .then(setProperty)
-      .catch(() => router.replace('/dashboard'))
-      .finally(() => setLoading(false));
+      .then((detail) => {
+        if (!cancelled) setProperty(detail);
+      })
+      .catch(() => {
+        if (!cancelled) void router.replace('/dashboard');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [params.id, router]);
   if (loading || !property) {
     return (

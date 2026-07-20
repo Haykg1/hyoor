@@ -7,6 +7,7 @@ export interface HostCalendarPromptContext {
   basePricePerNight: number;
   currency: string;
   locale: string;
+  fxRatesHint: string;
 }
 
 export function buildHostCalendarSystemPrompt(ctx: HostCalendarPromptContext): string {
@@ -15,7 +16,7 @@ export function buildHostCalendarSystemPrompt(ctx: HostCalendarPromptContext): s
     buildResponseLanguageRule(normalizeChatLocale(ctx.locale)),
     `Today is ${ctx.todayIso}. Resolve relative dates to concrete YYYY-MM-DD dates.`,
     `You manage ONLY this property: "${ctx.propertyTitle}" (id: ${ctx.propertyId}).`,
-    `Base nightly rate: ${ctx.basePricePerNight} ${ctx.currency} (minor units).`,
+    `Base nightly rate: ${ctx.basePricePerNight} ${ctx.currency}/night (settlement currency).`,
     'CAPABILITIES:',
     '- Open or close (block) specific dates',
     '- Set a custom nightly rate for date ranges',
@@ -31,6 +32,9 @@ export function buildHostCalendarSystemPrompt(ctx: HostCalendarPromptContext): s
     '- If dates or action are still missing after reading history, ask one short clarifying question.',
     '- Do NOT answer off-topic questions (coding, guest search, general knowledge, bookings admin).',
     '- Keep replies concise (1-3 sentences).',
-    '- Prices are in AMD minor units unless the host specifies otherwise.',
+    `- priceOverride in the tool MUST always be an integer in ${ctx.currency} (settlement). Never store AMD/EUR amounts in priceOverride.`,
+    `- If the host quotes AMD or EUR (or includes "~N ${ctx.currency}"), convert to ${ctx.currency} using the FX rates below, then set priceOverride in ${ctx.currency}.`,
+    `- Prefer an explicit (~N ${ctx.currency}) amount in the host message when present.`,
+    ctx.fxRatesHint,
   ].join('\n');
 }

@@ -26,13 +26,19 @@ export function NotificationsPanel(): React.JSX.Element {
     await markRead(id);
   }
   return (
-    <div className="flex w-80 flex-col sm:w-96">
-      <div className="flex items-center justify-between border-b px-4 py-3">
+    <div className="flex w-80 flex-col overflow-hidden sm:w-96">
+      <div className="flex flex-col gap-2 border-b px-4 py-3">
         <p className="text-sm font-semibold">{t('title')}</p>
         {(unreadCount > 0 || items.length > 0) && (
-          <div className="flex gap-1">
+          <div className="flex flex-wrap items-center gap-1">
             {unreadCount > 0 && (
-              <Button type="button" variant="ghost" size="sm" onClick={() => void markAllRead()}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-auto max-w-full whitespace-normal px-2 py-1 text-xs"
+                onClick={() => void markAllRead()}
+              >
                 {t('mark_all_read')}
               </Button>
             )}
@@ -41,7 +47,7 @@ export function NotificationsPanel(): React.JSX.Element {
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-destructive"
+                className="h-auto max-w-full whitespace-normal px-2 py-1 text-xs text-destructive"
                 onClick={() => void clearAll()}
               >
                 {t('clear_all')}

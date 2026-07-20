@@ -15,8 +15,9 @@ export async function getHostCalendarAiQuota(): Promise<AiSearchQuota> {
 export async function getHostCalendarAiSuggestions(
   propertyId: string,
   locale: string,
+  displayCurrency: string,
 ): Promise<HostCalendarSuggestionsResponse> {
-  const params = new URLSearchParams({ locale });
+  const params = new URLSearchParams({ locale, displayCurrency });
   return api.get<HostCalendarSuggestionsResponse>(
     `/ai-search/host-calendar/${propertyId}/suggestions?${params.toString()}`,
   );

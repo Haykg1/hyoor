@@ -11,6 +11,7 @@ function mapNotification(row: NotificationItem): NotificationItem {
     ...row,
     createdAt: typeof row.createdAt === 'string' ? row.createdAt : String(row.createdAt),
     readAt: row.readAt ? String(row.readAt) : null,
+    actorAvatarUrl: row.actorAvatarUrl ?? null,
   };
 }
 

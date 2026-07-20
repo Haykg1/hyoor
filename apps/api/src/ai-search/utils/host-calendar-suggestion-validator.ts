@@ -1,31 +1,41 @@
 import type { HostCalendarGuardContext } from './host-calendar-input-guard';
 import { evaluateHostCalendarMessage } from './host-calendar-input-guard';
 import type { HostCalendarSnapshot } from './host-calendar-snapshot';
+import {
+  formatSuggestionRate,
+  type HostCalendarSuggestionPricing,
+} from './host-calendar-suggestion-pricing';
 
 const MIN_SUGGESTIONS = 3;
-
-function roundPrice(base: number, multiplier: number): number {
-  return Math.round(base * multiplier);
-}
 
 export function buildFallbackHostCalendarSuggestions(
   snapshot: HostCalendarSnapshot,
   maxCount: number,
+  pricing: HostCalendarSuggestionPricing,
 ): string[] {
-  const base = snapshot.property.basePricePerNight;
   const { calendar } = snapshot;
-  const peakPrice = roundPrice(base, 1.2);
-  const weekendPrice = roundPrice(base, 1.1);
+  const peakLabel = formatSuggestionRate(
+    pricing.peakDisplay,
+    pricing.displayCurrency,
+    pricing.peakUsd,
+    pricing.settlementCurrency,
+  );
+  const weekendLabel = formatSuggestionRate(
+    pricing.weekendDisplay,
+    pricing.displayCurrency,
+    pricing.weekendUsd,
+    pricing.settlementCurrency,
+  );
   const candidates: string[] = [
-    `Set ${peakPrice} AMD per night for June 1–August 31`,
-    `Set ${weekendPrice} AMD for next weekend`,
+    `Set ${peakLabel} per night for June 1–August 31`,
+    `Set ${weekendLabel} for next weekend`,
     `Close this property for the next 7 days`,
     `Close December 24–January 2`,
     `Revert August dates to base rate`,
   ];
   if (calendar.isSummerSeason) {
     candidates.unshift(
-      `Set ${peakPrice} AMD per night for ${calendar.summerFrom}–${calendar.summerTo}`,
+      `Set ${peakLabel} per night for ${calendar.summerFrom}–${calendar.summerTo}`,
     );
   }
   return candidates.slice(0, maxCount);
@@ -57,6 +67,7 @@ export function finalizeHostCalendarSuggestions(
   guardContext: HostCalendarGuardContext,
   locale: string | undefined,
   maxCount: number,
+  pricing: HostCalendarSuggestionPricing,
 ): string[] {
   const validated = filterValidHostCalendarSuggestions(
     llmSuggestions,
@@ -65,7 +76,7 @@ export function finalizeHostCalendarSuggestions(
     maxCount,
   );
   if (validated.length >= MIN_SUGGESTIONS) return validated;
-  const fallback = buildFallbackHostCalendarSuggestions(snapshot, maxCount);
+  const fallback = buildFallbackHostCalendarSuggestions(snapshot, maxCount, pricing);
   const merged = filterValidHostCalendarSuggestions(
     [...validated, ...fallback],
     guardContext,
@@ -74,5 +85,5 @@ export function finalizeHostCalendarSuggestions(
   );
   return merged.length >= MIN_SUGGESTIONS
     ? merged
-    : buildFallbackHostCalendarSuggestions(snapshot, maxCount);
+    : buildFallbackHostCalendarSuggestions(snapshot, maxCount, pricing);
 }

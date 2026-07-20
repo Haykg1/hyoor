@@ -20,9 +20,12 @@ import type {
 import { DEFAULT_PAGE_SIZE, S3_PRESIGNED_URL_EXPIRES } from '@repo/shared/constants';
 
 import { PrismaService } from '../database/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { StorageService } from '../storage/storage.service';
 
 import { CursorPaginationDto } from './dto/cursor-pagination.dto';
+
+const MESSAGE_NOTIFICATION_PREVIEW_LENGTH = 140;
 
 type ProfileSelect = {
   firstName: string;
@@ -85,6 +88,7 @@ export class MessagingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   setRealtimeEmitter(emitter: NonNullable<MessagingService['realtimeEmitter']>): void {
@@ -272,6 +276,17 @@ export class MessagingService {
     previewForRecipient.unreadCount = await this.countUnread(conversationId, recipientId);
     this.realtimeEmitter?.emitConversationUpdated(previewForSender, [senderId]);
     this.realtimeEmitter?.emitConversationUpdated(previewForRecipient, [recipientId]);
+    const sender = this.getParticipant(conversation, senderId);
+    const senderName = this.participantDisplayName(sender);
+    const preview = this.truncatePreview(body);
+    await this.notifications.notifyCustom(
+      recipientId,
+      'NEW_MESSAGE',
+      senderName,
+      preview || undefined,
+      message.id,
+      'message',
+    );
     return view;
   }
 
@@ -395,6 +410,27 @@ export class MessagingService {
     return conversation.guest;
   }
 
+  private getParticipant(conversation: ConversationRow, userId: string): ParticipantSelect {
+    if (userId === conversation.guestId) return conversation.guest;
+    return conversation.host;
+  }
+
+  private participantDisplayName(user: ParticipantSelect): string {
+    const firstName = user.profile?.firstName ?? null;
+    const lastName = user.profile?.lastName ?? null;
+    const personName = [firstName, lastName].filter(Boolean).join(' ').trim();
+    if (user.hostProfile?.hostType === 'COMPANY' && user.hostProfile.companyName) {
+      return user.hostProfile.companyName;
+    }
+    return personName || 'User';
+  }
+
+  private truncatePreview(text: string): string {
+    const normalized = text.replace(/\s+/g, ' ').trim();
+    if (normalized.length <= MESSAGE_NOTIFICATION_PREVIEW_LENGTH) return normalized;
+    return `${normalized.slice(0, MESSAGE_NOTIFICATION_PREVIEW_LENGTH - 1).trimEnd()}…`;
+  }
+
   private async toParticipantView(user: ParticipantSelect): Promise<ConversationParticipantView> {
     let avatarUrl: string | null = null;
     if (user.profile?.avatarKey && this.storage.isConfigured) {
@@ -409,16 +445,11 @@ export class MessagingService {
     }
     const firstName = user.profile?.firstName ?? null;
     const lastName = user.profile?.lastName ?? null;
-    const personName = [firstName, lastName].filter(Boolean).join(' ').trim();
-    const displayName =
-      user.hostProfile?.hostType === 'COMPANY' && user.hostProfile.companyName
-        ? user.hostProfile.companyName
-        : personName || 'User';
     return {
       id: user.id,
       firstName,
       lastName,
-      displayName,
+      displayName: this.participantDisplayName(user),
       avatarUrl,
       nationality: user.profile?.nationality ?? null,
     };

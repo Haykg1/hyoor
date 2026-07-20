@@ -2081,6 +2081,15 @@ async function main(): Promise<void> {
       refType: 'booking',
     },
     {
+      id: 'seed-notif-002',
+      userId: host1.id,
+      type: 'NEW_MESSAGE' as const,
+      title: 'Maria Johnson',
+      body: 'Hi Armen! Looking forward to the stay. Any parking tips nearby?',
+      refId: 'seed-msg-001',
+      refType: 'message',
+    },
+    {
       id: 'seed-notif-005',
       userId: guest1.id,
       type: 'PROPERTY_PROMOTION' as const,
@@ -2092,7 +2101,7 @@ async function main(): Promise<void> {
   ];
 
   await prisma.notification.deleteMany({
-    where: { id: { in: ['seed-notif-002', 'seed-notif-003', 'seed-notif-004'] } },
+    where: { id: { in: ['seed-notif-003', 'seed-notif-004'] } },
   });
   for (const n of notifications) {
     await prisma.notification.upsert({ where: { id: n.id }, update: {}, create: n });

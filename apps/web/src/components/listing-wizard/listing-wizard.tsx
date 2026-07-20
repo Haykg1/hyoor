@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { PropertyDetail } from '@repo/shared';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -97,16 +97,24 @@ export function ListingWizard({ mode, initialProperty }: ListingWizardProps): Re
     defaultValues: DEFAULT_LISTING_VALUES,
     values: data,
   });
+  const initialPropertyRef = useRef(initialProperty);
+  initialPropertyRef.current = initialProperty;
+  const initialPropertyId = initialProperty?.id;
   useEffect(() => {
     if (mode === 'create') {
       initCreate();
-    } else if (initialProperty) {
-      hydrateFromProperty(initialProperty, locale);
+      return;
     }
+    const property = initialPropertyRef.current;
+    if (property) {
+      hydrateFromProperty(property, locale);
+    }
+  }, [mode, initialPropertyId, locale, initCreate, hydrateFromProperty]);
+  useEffect(() => {
     return () => {
       reset();
     };
-  }, [mode, initialProperty, locale, initCreate, hydrateFromProperty, reset]);
+  }, [reset]);
   async function validateCurrentStep(): Promise<boolean> {
     const values = form.getValues();
     if (step === 1) {

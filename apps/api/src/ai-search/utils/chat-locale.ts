@@ -24,9 +24,9 @@ export const AI_SEARCH_OFF_TOPIC_MESSAGES: LocalizedCopy = {
 };
 
 export const HOST_CALENDAR_OFF_TOPIC_MESSAGES: LocalizedCopy = {
-  en: 'I can only help you manage availability and nightly rates for this property. Try: "Close June 10–15" or "Set 55,000 AMD for next weekend."',
-  hy: 'Կարող եմ օգնել միայն այս գույքի հասանելիության և գիշերակացի գների կառավարման հարցում։ Օրինակ՝ «Փակիր հունիսի 10-15» կամ «55,000 դրամ հաջորդ շաբաթ-կիրակի»։',
-  ru: 'Я могу помочь только с доступностью и ценами за ночь для этого объекта. Например: «Закрой 10–15 июня» или «55 000 драм на следующие выходные».',
+  en: 'I can only help you manage availability and nightly rates for this property. Try: "Close June 10–15" or "Set 120 USD for next weekend."',
+  hy: 'Կարող եմ օգնել միայն այս գույքի հասանելիության և գիշերակացի գների կառավարման հարցում։ Օրինակ՝ «Փակիր հունիսի 10-15» կամ «120 USD հաջորդ շաբաթ-կիրակի»։',
+  ru: 'Я могу помочь только с доступностью и ценами за ночь для этого объекта. Например: «Закрой 10–15 июня» или «120 USD на следующие выходные».',
 };
 
 export function getAiSearchOffTopicMessage(locale?: string): string {
@@ -88,6 +88,7 @@ export function buildHostCalendarAppliedMessage(
   },
   propertyTitle: string,
   locale?: string,
+  currency = 'USD',
 ): string {
   const key = normalizeChatLocale(locale);
   const action =
@@ -99,9 +100,9 @@ export function buildHostCalendarAppliedMessage(
       ? { en: ' at base rate', hy: ' հիմնական գնով', ru: ' по базовой цене' }[key]
       : summary.priceOverride !== undefined
         ? {
-            en: ` with rate ${summary.priceOverride} AMD`,
-            hy: ` ${summary.priceOverride} AMD գնով`,
-            ru: ` с ценой ${summary.priceOverride} AMD`,
+            en: ` with rate ${summary.priceOverride} ${currency}`,
+            hy: ` ${summary.priceOverride} ${currency} գնով`,
+            ru: ` с ценой ${summary.priceOverride} ${currency}`,
           }[key]
         : '';
   const skipped =

@@ -20,6 +20,8 @@ export interface NotificationItem {
   refId: string | null;
   refType: string | null;
   createdAt: string;
+  /** Present for NEW_MESSAGE when the sender profile can be resolved. */
+  actorAvatarUrl?: string | null;
 }
 
 export interface ListNotificationsQuery {

@@ -33,16 +33,20 @@ export function PlaceAutocomplete({
   const t = useTranslations(translationNamespace);
   const listId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
+  const skipSearchQueryRef = useRef<string | null>(value.trim() || null);
+  const isUserInputRef = useRef(false);
+  const searchGenerationRef = useRef(0);
   const [inputValue, setInputValue] = useState(value);
   const [suggestions, setSuggestions] = useState<PlaceResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const debouncedQuery = useDebounce(inputValue, 1000);
-
   useEffect(() => {
+    if (!isUserInputRef.current) {
+      skipSearchQueryRef.current = value.trim() || null;
+    }
     setInputValue(value);
   }, [value]);
-
   useEffect(() => {
     const query = debouncedQuery.trim();
     if (query.length < 2) {
@@ -50,31 +54,34 @@ export function PlaceAutocomplete({
       setIsLoading(false);
       return;
     }
+    if (!isUserInputRef.current || skipSearchQueryRef.current === query) {
+      setSuggestions([]);
+      setIsOpen(false);
+      setIsLoading(false);
+      return;
+    }
+    const generation = ++searchGenerationRef.current;
     let cancelled = false;
     setIsLoading(true);
     searchPlaces(query, level, localeToYandexLang(locale))
       .then((places) => {
-        if (!cancelled) {
-          setSuggestions(places);
-          setIsOpen(true);
-        }
+        if (cancelled || generation !== searchGenerationRef.current) return;
+        setSuggestions(places);
+        setIsOpen(true);
       })
       .catch(() => {
-        if (!cancelled) {
-          setSuggestions([]);
-          setIsOpen(true);
-        }
+        if (cancelled || generation !== searchGenerationRef.current) return;
+        setSuggestions([]);
+        setIsOpen(true);
       })
       .finally(() => {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
+        if (cancelled || generation !== searchGenerationRef.current) return;
+        setIsLoading(false);
       });
     return () => {
       cancelled = true;
     };
   }, [debouncedQuery, level, locale]);
-
   useEffect(() => {
     function handleClickOutside(event: MouseEvent): void {
       if (!containerRef.current?.contains(event.target as Node)) {
@@ -84,30 +91,43 @@ export function PlaceAutocomplete({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
   function handleSelect(place: PlaceResult): void {
     const display = place.formattedAddress;
+    isUserInputRef.current = false;
+    skipSearchQueryRef.current = display.trim();
+    searchGenerationRef.current += 1;
     setInputValue(display);
     onChange(display);
     onSelectPlace?.(place);
+    setSuggestions([]);
     setIsOpen(false);
+    setIsLoading(false);
   }
-
   const showDropdown = isOpen && debouncedQuery.trim().length >= 2;
-
   return (
     <div ref={containerRef} className="relative">
       <Input
         value={inputValue}
         onChange={(e) => {
-          setInputValue(e.target.value);
-          onChange(e.target.value);
-          if (e.target.value.trim().length >= 2) {
+          const next = e.target.value;
+          isUserInputRef.current = true;
+          skipSearchQueryRef.current = null;
+          setInputValue(next);
+          onChange(next);
+          if (next.trim().length >= 2) {
             setIsOpen(true);
+          } else {
+            setIsOpen(false);
+            setSuggestions([]);
           }
         }}
         onFocus={() => {
-          if (inputValue.trim().length >= 2) {
+          if (
+            isUserInputRef.current &&
+            inputValue.trim().length >= 2 &&
+            skipSearchQueryRef.current !== inputValue.trim() &&
+            suggestions.length > 0
+          ) {
             setIsOpen(true);
           }
         }}

@@ -1,7 +1,10 @@
 import type { Notification } from '@repo/database/client';
 import type { NotificationItem } from '@repo/shared';
 
-export function toNotificationItem(notification: Notification): NotificationItem {
+export function toNotificationItem(
+  notification: Notification,
+  extras?: { actorAvatarUrl?: string | null },
+): NotificationItem {
   return {
     id: notification.id,
     userId: notification.userId,
@@ -13,5 +16,6 @@ export function toNotificationItem(notification: Notification): NotificationItem
     refId: notification.refId,
     refType: notification.refType,
     createdAt: notification.createdAt.toISOString(),
+    actorAvatarUrl: extras?.actorAvatarUrl ?? null,
   };
 }

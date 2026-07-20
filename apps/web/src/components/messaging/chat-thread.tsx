@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDown, Loader2, Send } from 'lucide-react';
+import { ArrowDown, Loader2, PanelLeftOpen, Send } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
@@ -12,6 +12,11 @@ import { useAuthStore } from '@/store/auth.store';
 import { useMessagingStore } from '@/store/messaging.store';
 
 import { PaymentSafetyNotice } from './payment-safety-notice';
+
+interface ChatThreadProps {
+  roomsOpen?: boolean;
+  onToggleRooms?: () => void;
+}
 
 const BOTTOM_THRESHOLD_PX = 80;
 const SCROLL_TO_BOTTOM_MIN_MESSAGES = 10;
@@ -30,7 +35,10 @@ function countMessagesBelowViewport(root: HTMLElement): number {
   return count;
 }
 
-export function ChatThread(): React.JSX.Element {
+export function ChatThread({
+  roomsOpen = true,
+  onToggleRooms,
+}: ChatThreadProps): React.JSX.Element {
   const t = useTranslations('messaging');
   const locale = useLocale();
   const userId = useAuthStore((s) => s.user?.id);
@@ -199,14 +207,35 @@ export function ChatThread(): React.JSX.Element {
   }
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b border-border px-4 py-3">
-        <p className="font-medium">{title || t('conversation')}</p>
-        {active?.otherParticipant.nationality ? (
-          <p className="text-xs text-muted-foreground">
-            {t('from', {
-              place: getCountryDisplayName(active.otherParticipant.nationality, locale),
-            })}
-          </p>
+      <div className="flex items-start justify-between gap-2 border-b border-border px-4 py-3">
+        <div className="min-w-0">
+          <p className="font-medium">{title || t('conversation')}</p>
+          {active?.otherParticipant.nationality ? (
+            <p className="text-xs text-muted-foreground">
+              {t('from', {
+                place: getCountryDisplayName(active.otherParticipant.nationality, locale),
+              })}
+            </p>
+          ) : null}
+        </div>
+        {onToggleRooms ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn(
+              'hidden h-8 w-8 shrink-0 transition-[opacity,transform] duration-300 ease-in-out md:inline-flex',
+              roomsOpen
+                ? 'pointer-events-none scale-95 opacity-0'
+                : 'pointer-events-auto scale-100 opacity-100',
+            )}
+            tabIndex={roomsOpen ? -1 : 0}
+            aria-hidden={roomsOpen}
+            aria-label={t('expand_rooms')}
+            onClick={onToggleRooms}
+          >
+            <PanelLeftOpen className="h-4 w-4" />
+          </Button>
         ) : null}
       </div>
       <PaymentSafetyNotice />

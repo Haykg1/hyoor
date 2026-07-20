@@ -7,6 +7,7 @@ import type {
 
 import type { NormalizedRow } from '../../properties/bulk-import/row-normalizer';
 import type { HostCalendarSnapshot } from '../utils/host-calendar-snapshot';
+import type { HostCalendarSuggestionPricing } from '../utils/host-calendar-suggestion-pricing';
 
 export interface LlmTokenUsage {
   promptTokens: number;
@@ -20,12 +21,15 @@ export interface HostCalendarLlmContext {
   basePricePerNight: number;
   currency: string;
   locale: string;
+  /** Approximate FX rates text injected into the system prompt (AMD/EUR → USD). */
+  fxRatesHint: string;
 }
 
 export interface HostCalendarSuggestionsLlmContext {
   locale: string;
   snapshot: HostCalendarSnapshot;
   suggestionCount: number;
+  pricing: HostCalendarSuggestionPricing;
 }
 
 export type HostCalendarSuggestionsLlmResult = {

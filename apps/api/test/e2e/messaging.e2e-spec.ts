@@ -148,18 +148,25 @@ describe('Messaging (e2e)', () => {
     expect(hostConversations.body.data.data[0].unreadCount).toBe(0);
   });
 
-  it('does not create NEW_MESSAGE notifications for chat messages', async () => {
+  it('creates NEW_MESSAGE notification with sender name and preview', async () => {
     const { host, guest, conversationId } = await startConversation();
     await request(app.getHttpServer())
       .post(`/api/v1/messaging/conversations/${conversationId}/messages`)
       .set(authHeader(guest.accessToken))
-      .send({ body: 'Ping' })
+      .send({ body: 'Ping — is the place free next weekend?' })
       .expect(201);
-    const prisma = app.get(PrismaService);
-    const notifications = await prisma.notification.findMany({
-      where: { userId: host.userId, type: 'NEW_MESSAGE' },
-    });
-    expect(notifications).toHaveLength(0);
+    const list = await request(app.getHttpServer())
+      .get('/api/v1/notifications')
+      .set(authHeader(host.accessToken))
+      .expect(200);
+    const messageNotifications = list.body.data.data.filter(
+      (item: { type: string }) => item.type === 'NEW_MESSAGE',
+    );
+    expect(messageNotifications).toHaveLength(1);
+    expect(messageNotifications[0].title).toBeTruthy();
+    expect(messageNotifications[0].body).toContain('Ping');
+    expect(messageNotifications[0].refType).toBe('message');
+    expect(messageNotifications[0].refId).toBeTruthy();
   });
 
   it('rejects non-participants from accessing conversation', async () => {

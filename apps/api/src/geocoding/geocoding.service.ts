@@ -91,9 +91,9 @@ export class GeocodingService {
     const members = await this.fetchGeoObjects(query.trim(), lang, 10);
     const places = members
       .map((geoObject) => this.toPlaceResult(geoObject))
-      .filter((place): place is PlaceResult => place !== null);
+      .filter((p): p is PlaceResult => p !== null);
     if (level === 'house') {
-      return places.filter((p) => p.placeKind === 'house' && Boolean(p.buildingNumber));
+      return places.filter((p) => p.placeKind === 'house');
     }
     return places;
   }

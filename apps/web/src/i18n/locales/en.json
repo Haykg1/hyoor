@@ -569,24 +569,24 @@
         "vs_prior_abs": "{value} vs prior period"
       },
       "hints": {
-        "adr_desc": "Average host payout earned per booked night.",
-        "adr_calc": "ADR = host payout revenue ÷ nights booked for confirmed and completed stays with check-in in the selected period.",
-        "revpar_desc": "Revenue efficiency across nights you could have sold.",
-        "revpar_calc": "RevPAR = host payout revenue ÷ (open calendar nights + booked nights) in the selected period.",
-        "nights_desc": "Total nights from confirmed and completed bookings.",
-        "nights_calc": "Sum of each booking’s nightsCount when check-in falls in the selected period (confirmed or completed).",
+        "adr_desc": "Average amount you earn per booked night.",
+        "adr_calc": "Average daily rate equals your earnings divided by nights booked for confirmed or finished stays that started in the selected period.",
+        "revpar_desc": "How much you earn across nights you could have sold.",
+        "revpar_calc": "Revenue per available room equals your earnings divided by open calendar nights plus booked nights in the selected period.",
+        "nights_desc": "Total nights from confirmed or finished stays.",
+        "nights_calc": "Adds up nights from stays that started in the selected period and were confirmed or already finished.",
         "cancellation_desc": "Share of stays that were cancelled in the period.",
-        "cancellation_calc": "Cancellation rate = cancelled bookings ÷ eligible bookings (confirmed, completed, no-show, or cancelled) with check-in in the period.",
-        "earnings_desc": "Host payouts grouped by check-in month for the selected date range.",
-        "earnings_calc": "Each bar sums hostPayoutAmount for confirmed/completed bookings whose check-in falls in that month within the selected range.",
+        "cancellation_calc": "Cancellation rate equals cancelled stays divided by all stays that started in the period, including confirmed, finished, no-show, or cancelled.",
+        "earnings_desc": "Your earnings grouped by arrival month for the selected date range.",
+        "earnings_calc": "Each bar adds up your earnings from confirmed or finished stays that started in that month within the selected range.",
         "occupancy_desc": "Your occupancy versus the platform market average for the selected date range.",
-        "occupancy_calc": "Occupancy = booked nights ÷ (booked nights + open available nights) per month in the selected range. Market average uses the same formula across all listings.",
-        "origins_desc": "Top guest nationalities by host payout revenue in the selected period.",
-        "origins_calc": "Ranked by sum of host payouts for confirmed/completed bookings with a guest nationality, limited to the top 5 countries."
+        "occupancy_calc": "Occupancy equals booked nights divided by booked nights plus open available nights, for each month in the selected range. Market average uses the same formula across all listings.",
+        "origins_desc": "Top guest nationalities by your earnings in the selected period.",
+        "origins_calc": "Countries ranked by your earnings from confirmed or finished stays with a known guest nationality, showing up to five countries."
       },
       "charts": {
         "earnings_title": "Monthly earnings",
-        "earnings_subtitle": "Host payouts by check-in month for the selected range",
+        "earnings_subtitle": "Your earnings by arrival month for the selected range",
         "earnings": "Earnings",
         "occupancy_title": "Occupancy rate trend",
         "occupancy_subtitle": "Your occupancy vs platform market average for the selected range",
@@ -1294,7 +1294,7 @@
       "off_topic_hint": "Only property search questions are answered here"
     },
     "quota": {
-      "remaining": "Guests can use AI search {remaining} of {limit} times per day.",
+      "remaining": "Հյուրերը կարող են օգտվել AI որոնումից օրական {limit} անգամից {remaining}-ը",
       "remaining_verified": "You can use AI search {remaining} of {limit} times per day.",
       "exhausted": "You have used all {limit} free guest searches for today.",
       "exhausted_verified": "You have used all {limit} AI searches for today.",
@@ -1517,6 +1517,9 @@
   },
   "messaging": {
     "title": "Messages",
+    "rooms": "Chats",
+    "collapse_rooms": "Collapse chat list",
+    "expand_rooms": "Show chat list",
     "empty_conversations": "No conversations yet. Start a chat from a property page.",
     "select_conversation": "Select a conversation to start messaging",
     "conversation": "Conversation",
