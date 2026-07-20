@@ -27,9 +27,7 @@ export async function getDisplayCurrencyDefault(): Promise<string> {
 
 export async function getCurrencyRates(): Promise<CurrencyRatesPayload | null> {
   try {
-    const res = await fetch(`${BASE_URL}/currency/rates`, {
-      next: { revalidate: 300 },
-    });
+    const res = await fetch(`${BASE_URL}/currency/rates`, { cache: 'no-store' });
     if (!res.ok) return null;
     const json = (await res.json()) as ApiEnvelope<CurrencyRatesPayload> | CurrencyRatesPayload;
     const data = unwrapEnvelope(json);

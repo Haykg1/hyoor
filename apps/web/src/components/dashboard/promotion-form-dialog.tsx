@@ -24,6 +24,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { createPromotion } from '@/lib/api/promotions';
+import {
+  endOfEditableLocalDay,
+  isLocalIsoEditable,
+  startOfLocalToday,
+} from '@/lib/calendar/editable-window';
 import { buildSmartPromotionDescription } from '@/lib/promotions';
 
 const DESCRIPTION_MIN_LENGTH = 10;
@@ -106,6 +111,10 @@ export function PromotionFormDialog({
     if (!property) return;
     if (!bookingStartDate || !bookingEndDate) {
       toast.error(t('errors.date_range'));
+      return;
+    }
+    if (!isLocalIsoEditable(bookingStartDate) || !isLocalIsoEditable(bookingEndDate)) {
+      toast.error(t('errors.date_window'));
       return;
     }
     if (description.trim().length < DESCRIPTION_MIN_LENGTH) {
@@ -215,7 +224,17 @@ export function PromotionFormDialog({
             ) : null}
             <div className="space-y-2">
               <Label>{t('booking_dates')}</Label>
-              <Calendar mode="range" selected={range} onSelect={setRange} numberOfMonths={1} />
+              <Calendar
+                mode="range"
+                selected={range}
+                onSelect={setRange}
+                numberOfMonths={1}
+                disabled={(date) => {
+                  const start = startOfLocalToday();
+                  const end = endOfEditableLocalDay();
+                  return date < start || date > end;
+                }}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="max-applications">{t('max_applications')}</Label>

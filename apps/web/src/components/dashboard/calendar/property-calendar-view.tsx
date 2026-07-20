@@ -11,6 +11,7 @@ import { useDisplayMoney } from '@/hooks/use-display-money';
 import { useSelectionDates, usePropertyCalendar } from '@/hooks/use-property-calendar';
 import { Link } from '@/i18n/navigation';
 import { isLocalIsoEditable } from '@/lib/calendar/editable-window';
+import { formatCurrencyAmount } from '@/lib/format/price';
 import { usePropertyCalendarStore } from '@/store';
 
 import { AvailabilityMonth } from './availability-month';
@@ -28,7 +29,7 @@ interface PropertyCalendarViewProps {
 export function PropertyCalendarView({ property }: PropertyCalendarViewProps): React.JSX.Element {
   const t = useTranslations('dashboard.calendar');
   const locale = useLocale();
-  const { displayCurrency, setDisplayCurrency, formatMoney } = useDisplayMoney();
+  const { displayCurrency, setDisplayCurrency, formatMoney, convert } = useDisplayMoney();
   usePropertyCalendar(property);
   const monthCursor = usePropertyCalendarStore((s) => s.monthCursor);
   const isLoading = usePropertyCalendarStore((s) => s.isLoading);
@@ -86,6 +87,12 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
               </p>
               <p className="text-lg font-semibold">
                 {formatMoney(basePricePerNight, property.currency)}
+                {convert(basePricePerNight, property.currency) !== null &&
+                displayCurrency !== property.currency ? (
+                  <span className="ml-1 text-sm font-normal text-muted-foreground">
+                    (~{formatCurrencyAmount(Math.round(basePricePerNight), property.currency)})
+                  </span>
+                ) : null}
               </p>
             </div>
           </div>

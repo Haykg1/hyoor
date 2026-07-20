@@ -19,11 +19,14 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useDisplayMoney } from '@/hooks/use-display-money';
 import {
   endOfEditableLocalDay,
   isLocalIsoEditable,
   startOfLocalToday,
 } from '@/lib/calendar/editable-window';
+import { parseRateInput, toSettlementAmount } from '@/lib/calendar/rate-display';
+import { formatCurrencyAmount } from '@/lib/format/price';
 import { usePropertyCalendarStore } from '@/store';
 
 interface RangeRateDialogProps {
@@ -52,23 +55,28 @@ function eachIsoInclusive(from: Date, to: Date): string[] {
 export function RangeRateDialog({ open, onOpenChange }: RangeRateDialogProps): React.JSX.Element {
   const t = useTranslations('dashboard.calendar.range_dialog');
   const basePricePerNight = usePropertyCalendarStore((s) => s.basePricePerNight);
+  const currency = usePropertyCalendarStore((s) => s.currency);
   const daysByDate = usePropertyCalendarStore((s) => s.daysByDate);
   const applyEntries = usePropertyCalendarStore((s) => s.applyEntries);
   const isSaving = usePropertyCalendarStore((s) => s.isSaving);
+  const { displayCurrency, convert, formatMoney, rates } = useDisplayMoney();
+  const convertedBase = convert(basePricePerNight, currency);
+  const inputCurrency = convertedBase === null ? currency : displayCurrency;
+  const displayBase = convertedBase ?? basePricePerNight;
+  const showUsdApprox = convertedBase !== null && displayCurrency !== currency;
 
   const [range, setRange] = useState<DateRange | undefined>();
   const [useBase, setUseBase] = useState(true);
-  const [priceText, setPriceText] = useState(String(basePricePerNight));
+  const [priceText, setPriceText] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
 
   useEffect(() => {
-    if (open) {
-      setRange(undefined);
-      setUseBase(true);
-      setPriceText(String(basePricePerNight));
-      setIsAvailable(true);
-    }
-  }, [open, basePricePerNight]);
+    if (!open) return;
+    setRange(undefined);
+    setUseBase(true);
+    setPriceText(String(displayBase));
+    setIsAvailable(true);
+  }, [open, displayBase]);
 
   const fromDate = range?.from;
   const toDate = range?.to ?? range?.from;
@@ -77,16 +85,27 @@ export function RangeRateDialog({ open, onOpenChange }: RangeRateDialogProps): R
     (iso) => isLocalIsoEditable(iso) && !daysByDate[iso]?.isBlockedByBooking,
   );
   const locked = dates.length - editable.length;
+  const typedDisplay = parseRateInput(useBase ? String(displayBase) : priceText);
+  const settlementPreview =
+    typedDisplay === null ? null : toSettlementAmount(typedDisplay, inputCurrency, currency, rates);
 
   async function handleApply(): Promise<void> {
     if (editable.length === 0) {
       toast.error(t('pick_dates'));
       return;
     }
-    const priceMinor = useBase ? null : Number(priceText.replace(/[^\d]/g, ''));
-    if (!useBase && (!Number.isFinite(priceMinor) || priceMinor === null || priceMinor < 0)) {
-      toast.error(t('invalid_price'));
-      return;
+    let priceSettlement: number | null = null;
+    if (!useBase) {
+      const displayAmount = parseRateInput(priceText);
+      if (displayAmount === null) {
+        toast.error(t('invalid_price'));
+        return;
+      }
+      priceSettlement = toSettlementAmount(displayAmount, inputCurrency, currency, rates);
+      if (priceSettlement === null) {
+        toast.error(t('invalid_price'));
+        return;
+      }
     }
     try {
       await applyEntries(
@@ -95,7 +114,7 @@ export function RangeRateDialog({ open, onOpenChange }: RangeRateDialogProps): R
             date: iso,
             isAvailable,
           };
-          if (priceMinor !== null) entry.priceOverride = priceMinor;
+          if (priceSettlement !== null) entry.priceOverride = priceSettlement;
           return entry;
         }),
       );
@@ -138,25 +157,41 @@ export function RangeRateDialog({ open, onOpenChange }: RangeRateDialogProps): R
 
           <div className="space-y-2">
             <Label htmlFor="range-rate-input">{t('rate_label')}</Label>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Input
                 id="range-rate-input"
                 type="text"
                 inputMode="numeric"
-                value={useBase ? String(basePricePerNight) : priceText}
+                value={useBase ? String(displayBase) : priceText}
                 disabled={useBase}
                 onChange={(e) => setPriceText(e.target.value)}
                 className="w-40"
               />
-              <span className="text-xs text-muted-foreground">AMD/{t('night')}</span>
+              <span className="text-xs text-muted-foreground">
+                {inputCurrency}/{t('night')}
+              </span>
+              {showUsdApprox && settlementPreview !== null ? (
+                <span className="text-xs text-muted-foreground">
+                  (~{formatCurrencyAmount(settlementPreview, currency)})
+                </span>
+              ) : null}
             </div>
             <label className="flex items-center gap-2 text-xs text-muted-foreground">
               <Checkbox
                 checked={useBase}
                 onCheckedChange={(v) => setUseBase(Boolean(v))}
-                aria-label={t('use_base_rate', { base: basePricePerNight })}
+                aria-label={t('use_base_rate', {
+                  base: formatMoney(basePricePerNight, currency),
+                })}
               />
-              {t('use_base_rate', { base: basePricePerNight })}
+              <span>
+                {t('use_base_rate', { base: formatMoney(basePricePerNight, currency) })}
+                {showUsdApprox ? (
+                  <span className="ml-1">
+                    (~{formatCurrencyAmount(Math.round(basePricePerNight), currency)})
+                  </span>
+                ) : null}
+              </span>
             </label>
           </div>
 

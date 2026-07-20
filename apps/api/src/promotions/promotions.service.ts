@@ -13,6 +13,12 @@ import type {
   PaginatedResponse,
   PromotionSummary,
 } from '@repo/shared';
+import {
+  HOST_CALENDAR_EDITABLE_DAYS_AHEAD,
+  isIsoDateInEditableWindow,
+  maxEditableIsoDate,
+  todayIsoUtc,
+} from '@repo/shared';
 import { DEFAULT_PAGE_SIZE, S3_PRESIGNED_URL_EXPIRES } from '@repo/shared/constants';
 
 import { PrismaService } from '../database/prisma.service';
@@ -87,6 +93,7 @@ export class PromotionsService {
     if (bookingEndDate < bookingStartDate) {
       throw new BadRequestException('Booking end date must be on or after start date');
     }
+    this.assertBookingDatesInEditableWindow(dto.bookingStartDate, dto.bookingEndDate);
     this.validateDiscount(dto);
     if (dto.type === 'PROMO_CODE' && !dto.promoCode) {
       throw new BadRequestException('Promo code is required for promo code promotions');
@@ -456,6 +463,19 @@ export class PromotionsService {
     }
     if (dto.discountAmount === undefined) {
       throw new BadRequestException('Discount amount is required');
+    }
+  }
+
+  private assertBookingDatesInEditableWindow(startIso: string, endIso: string): void {
+    const todayIso = todayIsoUtc();
+    const maxIso = maxEditableIsoDate(todayIso);
+    if (
+      !isIsoDateInEditableWindow(startIso, todayIso) ||
+      !isIsoDateInEditableWindow(endIso, todayIso)
+    ) {
+      throw new BadRequestException(
+        `Promotion booking dates must be within ${todayIso} to ${maxIso} (today through today+${HOST_CALENDAR_EDITABLE_DAYS_AHEAD} days)`,
+      );
     }
   }
 

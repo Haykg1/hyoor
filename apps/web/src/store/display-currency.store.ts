@@ -38,11 +38,15 @@ export const useDisplayCurrencyStore = create<DisplayCurrencyState>()(
           set({ currency });
         },
         ensureRates: async () => {
-          const { ratesReady, ratesLoading } = get();
-          if (ratesReady || ratesLoading) return;
+          const { rates, ratesLoading } = get();
+          if (rates || ratesLoading) return;
           set({ ratesLoading: true });
-          const rates = await getCurrencyRates();
-          set({ rates, ratesReady: true, ratesLoading: false });
+          const next = await getCurrencyRates();
+          set({
+            rates: next,
+            ratesReady: next !== null,
+            ratesLoading: false,
+          });
         },
       }),
       {

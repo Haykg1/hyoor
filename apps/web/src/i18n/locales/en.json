@@ -723,6 +723,7 @@
         "create": "Create promotion",
         "errors": {
           "date_range": "Select a booking date range.",
+          "date_window": "Booking dates must be today through one year ahead.",
           "description": "Description must be at least 10 characters.",
           "max_applications": "Enter a valid max applications count.",
           "submit": "Could not create promotion."
@@ -808,7 +809,7 @@
         "only_booked_selected": "All selected days are booked. Nothing to update.",
         "rate_label": "Nightly rate",
         "night": "night",
-        "use_base_rate": "Use base rate ({base} AMD)",
+        "use_base_rate": "Use base rate ({base})",
         "status_label": "Status",
         "available": "Available",
         "closed": "Closed",
@@ -833,7 +834,7 @@
         "skipped_booked": "{count, plural, one {# booked day skipped} other {# booked days skipped}}",
         "rate_label": "Nightly rate",
         "night": "night",
-        "use_base_rate": "Use base rate ({base} AMD)",
+        "use_base_rate": "Use base rate ({base})",
         "status_label": "Status",
         "available": "Available",
         "closed": "Closed",

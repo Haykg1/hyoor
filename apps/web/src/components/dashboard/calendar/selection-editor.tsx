@@ -10,8 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useDisplayMoney } from '@/hooks/use-display-money';
 import { useBuildEntriesForSelection, useSelectionDates } from '@/hooks/use-property-calendar';
 import { isLocalIsoEditable } from '@/lib/calendar/editable-window';
+import { parseRateInput, toSettlementAmount } from '@/lib/calendar/rate-display';
+import { formatCurrencyAmount } from '@/lib/format/price';
 import { usePropertyCalendarStore } from '@/store';
 
 interface SelectionEditorProps {
@@ -27,24 +30,32 @@ function formatRangeLabel(dates: string[]): string {
 function getInitialPriceForSelection(
   dates: string[],
   daysByDate: Record<string, AvailabilityDayView>,
-  base: number,
+  displayBase: number,
+  toDisplay: (settlementAmount: number) => number,
 ): { value: string; useBase: boolean } {
   const overrides = dates
     .map((d) => daysByDate[d]?.priceOverride)
     .filter((v): v is number => typeof v === 'number');
-  if (overrides.length === 0) return { value: String(base), useBase: true };
+  if (overrides.length === 0) return { value: String(displayBase), useBase: true };
   const allSame = overrides.every((v) => v === overrides[0]);
-  return { value: String(allSame ? overrides[0] : base), useBase: !allSame };
+  if (!allSame) return { value: String(displayBase), useBase: false };
+  return { value: String(toDisplay(overrides[0]!)), useBase: false };
 }
 
 export function SelectionEditor({ basePricePerNight }: SelectionEditorProps): React.JSX.Element {
   const t = useTranslations('dashboard.calendar.editor');
   const selectionDates = useSelectionDates();
   const daysByDate = usePropertyCalendarStore((s) => s.daysByDate);
+  const currency = usePropertyCalendarStore((s) => s.currency);
   const clearSelection = usePropertyCalendarStore((s) => s.clearSelection);
   const applyEntries = usePropertyCalendarStore((s) => s.applyEntries);
   const isSaving = usePropertyCalendarStore((s) => s.isSaving);
   const buildEntries = useBuildEntriesForSelection();
+  const { displayCurrency, convert, formatMoney, rates } = useDisplayMoney();
+  const convertedBase = convert(basePricePerNight, currency);
+  const inputCurrency = convertedBase === null ? currency : displayCurrency;
+  const displayBase = convertedBase ?? basePricePerNight;
+  const showUsdApprox = convertedBase !== null && displayCurrency !== currency;
 
   const editableDates = selectionDates.filter(
     (d) => isLocalIsoEditable(d) && !daysByDate[d]?.isBlockedByBooking,
@@ -52,12 +63,17 @@ export function SelectionEditor({ basePricePerNight }: SelectionEditorProps): Re
   const lockedDates = selectionDates.filter((d) => daysByDate[d]?.isBlockedByBooking);
 
   const [useBase, setUseBase] = useState(true);
-  const [priceText, setPriceText] = useState(String(basePricePerNight));
+  const [priceText, setPriceText] = useState('');
   const [isAvailable, setIsAvailable] = useState(true);
 
   useEffect(() => {
     if (selectionDates.length === 0) return;
-    const initial = getInitialPriceForSelection(selectionDates, daysByDate, basePricePerNight);
+    const initial = getInitialPriceForSelection(
+      selectionDates,
+      daysByDate,
+      displayBase,
+      (amount) => convert(amount, currency) ?? amount,
+    );
     setUseBase(initial.useBase);
     setPriceText(initial.value);
     const allClosed = selectionDates.every(
@@ -65,19 +81,31 @@ export function SelectionEditor({ basePricePerNight }: SelectionEditorProps): Re
     );
     setIsAvailable(!allClosed);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectionDates.join(',')]);
+  }, [selectionDates.join(','), displayBase, displayCurrency]);
 
   if (selectionDates.length === 0) return <EmptyHint />;
+
+  const typedDisplay = parseRateInput(useBase ? String(displayBase) : priceText);
+  const settlementPreview =
+    typedDisplay === null ? null : toSettlementAmount(typedDisplay, inputCurrency, currency, rates);
 
   async function handleApply(): Promise<void> {
     if (editableDates.length === 0) {
       toast.error(t('only_booked_selected'));
       return;
     }
-    const priceMinor = useBase ? null : Number(priceText.replace(/[^\d]/g, ''));
-    if (!useBase && (!Number.isFinite(priceMinor) || priceMinor === null || priceMinor < 0)) {
-      toast.error(t('invalid_price'));
-      return;
+    let priceMinor: number | null = null;
+    if (!useBase) {
+      const displayAmount = parseRateInput(priceText);
+      if (displayAmount === null) {
+        toast.error(t('invalid_price'));
+        return;
+      }
+      priceMinor = toSettlementAmount(displayAmount, inputCurrency, currency, rates);
+      if (priceMinor === null) {
+        toast.error(t('invalid_price'));
+        return;
+      }
     }
     try {
       await applyEntries(buildEntries({ priceMinor, isAvailable }));
@@ -118,25 +146,41 @@ export function SelectionEditor({ basePricePerNight }: SelectionEditorProps): Re
       <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_auto_auto]">
         <div className="space-y-1.5">
           <Label htmlFor="rate-input">{t('rate_label')}</Label>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Input
               id="rate-input"
               type="text"
               inputMode="numeric"
-              value={useBase ? String(basePricePerNight) : priceText}
+              value={useBase ? String(displayBase) : priceText}
               disabled={useBase}
               onChange={(e) => setPriceText(e.target.value)}
               className="w-40"
             />
-            <span className="text-xs text-muted-foreground">AMD/{t('night')}</span>
+            <span className="text-xs text-muted-foreground">
+              {inputCurrency}/{t('night')}
+            </span>
+            {showUsdApprox && settlementPreview !== null ? (
+              <span className="text-xs text-muted-foreground">
+                (~{formatCurrencyAmount(settlementPreview, currency)})
+              </span>
+            ) : null}
           </div>
           <label className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
             <Checkbox
               checked={useBase}
               onCheckedChange={(v) => setUseBase(Boolean(v))}
-              aria-label={t('use_base_rate')}
+              aria-label={t('use_base_rate', {
+                base: formatMoney(basePricePerNight, currency),
+              })}
             />
-            {t('use_base_rate', { base: basePricePerNight })}
+            <span>
+              {t('use_base_rate', { base: formatMoney(basePricePerNight, currency) })}
+              {showUsdApprox ? (
+                <span className="ml-1">
+                  (~{formatCurrencyAmount(Math.round(basePricePerNight), currency)})
+                </span>
+              ) : null}
+            </span>
           </label>
         </div>
 

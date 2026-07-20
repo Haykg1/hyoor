@@ -52,11 +52,11 @@ export class CreatePromotionDto implements CreatePromotionInput {
   @MaxLength(2000)
   description!: string;
 
-  @ApiProperty({ example: '2026-06-10' })
+  @ApiProperty({ example: '2026-07-20', description: 'Inclusive start (today through today+365).' })
   @IsISO8601({ strict: true })
   bookingStartDate!: string;
 
-  @ApiProperty({ example: '2026-06-20' })
+  @ApiProperty({ example: '2026-08-03', description: 'Inclusive end (today through today+365).' })
   @IsISO8601({ strict: true })
   bookingEndDate!: string;
 

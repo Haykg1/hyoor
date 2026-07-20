@@ -4,6 +4,7 @@ import { todayIsoLocal, type AvailabilityDayView } from '@repo/shared';
 
 import { useDisplayMoney } from '@/hooks/use-display-money';
 import { isLocalIsoEditable } from '@/lib/calendar/editable-window';
+import { formatCurrencySymbolAmount } from '@/lib/format/price';
 import { cn } from '@/lib/utils';
 
 interface AvailabilityMonthProps {
@@ -60,7 +61,7 @@ export function AvailabilityMonth({
   currency,
   onDayClick,
 }: AvailabilityMonthProps): React.JSX.Element {
-  const { formatMoney } = useDisplayMoney();
+  const { displayCurrency, convert } = useDisplayMoney();
   const cells = buildGrid(monthDate);
   const heading = `${MONTH_NAMES[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
   const todayIso = todayIsoLocal();
@@ -83,8 +84,9 @@ export function AvailabilityMonth({
               day={daysByDate[iso]}
               isSelected={selectedDates.has(iso)}
               basePricePerNight={basePricePerNight}
-              currency={currency}
-              formatMoney={formatMoney}
+              settlementCurrency={currency}
+              displayCurrency={displayCurrency}
+              convert={convert}
               isEditable={isLocalIsoEditable(iso, todayIso)}
               isToday={iso === todayIso}
               onClick={() => onDayClick(iso)}
@@ -103,8 +105,9 @@ interface DayCellProps {
   day: AvailabilityDayView | undefined;
   isSelected: boolean;
   basePricePerNight: number;
-  currency: string;
-  formatMoney: (amount: number, fromCurrency?: string) => string;
+  settlementCurrency: string;
+  displayCurrency: string;
+  convert: (amount: number, fromCurrency: string) => number | null;
   isEditable: boolean;
   isToday: boolean;
   onClick: () => void;
@@ -115,8 +118,9 @@ function DayCell({
   day,
   isSelected,
   basePricePerNight,
-  currency,
-  formatMoney,
+  settlementCurrency,
+  displayCurrency,
+  convert,
   isEditable,
   isToday,
   onClick,
@@ -126,6 +130,11 @@ function DayCell({
   const price = day?.effectivePricePerNight ?? basePricePerNight;
   const hasOverride = (day?.priceOverride ?? null) !== null;
   const dayNumber = Number(iso.slice(-2));
+  const converted = convert(price, settlementCurrency);
+  const priceLabel = formatCurrencySymbolAmount(
+    converted ?? price,
+    converted === null ? settlementCurrency : displayCurrency,
+  );
   return (
     <button
       type="button"
@@ -152,7 +161,7 @@ function DayCell({
           <span className="text-muted-foreground">Closed</span>
         ) : (
           <span className={cn(hasOverride ? 'text-primary' : 'text-muted-foreground')}>
-            {formatMoney(price, currency)}
+            {priceLabel}
           </span>
         )}
       </span>

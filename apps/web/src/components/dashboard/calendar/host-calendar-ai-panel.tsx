@@ -73,8 +73,8 @@ export function HostCalendarAiPanel({
     }
   }
   return (
-    <div className="flex h-full min-h-[420px] flex-col rounded-2xl border border-border bg-card p-4 shadow-sm">
-      <div className="mb-3 flex items-center justify-between gap-2">
+    <div className="flex flex-col rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <div className="mb-3 flex shrink-0 items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5 text-primary" aria-hidden />
           <h2 className="text-lg font-semibold">{t('title')}</h2>
@@ -86,23 +86,25 @@ export function HostCalendarAiPanel({
           </Button>
         ) : null}
       </div>
-      <HostCalendarAiInfoBanner
-        quota={quota}
-        isLoading={isQuotaLoading}
-        propertyTitle={propertyTitle}
-      />
-      {!isLoading ? (
-        <HostCalendarAiSuggestionChips
-          suggestions={suggestions}
-          isLoading={isSuggestionsLoading}
-          disabled={isLoading || exhausted || isConfirming}
-          onSelect={(value) => {
-            setInput(value);
-            inputRef.current?.focus();
-          }}
+      <div className="shrink-0">
+        <HostCalendarAiInfoBanner
+          quota={quota}
+          isLoading={isQuotaLoading}
+          propertyTitle={propertyTitle}
         />
-      ) : null}
-      <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
+        {!isLoading ? (
+          <HostCalendarAiSuggestionChips
+            suggestions={suggestions}
+            isLoading={isSuggestionsLoading}
+            disabled={isLoading || exhausted || isConfirming}
+            onSelect={(value) => {
+              setInput(value);
+              inputRef.current?.focus();
+            }}
+          />
+        ) : null}
+      </div>
+      <ScrollArea className="mt-3 h-[min(320px,40vh)] pr-2">
         <div className="space-y-3 pb-3">
           {messages.length === 0 ? (
             <HostCalendarAiMessage
