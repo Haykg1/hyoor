@@ -127,7 +127,8 @@ export class OpenAiLlmService extends LlmService {
         {
           role: 'system',
           content: buildHostCalendarSystemPrompt({
-            todayIso,
+            todayIso: context.todayIso || todayIso,
+            maxEditableIso: context.maxEditableIso,
             propertyTitle: context.propertyTitle,
             propertyId: context.propertyId,
             basePricePerNight: context.basePricePerNight,

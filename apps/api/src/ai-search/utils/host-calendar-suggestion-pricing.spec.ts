@@ -1,3 +1,5 @@
+import { suggestionMatchesDisplayCurrency } from '@repo/shared';
+
 import {
   buildSuggestionPricingFromUsd,
   formatSuggestionRate,
@@ -39,5 +41,18 @@ describe('host-calendar-suggestion-pricing', () => {
   it('formats rate with optional settlement hint', () => {
     expect(formatSuggestionRate(120, 'USD', 120, 'USD')).toBe('120 USD');
     expect(formatSuggestionRate(48000, 'AMD', 120, 'USD')).toBe('48000 AMD (~120 USD)');
+  });
+
+  it('matches display currency mentions and allows settlement hints', () => {
+    expect(suggestionMatchesDisplayCurrency('Close next week', 'USD', 'USD')).toBe(true);
+    expect(suggestionMatchesDisplayCurrency('Set 120 USD for next weekend', 'USD', 'USD')).toBe(
+      true,
+    );
+    expect(suggestionMatchesDisplayCurrency('Set 120 AMD for next weekend', 'USD', 'USD')).toBe(
+      false,
+    );
+    expect(
+      suggestionMatchesDisplayCurrency('Set 48000 AMD (~120 USD) for summer', 'AMD', 'USD'),
+    ).toBe(true);
   });
 });

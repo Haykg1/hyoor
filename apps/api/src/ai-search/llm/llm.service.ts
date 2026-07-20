@@ -23,6 +23,8 @@ export interface HostCalendarLlmContext {
   locale: string;
   /** Approximate FX rates text injected into the system prompt (AMD/EUR → USD). */
   fxRatesHint: string;
+  todayIso: string;
+  maxEditableIso: string;
 }
 
 export interface HostCalendarSuggestionsLlmContext {

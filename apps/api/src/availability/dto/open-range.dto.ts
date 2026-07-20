@@ -14,7 +14,8 @@ export class OpenRangeDto {
   @ApiPropertyOptional({
     example: '2027-06-02',
     format: 'date',
-    description: 'Inclusive end date. Defaults to today + 364 days (UTC) — 365-day window.',
+    description:
+      'Inclusive end date. Defaults to today + 365 days (UTC) — editable calendar window.',
   })
   @IsOptional()
   @IsDateString()

@@ -1,5 +1,7 @@
 import {
   applyAiSearchDateDefaults,
+  isIsoDateInEditableWindow,
+  maxEditableIsoDate,
   resolveAiSearchDateFields,
   sanitizeExactStayDates,
   sanitizeFlexibleStayWindow,
@@ -93,5 +95,16 @@ describe('search date sanitization', () => {
       availableFrom: '2026-07-15',
       availableTo: '2026-07-31',
     });
+  });
+
+  it('maxEditableIsoDate is today + 365 days', () => {
+    expect(maxEditableIsoDate(today)).toBe('2027-07-15');
+  });
+
+  it('isIsoDateInEditableWindow rejects past and beyond max', () => {
+    expect(isIsoDateInEditableWindow('2026-07-14', today)).toBe(false);
+    expect(isIsoDateInEditableWindow('2026-07-15', today)).toBe(true);
+    expect(isIsoDateInEditableWindow('2027-07-15', today)).toBe(true);
+    expect(isIsoDateInEditableWindow('2027-07-16', today)).toBe(false);
   });
 });

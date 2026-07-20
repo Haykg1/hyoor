@@ -5,6 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Availability, Prisma, Property } from '@repo/database/client';
+import {
+  HOST_CALENDAR_EDITABLE_DAYS_AHEAD,
+  isIsoDateInEditableWindow,
+  maxEditableIsoDate,
+  todayIsoUtc,
+} from '@repo/shared';
 
 import { PrismaService } from '../database/prisma.service';
 import { HostProfilesService } from '../host-profiles/host-profiles.service';
@@ -12,7 +18,8 @@ import { HostProfilesService } from '../host-profiles/host-profiles.service';
 import { AvailabilityEntryDto } from './dto/availability-entry.dto';
 
 const BLOCKING_BOOKING_STATUSES = ['AWAITING_PAYMENT', 'PENDING', 'CONFIRMED'] as const;
-const MAX_OPEN_RANGE_DAYS = 366;
+/** Inclusive span today → today+365 = 366 days. */
+const MAX_OPEN_RANGE_DAYS = HOST_CALENDAR_EDITABLE_DAYS_AHEAD + 1;
 
 export interface AvailabilityRangeResponse {
   propertyId: string;
@@ -87,6 +94,19 @@ export class AvailabilityService {
     entries: AvailabilityEntryDto[],
   ): Promise<AvailabilityDayView[]> {
     const property = await this.assertCanManageProperty(propertyId, actingUserId, actingUserRole);
+    if (entries.length === 0) {
+      throw new BadRequestException('At least one availability entry is required');
+    }
+    const todayIso = todayIsoUtc();
+    const maxIso = maxEditableIsoDate(todayIso);
+    for (const entry of entries) {
+      parseIsoDate(entry.date, 'date');
+      if (!isIsoDateInEditableWindow(entry.date, todayIso)) {
+        throw new BadRequestException(
+          `Date ${entry.date} is outside the editable window (${todayIso} to ${maxIso})`,
+        );
+      }
+    }
     const upserted: Availability[] = [];
     const bookedBlocked: Set<string> = await this.collectBookingBlockedDates(
       propertyId,
@@ -135,10 +155,19 @@ export class AvailabilityService {
     to?: string,
   ): Promise<OpenRangeResult> {
     await this.assertCanManageProperty(propertyId, actingUserId, actingUserRole);
-    const today = todayUtc();
+    const todayIso = todayIsoUtc();
+    const today = parseIsoDate(todayIso, 'from');
+    const maxIso = maxEditableIsoDate(todayIso);
     const fromDate = from ? parseIsoDate(from, 'from') : today;
-    const toDate = to ? parseIsoDate(to, 'to') : addDays(today, 364);
+    const toDate = to ? parseIsoDate(to, 'to') : parseIsoDate(maxEditableIsoDate(todayIso), 'to');
     validateDateRange(fromDate, toDate);
+    const fromIso = formatIsoDate(fromDate);
+    const toIso = formatIsoDate(toDate);
+    if (fromIso < todayIso || toIso > maxIso) {
+      throw new BadRequestException(
+        `openRange dates must be within ${todayIso} to ${maxIso} (today through today+${HOST_CALENDAR_EDITABLE_DAYS_AHEAD} days)`,
+      );
+    }
     const totalDays = diffDaysInclusive(fromDate, toDate);
     if (totalDays > MAX_OPEN_RANGE_DAYS) {
       throw new BadRequestException(
@@ -410,9 +439,4 @@ function eachDayInclusive(from: Date, to: Date): Date[] {
 function diffDaysInclusive(from: Date, to: Date): number {
   const msPerDay = 24 * 60 * 60 * 1000;
   return Math.round((to.getTime() - from.getTime()) / msPerDay) + 1;
-}
-
-function todayUtc(): Date {
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 }

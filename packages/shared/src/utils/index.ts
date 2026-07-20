@@ -4,6 +4,7 @@ export * from './geo-distance';
 export * from './search-dates';
 export * from './property-type';
 export * from './search-intent';
+export * from './host-calendar-suggestion-currency';
 
 export function slugify(text: string): string {
   return text

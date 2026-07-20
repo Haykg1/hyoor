@@ -56,8 +56,42 @@ describe('host-calendar-suggestion-validator', () => {
       guardContext,
       'en',
       4,
+      usdPricing,
     );
     expect(valid).toEqual(['Set 120 USD for next weekend']);
+  });
+
+  it('rejects AMD-labeled rates when display currency is USD', () => {
+    const valid = filterValidHostCalendarSuggestions(
+      [
+        'Open next weekend at 110 AMD/night',
+        'Set a peak rate of 120 AMD/night for summer',
+        'Close this property for the next 7 days',
+      ],
+      guardContext,
+      'en',
+      4,
+      usdPricing,
+    );
+    expect(valid).toEqual(['Close this property for the next 7 days']);
+  });
+
+  it('replaces wrong-currency LLM output with USD fallbacks', () => {
+    const result = finalizeHostCalendarSuggestions(
+      [
+        'Open next weekend at 110 AMD/night',
+        'Set a peak rate of 120 AMD/night for summer',
+        'Block December 24–January 2',
+      ],
+      snapshot,
+      guardContext,
+      'en',
+      4,
+      usdPricing,
+    );
+    expect(result.length).toBeGreaterThanOrEqual(3);
+    expect(result.every((s) => !/\bAMD\b/.test(s))).toBe(true);
+    expect(result.some((s) => s.includes('USD'))).toBe(true);
   });
 
   it('builds USD fallback suggestions that pass the guard', () => {

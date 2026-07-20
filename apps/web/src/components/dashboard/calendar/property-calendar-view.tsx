@@ -10,6 +10,7 @@ import { DisplayCurrencyToggle } from '@/components/currency/display-currency-to
 import { useDisplayMoney } from '@/hooks/use-display-money';
 import { useSelectionDates, usePropertyCalendar } from '@/hooks/use-property-calendar';
 import { Link } from '@/i18n/navigation';
+import { isLocalIsoEditable } from '@/lib/calendar/editable-window';
 import { usePropertyCalendarStore } from '@/store';
 
 import { AvailabilityMonth } from './availability-month';
@@ -50,6 +51,7 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
   const localizedTitle = getLocalizedTitle(property.titleLabels, locale, property.title);
 
   function handleDayClick(iso: string): void {
+    if (!isLocalIsoEditable(iso)) return;
     if (!selection.from || (selection.from && selection.to)) {
       setSelection({ from: iso, to: undefined });
       return;

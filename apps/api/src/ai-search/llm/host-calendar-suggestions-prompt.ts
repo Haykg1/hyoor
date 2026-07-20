@@ -49,7 +49,8 @@ export function buildHostCalendarSuggestionsPrompt(
     `- For rate suggestions include a numeric ${pricing.displayCurrency} amount (use converted base as reference; peak ~20% higher, weekends ~10% higher).`,
     pricing.displayCurrency !== pricing.settlementCurrency
       ? `- When including a rate, always append (~N ${pricing.settlementCurrency}) using the matching settlement amount.`
-      : `- Rate amounts are in ${pricing.settlementCurrency}.`,
+      : `- Rate amounts are in ${pricing.settlementCurrency} only.`,
+    `- NEVER label rates as AMD or EUR unless display currency is that code. Wrong example to avoid: "120 AMD" when display is ${pricing.displayCurrency}.`,
     `- Example peak amount: ${peakExample}; example weekend amount: ${weekendExample}.`,
     '- Mix availability and pricing ideas when the calendar data supports it.',
     '- Do not mention other properties or off-topic topics.',

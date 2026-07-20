@@ -1,11 +1,16 @@
 'use client';
 
-import type { SearchDisplayCurrency } from '@repo/shared';
+import {
+  suggestionsMatchDisplayCurrency,
+  todayIsoLocal,
+  type SearchDisplayCurrency,
+} from '@repo/shared';
 import { useLocale } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 
 import { useDisplayMoney } from '@/hooks/use-display-money';
 import { getHostCalendarAiSuggestions } from '@/lib/api/host-calendar-ai';
+import { useDisplayCurrencyStore } from '@/store/display-currency.store';
 
 interface StoredSuggestions {
   date: string;
@@ -17,18 +22,14 @@ interface UseHostCalendarAiSuggestionsResult {
   isLoading: boolean;
 }
 
+const CACHE_VERSION = 'v2';
+
 function storageKey(
   propertyId: string,
   locale: string,
   displayCurrency: SearchDisplayCurrency,
 ): string {
-  return `host-calendar-ai-suggestions-${propertyId}-${locale}-${displayCurrency}`;
-}
-
-function todayLocalIso(): string {
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  return `host-calendar-ai-suggestions-${CACHE_VERSION}-${propertyId}-${locale}-${displayCurrency}`;
 }
 
 function loadStored(
@@ -42,6 +43,10 @@ function loadStored(
     if (!raw) return null;
     const parsed = JSON.parse(raw) as StoredSuggestions;
     if (!parsed || typeof parsed.date !== 'string' || !Array.isArray(parsed.suggestions)) {
+      return null;
+    }
+    if (!suggestionsMatchDisplayCurrency(parsed.suggestions, displayCurrency)) {
+      localStorage.removeItem(storageKey(propertyId, locale, displayCurrency));
       return null;
     }
     return parsed;
@@ -65,10 +70,20 @@ export function useHostCalendarAiSuggestions(
 ): UseHostCalendarAiSuggestionsResult {
   const locale = useLocale();
   const { displayCurrency } = useDisplayMoney();
+  const [hydrated, setHydrated] = useState(() => useDisplayCurrencyStore.persist.hasHydrated());
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    const finish = () => setHydrated(true);
+    if (useDisplayCurrencyStore.persist.hasHydrated()) {
+      finish();
+      return;
+    }
+    return useDisplayCurrencyStore.persist.onFinishHydration(finish);
+  }, []);
   const loadSuggestions = useCallback(async () => {
-    const today = todayLocalIso();
+    if (!hydrated) return;
+    const today = todayIsoLocal();
     const cached = loadStored(propertyId, locale, displayCurrency);
     if (cached?.date === today && cached.suggestions.length > 0) {
       setSuggestions(cached.suggestions);
@@ -78,7 +93,9 @@ export function useHostCalendarAiSuggestions(
     setIsLoading(true);
     try {
       const response = await getHostCalendarAiSuggestions(propertyId, locale, displayCurrency);
-      const next = response.suggestions.filter(Boolean);
+      const next = response.suggestions
+        .filter(Boolean)
+        .filter((s) => suggestionsMatchDisplayCurrency([s], displayCurrency));
       if (next.length > 0) {
         persist(propertyId, locale, displayCurrency, { date: today, suggestions: next });
         setSuggestions(next);
@@ -90,9 +107,9 @@ export function useHostCalendarAiSuggestions(
     } finally {
       setIsLoading(false);
     }
-  }, [displayCurrency, locale, propertyId]);
+  }, [displayCurrency, hydrated, locale, propertyId]);
   useEffect(() => {
     void loadSuggestions();
   }, [loadSuggestions]);
-  return { suggestions, isLoading };
+  return { suggestions, isLoading: !hydrated || isLoading };
 }

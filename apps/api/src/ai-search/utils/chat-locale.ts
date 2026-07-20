@@ -65,6 +65,12 @@ export const HOST_CALENDAR_ALL_BOOKED_MESSAGES: LocalizedCopy = {
   ru: 'Все выбранные даты забронированы и не могут быть изменены.',
 };
 
+export const HOST_CALENDAR_OUT_OF_WINDOW_MESSAGES: LocalizedCopy = {
+  en: 'I can only change dates from today through the next 365 days. Please pick a date in that range.',
+  hy: 'Կարող եմ փոխել միայն այսօրվանից մինչև հաջորդ 365 օրը։ Խնդրում եմ ընտրել այդ միջակայքի ամսաթիվ։',
+  ru: 'Я могу менять только даты с сегодняшнего дня и на следующие 365 дней. Выберите дату в этом диапазоне.',
+};
+
 export const HOST_CALENDAR_REVERT_HINTS: LocalizedCopy = {
   en: 'To revert, ask me to open those dates again, set the rate back to base, or edit the dates directly on the calendar grid.',
   hy: 'Չեղարկելու համար խնդրեք կրկին բացել այդ ամսաթվերը, վերադարձնել հիմնական գինը կամ խմբագրել օրացույցից։',

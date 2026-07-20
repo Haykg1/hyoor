@@ -1,8 +1,9 @@
 'use client';
 
-import type { AvailabilityDayView } from '@repo/shared';
+import { todayIsoLocal, type AvailabilityDayView } from '@repo/shared';
 
 import { useDisplayMoney } from '@/hooks/use-display-money';
+import { isLocalIsoEditable } from '@/lib/calendar/editable-window';
 import { cn } from '@/lib/utils';
 
 interface AvailabilityMonthProps {
@@ -51,11 +52,6 @@ const MONTH_NAMES = [
   'December',
 ];
 
-const TODAY_ISO = (() => {
-  const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-})();
-
 export function AvailabilityMonth({
   monthDate,
   daysByDate,
@@ -67,6 +63,7 @@ export function AvailabilityMonth({
   const { formatMoney } = useDisplayMoney();
   const cells = buildGrid(monthDate);
   const heading = `${MONTH_NAMES[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
+  const todayIso = todayIsoLocal();
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-semibold text-foreground">{heading}</h3>
@@ -88,8 +85,8 @@ export function AvailabilityMonth({
               basePricePerNight={basePricePerNight}
               currency={currency}
               formatMoney={formatMoney}
-              isPast={iso < TODAY_ISO}
-              isToday={iso === TODAY_ISO}
+              isEditable={isLocalIsoEditable(iso, todayIso)}
+              isToday={iso === todayIso}
               onClick={() => onDayClick(iso)}
             />
           ) : (
@@ -108,7 +105,7 @@ interface DayCellProps {
   basePricePerNight: number;
   currency: string;
   formatMoney: (amount: number, fromCurrency?: string) => string;
-  isPast: boolean;
+  isEditable: boolean;
   isToday: boolean;
   onClick: () => void;
 }
@@ -120,7 +117,7 @@ function DayCell({
   basePricePerNight,
   currency,
   formatMoney,
-  isPast,
+  isEditable,
   isToday,
   onClick,
 }: DayCellProps): React.JSX.Element {
@@ -129,24 +126,22 @@ function DayCell({
   const price = day?.effectivePricePerNight ?? basePricePerNight;
   const hasOverride = (day?.priceOverride ?? null) !== null;
   const dayNumber = Number(iso.slice(-2));
-  const interactive = !isPast;
   return (
     <button
       type="button"
-      onClick={interactive ? onClick : undefined}
-      disabled={!interactive}
+      onClick={isEditable ? onClick : undefined}
+      disabled={!isEditable}
       aria-pressed={isSelected}
       className={cn(
         'group relative flex aspect-square w-full flex-col items-stretch rounded-md border p-1 text-left transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        interactive ? 'cursor-pointer hover:border-primary/50' : 'cursor-default',
-        isPast && 'opacity-40',
+        isEditable ? 'cursor-pointer hover:border-primary/50' : 'cursor-default opacity-40',
         isToday && 'ring-1 ring-primary/60',
         !day && 'border-border bg-card',
         isBlockedByBooking && 'border-amber-300/70 bg-amber-50/60 dark:bg-amber-950/30',
         isManuallyBlocked && 'border-border bg-muted/70 text-muted-foreground',
         day?.isAvailable && hasOverride && 'border-primary/40 bg-primary/5',
-        isSelected && 'border-primary bg-primary/15 ring-2 ring-primary',
+        isSelected && isEditable && 'border-primary bg-primary/15 ring-2 ring-primary',
       )}
     >
       <span className="text-[11px] font-semibold leading-none">{dayNumber}</span>

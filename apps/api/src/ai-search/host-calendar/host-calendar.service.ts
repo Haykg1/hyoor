@@ -8,6 +8,7 @@ import type {
   HostCalendarSuggestionsResponse,
   ProposeCalendarChangesToolArgs,
 } from '@repo/shared';
+import { isIsoDateInEditableWindow, maxEditableIsoDate, todayIsoUtc } from '@repo/shared';
 
 import type { RequestUser } from '../../auth/decorators/current-user.decorator';
 import { AvailabilityService } from '../../availability/availability.service';
@@ -30,6 +31,7 @@ import {
   HOST_CALENDAR_ALL_BOOKED_MESSAGES,
   HOST_CALENDAR_ALREADY_APPLIED_MESSAGES,
   HOST_CALENDAR_NO_CHANGES_MESSAGES,
+  HOST_CALENDAR_OUT_OF_WINDOW_MESSAGES,
   HOST_CALENDAR_REVERT_HINTS,
   normalizeChatLocale,
 } from '../utils/chat-locale';
@@ -94,6 +96,7 @@ export class HostCalendarService {
     await this.quotaService.assertHostCalendarTokenBudget(user.userId);
     await this.quotaService.consumeHostCalendarRequest(user.userId);
     const rates = await this.currencyService.getRates();
+    const todayIso = todayIsoUtc();
     const llmContext: HostCalendarLlmContext = {
       propertyId,
       propertyTitle: property.title,
@@ -101,6 +104,8 @@ export class HostCalendarService {
       currency: property.currency,
       locale,
       fxRatesHint: formatFxRatesHint(rates, property.currency),
+      todayIso,
+      maxEditableIso: maxEditableIsoDate(todayIso),
     };
     const llmResult = await this.llmService.completeHostCalendar(messages, llmContext);
     await this.quotaService.recordHostCalendarTokenUsage(user.userId, llmResult.usage.totalTokens);
@@ -127,7 +132,7 @@ export class HostCalendarService {
     const property = await this.assertHostOwnsProperty(propertyId, user.userId);
     const chatLocale = normalizeChatLocale(locale);
     const displayCurrency = normalizeDisplayCurrency(displayCurrencyRaw);
-    const todayIso = new Date().toISOString().slice(0, 10);
+    const todayIso = todayIsoUtc();
     const cacheKey = `${HOST_CALENDAR_SUGGESTIONS_CACHE_PREFIX}${propertyId}:${chatLocale}:${displayCurrency}:${todayIso}`;
     if (this.redis.isConfigured) {
       const cached = await this.redis.get(cacheKey);
@@ -209,7 +214,13 @@ export class HostCalendarService {
   ): Promise<HostCalendarChatResponse> {
     const chatLocale = normalizeChatLocale(locale);
     const property = await this.assertHostOwnsProperty(propertyId, user.userId);
-    const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
+    const todayIso = todayIsoUtc();
+    const sorted = [...entries]
+      .filter((e) => isIsoDateInEditableWindow(e.date, todayIso))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    if (entries.length > 0 && sorted.length === 0) {
+      return { type: 'clarify', message: HOST_CALENDAR_OUT_OF_WINDOW_MESSAGES[chatLocale] };
+    }
     if (sorted.length === 0) {
       return { type: 'clarify', message: HOST_CALENDAR_NO_CHANGES_MESSAGES[chatLocale] };
     }
@@ -274,11 +285,18 @@ export class HostCalendarService {
       isAvailable,
       args.useBaseRate ? null : priceOverride,
     );
-    const range = await this.availabilityService.getForRange(
-      propertyId,
-      args.dateFrom,
-      args.dateTo,
-    );
+    const todayIso = todayIsoUtc();
+    const inWindow = fullEntries.filter((entry) => isIsoDateInEditableWindow(entry.date, todayIso));
+    if (inWindow.length === 0) {
+      return {
+        type: 'clarify',
+        message: HOST_CALENDAR_OUT_OF_WINDOW_MESSAGES[normalizeChatLocale(locale)],
+        quota,
+      };
+    }
+    const dateFrom = inWindow[0]!.date;
+    const dateTo = inWindow[inWindow.length - 1]!.date;
+    const range = await this.availabilityService.getForRange(propertyId, dateFrom, dateTo);
     const currentByDate = new Map<string, CalendarDayState>(
       range.entries.map((e) => [
         e.date,
@@ -290,7 +308,7 @@ export class HostCalendarService {
         },
       ]),
     );
-    const delta = diffProposedVsCurrent(fullEntries, currentByDate, basePricePerNight);
+    const delta = diffProposedVsCurrent(inWindow, currentByDate, basePricePerNight);
     if (delta.length === 0) {
       return {
         type: 'already_applied',
@@ -303,8 +321,8 @@ export class HostCalendarService {
       message: llmMessage,
       proposedChanges: {
         entries: delta,
-        dateFrom: args.dateFrom,
-        dateTo: args.dateTo,
+        dateFrom: delta[0]!.date,
+        dateTo: delta[delta.length - 1]!.date,
       },
       quota,
     };

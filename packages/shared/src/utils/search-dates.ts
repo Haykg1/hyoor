@@ -21,11 +21,32 @@ export function isIsoDateString(value: string | undefined): value is string {
   return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
 }
 
-function addUtcDays(iso: string, days: number): string {
+/** Add calendar days to a YYYY-MM-DD string (UTC date arithmetic). */
+export function addUtcDays(iso: string, days: number): string {
   const [y, m, d] = iso.split('-').map(Number) as [number, number, number];
   const date = new Date(Date.UTC(y, m - 1, d));
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
+}
+
+/** Max days ahead of today that hosts may edit on the calendar (inclusive end = today + N). */
+export const HOST_CALENDAR_EDITABLE_DAYS_AHEAD = 365;
+
+export function maxEditableIsoDate(
+  todayIso: string,
+  daysAhead: number = HOST_CALENDAR_EDITABLE_DAYS_AHEAD,
+): string {
+  return addUtcDays(todayIso, daysAhead);
+}
+
+/** Inclusive window: `todayIso` … `todayIso + daysAhead`. */
+export function isIsoDateInEditableWindow(
+  iso: string,
+  todayIso: string,
+  daysAhead: number = HOST_CALENDAR_EDITABLE_DAYS_AHEAD,
+): boolean {
+  if (!isIsoDateString(iso) || !isIsoDateString(todayIso)) return false;
+  return iso >= todayIso && iso <= maxEditableIsoDate(todayIso, daysAhead);
 }
 
 export function nightsBetweenIso(checkIn: string, checkOut: string): number {
