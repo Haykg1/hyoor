@@ -1,26 +1,16 @@
 import type { CurrencyRatesPayload } from '@repo/shared';
 
 import { convertCurrencyAmount } from '@/lib/currency/convert';
+import { majorToMinor } from '@/lib/format/money';
 
-export function parseRateInput(text: string): number | null {
-  const n = Number(text.replace(/[^\d]/g, ''));
-  if (!Number.isFinite(n) || n < 0) return null;
-  return n;
-}
-
-/** Display amount → settlement integer for the availability API. */
+/** Typed display amount (major units) → settlement minor integer for the availability API. */
 export function toSettlementAmount(
-  displayAmount: number,
+  displayMajor: number,
   displayCurrency: string,
   settlementCurrency: string,
   rates: CurrencyRatesPayload | null,
 ): number | null {
-  const converted = convertCurrencyAmount(
-    displayAmount,
-    displayCurrency,
-    settlementCurrency,
-    rates,
-  );
+  const converted = convertCurrencyAmount(displayMajor, displayCurrency, settlementCurrency, rates);
   if (converted === null) return null;
-  return Math.round(converted);
+  return majorToMinor(converted, settlementCurrency);
 }

@@ -125,6 +125,12 @@ export class PropertiesService {
     private readonly currencyService: CurrencyService,
   ) {}
 
+  /** Minor units per major unit (100 for cent-based currencies, 1 for whole-unit ones like AMD). */
+  private minorUnitFactor(currency: string): number {
+    return currency === 'AMD' ? 1 : 100;
+  }
+
+  /** Returns the price in minor units of the guest display currency. */
   private buildDisplayPrice(
     pricePerNight: number,
     currency: string,
@@ -136,9 +142,13 @@ export class PropertiesService {
       return { amount: pricePerNight, currency: displayCurrency };
     }
     if (!rates) return null;
-    const converted = this.currencyService.convert(pricePerNight, currency, displayCurrency, rates);
+    const major = pricePerNight / this.minorUnitFactor(currency);
+    const converted = this.currencyService.convert(major, currency, displayCurrency, rates);
     if (converted === null) return null;
-    return { amount: Math.round(converted), currency: displayCurrency };
+    return {
+      amount: Math.round(converted * this.minorUnitFactor(displayCurrency)),
+      currency: displayCurrency,
+    };
   }
 
   private async safePresignedUrl(key: string): Promise<string | undefined> {
@@ -524,8 +534,9 @@ export class PropertiesService {
   }
 
   /**
-   * Listing prices use host settlement currency (USD). Convert filter bounds from the
-   * guest display currency into USD before comparing to `pricePerNight`.
+   * Listing prices use host settlement currency (USD) in minor units. Filter bounds arrive
+   * in guest display currency major units, so convert to USD and scale to minor units
+   * before comparing to `pricePerNight`.
    */
   private convertPriceBoundsToSettlement(
     dto: SearchPropertiesDto,
@@ -533,27 +544,34 @@ export class PropertiesService {
     rates: CurrencyRates | null,
   ): { minPrice?: number; maxPrice?: number } {
     const settlementCurrency = 'USD';
+    const minorPerMajor = 100;
     const minPrice = dto.minPrice;
     const maxPrice = dto.maxPrice;
     if (minPrice === undefined && maxPrice === undefined) return {};
+    const toMinor = (major: number): number => Math.round(major * minorPerMajor);
     if (!displayCurrency || displayCurrency === settlementCurrency) {
-      return { minPrice, maxPrice };
+      return {
+        minPrice: minPrice === undefined ? undefined : toMinor(minPrice),
+        maxPrice: maxPrice === undefined ? undefined : toMinor(maxPrice),
+      };
     }
     if (!rates) {
       this.logger.warn(
         `Price filter bounds treated as ${settlementCurrency} — rates unavailable for ${displayCurrency}`,
       );
-      return { minPrice, maxPrice };
+      return {
+        minPrice: minPrice === undefined ? undefined : toMinor(minPrice),
+        maxPrice: maxPrice === undefined ? undefined : toMinor(maxPrice),
+      };
     }
-    const convertBound = (amount: number): number | undefined => {
+    const convertBound = (amount: number): number => {
       const converted = this.currencyService.convert(
         amount,
         displayCurrency,
         settlementCurrency,
         rates,
       );
-      if (converted === null) return amount;
-      return Math.round(converted);
+      return toMinor(converted ?? amount);
     };
     return {
       minPrice: minPrice === undefined ? undefined : convertBound(minPrice),

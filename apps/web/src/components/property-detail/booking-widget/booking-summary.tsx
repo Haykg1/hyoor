@@ -2,19 +2,12 @@ import type { AppliedPromotionSummary, BookingQuoteResult } from '@repo/shared';
 import { useTranslations } from 'next-intl';
 
 import { Separator } from '@/components/ui/separator';
+import { formatStoredMoney as formatPrice } from '@/lib/format/money';
 
 interface BookingSummaryProps {
   quote: BookingQuoteResult | null;
   isQuoteLoading: boolean;
   nights: number | null;
-}
-
-function formatPrice(amount: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
 }
 
 function promotionLabel(

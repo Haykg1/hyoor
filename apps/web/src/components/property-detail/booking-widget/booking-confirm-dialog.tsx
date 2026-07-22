@@ -15,6 +15,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { formatBookingDate } from '@/lib/format/booking-date';
+import { formatStoredMoney as formatPrice } from '@/lib/format/money';
 
 interface BookingConfirmDialogProps {
   open: boolean;
@@ -28,22 +30,6 @@ interface BookingConfirmDialogProps {
   quote: BookingQuoteResult | null;
   isSubmitting: boolean;
   onConfirm: () => void;
-}
-
-function formatPrice(amount: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
 }
 
 export function BookingConfirmDialog({
@@ -75,11 +61,15 @@ export function BookingConfirmDialog({
           <p className="font-medium">{title}</p>
           <div className="flex justify-between">
             <span className="text-muted-foreground">{tBooking('check_in')}</span>
-            <span>{formatDate(checkIn)}</span>
+            <span>
+              {formatBookingDate(checkIn, { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">{tBooking('check_out')}</span>
-            <span>{formatDate(checkOut)}</span>
+            <span>
+              {formatBookingDate(checkOut, { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">{tBooking('guests')}</span>

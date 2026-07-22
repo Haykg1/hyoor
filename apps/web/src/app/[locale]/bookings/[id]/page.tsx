@@ -55,6 +55,9 @@ export default function BookingConfirmationPage(): React.JSX.Element {
       onCancelled={() => {
         void getBookingById(id).then(setBooking);
       }}
+      onDepositChanged={() => {
+        void getBookingById(id).then(setBooking);
+      }}
     />
   );
 }

@@ -82,7 +82,8 @@
     "admin_hosts": "Hosts",
     "favorites": "Favorites",
     "menu": "Menu",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "admin_deposit_claims": "Deposit claims"
   },
   "notifications": {
     "title": "Notifications",
@@ -422,6 +423,9 @@
     "confirmation": {
       "title": "Reservation confirmed!",
       "subtitle": "Your stay is booked. We sent you a confirmation.",
+      "cancelled_title": "Booking cancelled",
+      "cancelled_subtitle": "This reservation has been cancelled.",
+      "cancellation_fee": "Cancellation fee",
       "continue_payment": "Continue to payment",
       "host_title": "Reservation details",
       "host_subtitle": "Payment split and guest information for this stay.",
@@ -454,6 +458,46 @@
         "FAILED": "Failed",
         "CANCELLED": "Cancelled"
       }
+    },
+    "deposit_panel": {
+      "title": "Security deposit · {amount}",
+      "claim_pending": "Your claim for {amount} is waiting for admin review. The deposit stays frozen until it is decided.",
+      "claim_approved": "Claim approved — {amount} was charged from the guest’s deposit and will be transferred to you.",
+      "claim_rejected": "The claim was declined by the admin and the deposit hold was released to the guest.",
+      "released": "The deposit hold has been released to the guest.",
+      "window_not_open": "You can charge or release the deposit after the guest checks out.",
+      "window_open": "About {hours}h left to charge or release the deposit. After that it is released automatically.",
+      "window_closed": "The claim window has closed; the deposit will be released automatically.",
+      "charge_button": "Charge deposit",
+      "release_button": "Release deposit"
+    },
+    "deposit_release_dialog": {
+      "title": "Release security deposit",
+      "description": "The {amount} hold on the guest’s card will be released.",
+      "warning": "This cannot be undone — after releasing, this deposit can no longer be charged.",
+      "cancel": "Keep hold",
+      "confirm": "Release deposit",
+      "submitting": "Releasing…",
+      "success": "Security deposit released",
+      "error": "Failed to release the deposit"
+    },
+    "deposit_claim_dialog": {
+      "title": "Charge security deposit",
+      "description": "File a damage claim against the {amount} deposit hold.",
+      "admin_review_note": "Your claim will be reviewed by an admin. The deposit stays frozen until it is approved or declined.",
+      "amount_label": "Amount to charge",
+      "amount_too_high": "The amount cannot exceed {max}",
+      "reason_label": "What happened?",
+      "reason_placeholder": "Describe the damage (at least 10 characters)…",
+      "photos_label": "Evidence photos",
+      "photos_hint": "Up to {max} photos · JPEG, PNG, WebP · max 5 MB each (compressed automatically)",
+      "add_photo": "Add photo",
+      "remove_photo": "Remove photo",
+      "cancel": "Cancel",
+      "confirm": "Submit claim",
+      "submitting": "Submitting…",
+      "success": "Claim submitted — waiting for admin review",
+      "error": "Failed to submit the claim"
     }
   },
   "payment": {
@@ -803,7 +847,8 @@
       "hosts_link": "Hosts",
       "tabs": {
         "all_properties": "All Properties"
-      }
+      },
+      "deposit_claims_link": "Deposit claims"
     },
     "calendar": {
       "title": "Calendar & Rates",
@@ -1542,6 +1587,43 @@
           "PAYMENT_LOCK_SWEEP_FAILED": "Payment lock sweep failed",
           "CANCELLATION_CAPTURE_FAILED": "Cancellation capture failed"
         }
+      }
+    },
+    "deposit_claims": {
+      "back_to_dashboard": "Back to dashboard",
+      "title": "Deposit claims",
+      "subtitle": "Review security-deposit damage claims filed by hosts",
+      "empty_state": "No pending claims.",
+      "review_button": "Review",
+      "approve_success": "Claim approved — deposit charged",
+      "decline_success": "Claim declined — deposit released",
+      "error": "Failed to review the claim",
+      "table": {
+        "created_at": "Filed",
+        "booking": "Booking",
+        "property": "Property",
+        "guest": "Guest",
+        "host": "Host",
+        "deposit": "Deposit",
+        "claimed": "Claimed"
+      },
+      "dialog": {
+        "title": "Review deposit claim",
+        "description": "The host wants to charge {amount} of the {deposit} deposit.",
+        "property": "Property",
+        "stay": "Stay",
+        "guest": "Guest",
+        "host": "Host",
+        "reason": "Host’s reason",
+        "evidence": "Evidence photos",
+        "evidence_alt": "Evidence photo {index}",
+        "no_evidence": "No evidence photos attached.",
+        "note_label": "Review note (optional)",
+        "note_placeholder": "Note about the decision…",
+        "decline": "Decline & release",
+        "declining": "Declining…",
+        "approve": "Approve & charge",
+        "approving": "Approving…"
       }
     }
   },

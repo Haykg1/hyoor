@@ -1,6 +1,6 @@
 import type { PromotionDiscountType, PromotionType } from '@repo/shared';
 
-const MINOR_UNIT_DIVISOR = 100;
+import { minorToMajor } from '@/lib/format/money';
 
 export interface SmartPromotionDescriptionInput {
   discountType: PromotionDiscountType;
@@ -20,7 +20,7 @@ function formatDiscount(input: SmartPromotionDescriptionInput): string {
     return `${input.discountPercent}% off`;
   }
   if (input.discountType === 'FIXED_AMOUNT' && input.discountAmount !== undefined) {
-    const major = input.discountAmount / MINOR_UNIT_DIVISOR;
+    const major = minorToMajor(input.discountAmount, input.currency);
     return `${major} ${input.currency} off`;
   }
   return 'Special discount';

@@ -14,20 +14,13 @@ import { ApiError } from '@/lib/api';
 import { listMyBookings } from '@/lib/api/bookings';
 import { getMyProfile, type MyProfile } from '@/lib/api/users';
 import { canGuestCancelBooking, toCancelBookingPreview } from '@/lib/bookings/cancellation';
-import { formatAmd } from '@/lib/format/price';
+import { formatBookingDate } from '@/lib/format/booking-date';
+import { formatStoredMoney } from '@/lib/format/money';
 
 type BookingTab = 'upcoming' | 'past' | 'cancelled';
 
 const STATUS_UPCOMING = new Set(['CONFIRMED']);
 const STATUS_CANCELLED = new Set(['CANCELLED_BY_GUEST', 'CANCELLED_BY_HOST']);
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Pending',
@@ -101,14 +94,16 @@ function BookingCard({
             {booking.property.city}, {booking.property.country}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            {formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}
+            {formatBookingDate(booking.checkIn)} → {formatBookingDate(booking.checkOut)}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {booking.nightsCount} nights · {booking.guestCount} guests
           </p>
         </div>
         <div className="hidden shrink-0 text-right sm:block">
-          <p className="text-sm font-semibold">{formatAmd(booking.totalAmount)}</p>
+          <p className="text-sm font-semibold">
+            {formatStoredMoney(booking.totalAmount, booking.currency)}
+          </p>
         </div>
       </Link>
       {showCancel ? (
@@ -230,7 +225,7 @@ export default function TripsPage(): React.JSX.Element {
           <div className="h-9 w-9 rounded-xl bg-yellow-50 dark:bg-yellow-950/40 flex items-center justify-center mb-2 mx-auto">
             <Star className="h-4 w-4 text-yellow-500" />
           </div>
-          <p className="font-bold text-lg">{formatAmd(totalSpent)}</p>
+          <p className="font-bold text-lg">{formatStoredMoney(totalSpent, 'USD')}</p>
           <p className="text-xs text-muted-foreground">{t('stat_spent')}</p>
         </div>
       </div>

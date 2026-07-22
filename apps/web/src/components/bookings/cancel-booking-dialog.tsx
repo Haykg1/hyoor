@@ -23,7 +23,7 @@ import {
   canGuestCancelBooking,
   type CancelBookingPreview,
 } from '@/lib/bookings/cancellation';
-import { formatCurrencyAmount } from '@/lib/format/price';
+import { formatStoredMoney } from '@/lib/format/money';
 
 interface CancelBookingDialogProps {
   booking: CancelBookingPreview;
@@ -47,7 +47,7 @@ export function CancelBookingDialog({
   const isGuest = role === 'guest';
   const hasConfiguredFee = booking.cancellationFeeValue > 0;
   const preview = cancellationFeePreview(booking, isGuest ? true : applyFee);
-  const money = (amount: number) => formatCurrencyAmount(amount, booking.currency);
+  const money = (amount: number) => formatStoredMoney(amount, booking.currency);
 
   async function handleConfirm(): Promise<void> {
     if (isGuest && !canGuestCancelBooking(booking)) {

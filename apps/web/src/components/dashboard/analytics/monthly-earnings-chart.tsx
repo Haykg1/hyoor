@@ -18,6 +18,7 @@ import { AnalyticsInfoHint } from '@/components/dashboard/analytics/analytics-in
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDisplayMoney } from '@/hooks/use-display-money';
+import { minorToMajor } from '@/lib/format/money';
 import { formatCurrencyAmount } from '@/lib/format/price';
 
 interface MonthlyEarningsChartProps {
@@ -43,7 +44,7 @@ export function MonthlyEarningsChart({
     const converted = convert(row.earnings, settlementCurrency);
     return {
       ...row,
-      displayEarnings: converted ?? row.earnings,
+      displayEarnings: converted ?? minorToMajor(row.earnings, settlementCurrency),
       tipCurrency: converted === null ? settlementCurrency : displayCurrency,
     };
   });

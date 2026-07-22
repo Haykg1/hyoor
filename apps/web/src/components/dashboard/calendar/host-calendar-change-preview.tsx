@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
 import { useDisplayMoney } from '@/hooks/use-display-money';
-import { formatCurrencyAmount } from '@/lib/format/price';
+import { formatStoredMoney } from '@/lib/format/money';
 
 interface HostCalendarChangePreviewProps {
   entries: HostCalendarChangeEntry[];
@@ -40,9 +40,7 @@ export function HostCalendarChangePreview({
     return (
       <>
         {primary}
-        <span className="ml-1 text-muted-foreground">
-          (~{formatCurrencyAmount(Math.round(amount), currency)})
-        </span>
+        <span className="ml-1 text-muted-foreground">(~{formatStoredMoney(amount, currency)})</span>
       </>
     );
   }
@@ -81,7 +79,7 @@ export function HostCalendarChangePreview({
                       })}
                       {displayCurrency !== currency ? (
                         <span className="ml-1 text-muted-foreground">
-                          (~{formatCurrencyAmount(Math.round(basePricePerNight), currency)})
+                          (~{formatStoredMoney(basePricePerNight, currency)})
                         </span>
                       ) : null}
                     </>

@@ -11,7 +11,7 @@ import { useDisplayMoney } from '@/hooks/use-display-money';
 import { useSelectionDates, usePropertyCalendar } from '@/hooks/use-property-calendar';
 import { Link } from '@/i18n/navigation';
 import { isLocalIsoEditable } from '@/lib/calendar/editable-window';
-import { formatCurrencyAmount } from '@/lib/format/price';
+import { formatStoredMoney } from '@/lib/format/money';
 import { usePropertyCalendarStore } from '@/store';
 
 import { AvailabilityMonth } from './availability-month';
@@ -90,7 +90,7 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
                 {convert(basePricePerNight, property.currency) !== null &&
                 displayCurrency !== property.currency ? (
                   <span className="ml-1 text-sm font-normal text-muted-foreground">
-                    (~{formatCurrencyAmount(Math.round(basePricePerNight), property.currency)})
+                    (~{formatStoredMoney(basePricePerNight, property.currency)})
                   </span>
                 ) : null}
               </p>

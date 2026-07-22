@@ -21,10 +21,7 @@ export function computeCancellationFee(
   return Math.round((rentAmount * feeValue) / 100);
 }
 
-/** Guest may cancel only when policy allows refunds and fee is percent-based. */
-export function isGuestCancellationAllowed(
-  cancellationPolicy: string,
-  feeType: CancellationFeeType,
-): boolean {
-  return cancellationPolicy !== 'NON_REFUNDABLE' && feeType === 'PERCENT';
+/** Guest may cancel whenever the policy allows refunds (fee is applied per its type). */
+export function isGuestCancellationAllowed(cancellationPolicy: string): boolean {
+  return cancellationPolicy !== 'NON_REFUNDABLE';
 }

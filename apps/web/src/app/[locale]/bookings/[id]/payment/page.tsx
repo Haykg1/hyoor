@@ -14,15 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ApiError } from '@/lib/api';
 import { confirmStripePayment, createStripeSetupIntent, getBookingById } from '@/lib/api/bookings';
+import { formatStoredMoney as formatPrice } from '@/lib/format/money';
 import { getStripe } from '@/lib/stripe';
-
-function formatPrice(amount: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 function useCountdown(deadline: string | null): number | null {
   const [remainingMs, setRemainingMs] = useState<number | null>(null);

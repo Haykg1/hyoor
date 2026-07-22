@@ -6,9 +6,9 @@ import { ArrowRight, Flame, Star, Timer } from 'lucide-react';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { usePriceFormatter } from '@/hooks/use-price-formatter';
 import { Link } from '@/i18n/navigation';
 import { PROPERTY_PLACEHOLDER_IMAGE } from '@/lib/constants/property-placeholder';
+import { formatStoredMoney } from '@/lib/format/money';
 
 interface HotDealsProps {
   deals: HotDealProperty[];
@@ -24,7 +24,7 @@ function HotDealCard({ deal }: { deal: HotDealProperty }): React.JSX.Element {
   const locale = useLocale();
   const t = useTranslations('home.hot_deals');
   const tc = useTranslations('property_card.categories');
-  const { formatAmd } = usePriceFormatter();
+  const money = (amount: number): string => formatStoredMoney(amount, deal.currency);
 
   const localizedTitle = getLocalizedTitle(deal.titleLabels, locale, deal.title);
   const address = getLocalizedAddress(deal.addressLabels, locale, {
@@ -41,7 +41,7 @@ function HotDealCard({ deal }: { deal: HotDealProperty }): React.JSX.Element {
     deal.discountType === 'PERCENT' && deal.discountPercent != null
       ? `−${deal.discountPercent}%`
       : deal.discountAmount != null
-        ? `−${formatAmd(deal.discountAmount)}`
+        ? `−${money(deal.discountAmount)}`
         : null;
 
   const discountedPrice =
@@ -95,13 +95,13 @@ function HotDealCard({ deal }: { deal: HotDealProperty }): React.JSX.Element {
             <div className="flex items-baseline gap-1.5">
               {discountedPrice != null ? (
                 <>
-                  <span className="font-bold text-rose-600">{formatAmd(discountedPrice)}</span>
+                  <span className="font-bold text-rose-600">{money(discountedPrice)}</span>
                   <span className="text-xs text-muted-foreground line-through">
-                    {formatAmd(deal.pricePerNight)}
+                    {money(deal.pricePerNight)}
                   </span>
                 </>
               ) : (
-                <span className="font-bold text-foreground">{formatAmd(deal.pricePerNight)}</span>
+                <span className="font-bold text-foreground">{money(deal.pricePerNight)}</span>
               )}
               <span className="text-xs text-muted-foreground">{t('per_night')}</span>
             </div>

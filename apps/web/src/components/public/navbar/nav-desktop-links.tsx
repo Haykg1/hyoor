@@ -14,6 +14,7 @@ interface NavLink {
   labelKey: 'explore' | 'become_host';
   icon: LucideIcon;
   forRoles: UserRole[];
+  loggedOutOnly?: boolean;
 }
 
 const NAV_LINKS: NavLink[] = [
@@ -23,6 +24,7 @@ const NAV_LINKS: NavLink[] = [
     labelKey: 'become_host',
     icon: Home,
     forRoles: ['GUEST'],
+    loggedOutOnly: true,
   },
 ];
 
@@ -32,11 +34,16 @@ interface NavDesktopLinksProps {
 
 export function NavDesktopLinks({ className }: NavDesktopLinksProps): React.JSX.Element {
   const t = useTranslations('nav');
-  const { user } = useAuthStore();
+  const { user, isLoading } = useAuthStore();
   const role = user?.role ?? 'GUEST';
+  const visibleLinks = NAV_LINKS.filter((link) => {
+    if (!link.forRoles.includes(role)) return false;
+    if (link.loggedOutOnly && (isLoading || user)) return false;
+    return true;
+  });
   return (
     <nav className={cn('items-center gap-6', className)} aria-label="Primary">
-      {NAV_LINKS.filter((link) => link.forRoles.includes(role)).map((link) => {
+      {visibleLinks.map((link) => {
         const Icon = link.icon;
         return (
           <Link

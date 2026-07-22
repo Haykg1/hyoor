@@ -280,6 +280,24 @@ export class NotificationsService {
           body: 'A host posted a limited-time promotion on a property you saved.',
           refType: 'promotion',
         };
+      case 'DEPOSIT_CLAIM_SUBMITTED':
+        return {
+          title: 'Security deposit claim submitted',
+          body: 'A claim against a security deposit is awaiting review.',
+          refType: 'booking',
+        };
+      case 'DEPOSIT_CLAIM_RESOLVED':
+        return {
+          title: 'Security deposit claim resolved',
+          body: 'A security deposit claim has been reviewed.',
+          refType: 'booking',
+        };
+      case 'DEPOSIT_RELEASED':
+        return {
+          title: 'Security deposit released',
+          body: 'The hold on your security deposit has been released.',
+          refType: 'booking',
+        };
       default:
         return { title: 'Notification' };
     }

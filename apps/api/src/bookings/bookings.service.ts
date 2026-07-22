@@ -15,6 +15,7 @@ import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 import { AvailabilityService } from '../availability/availability.service';
 import type { AppConfig } from '../config/configuration';
 import { PrismaService } from '../database/prisma.service';
+import { DepositClaimsService } from '../deposit-claims/deposit-claims.service';
 import { HostProfilesService } from '../host-profiles/host-profiles.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { StripeCheckoutService } from '../payments/stripe/stripe-checkout.service';
@@ -50,10 +51,20 @@ export interface BookingPropertySummary {
   cancellationFeeValue: number;
 }
 
-export interface BookingDetail extends Booking {
+export interface BookingDetail extends Omit<
+  Booking,
+  'checkIn' | 'checkOut' | 'paymentLockExpiresAt' | 'capturedAt' | 'createdAt' | 'updatedAt'
+> {
+  checkIn: string;
+  checkOut: string;
+  paymentLockExpiresAt: string | null;
+  capturedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
   property: BookingPropertySummary;
   guest: BookingGuestProfile;
   promotionSummary?: import('@repo/shared').BookingPromotionSummary | null;
+  securityDepositClaim: import('@repo/shared').SecurityDepositClaimView | null;
 }
 
 const COVER_PHOTO_PRESIGN_EXPIRES = 3600;
@@ -68,6 +79,7 @@ export class BookingsService {
     private readonly promotionsService: PromotionsService,
     private readonly storage: StorageService,
     private readonly stripeCheckout: StripeCheckoutService,
+    private readonly depositClaimsService: DepositClaimsService,
     private readonly config: ConfigService<AppConfig, true>,
   ) {}
 
@@ -269,7 +281,7 @@ export class BookingsService {
       where: { id: booking.propertyId },
     });
     if (!access.asHost) {
-      if (!isGuestCancellationAllowed(property.cancellationPolicy, property.cancellationFeeType)) {
+      if (!isGuestCancellationAllowed(property.cancellationPolicy)) {
         throw new BadRequestException(
           'Guest cancellation is not available for this property cancellation policy',
         );
@@ -533,7 +545,7 @@ export class BookingsService {
   }
 
   private async toBookingDetail(booking: Booking): Promise<BookingDetail> {
-    const [property, guest, promotion] = await Promise.all([
+    const [property, guest, promotion, depositClaim] = await Promise.all([
       this.prisma.property.findUnique({
         where: { id: booking.propertyId },
         include: {
@@ -547,12 +559,23 @@ export class BookingsService {
       booking.promotionId
         ? this.prisma.propertyPromotion.findUnique({ where: { id: booking.promotionId } })
         : Promise.resolve(null),
+      booking.securityDeposit > 0
+        ? this.prisma.securityDepositClaim.findUnique({ where: { bookingId: booking.id } })
+        : Promise.resolve(null),
     ]);
     if (!property || !guest) {
       throw new NotFoundException('Booking related data not found');
     }
+    const { checkIn, checkOut, paymentLockExpiresAt, capturedAt, createdAt, updatedAt, ...rest } =
+      booking;
     return {
-      ...booking,
+      ...rest,
+      checkIn: formatIsoDate(checkIn),
+      checkOut: formatIsoDate(checkOut),
+      paymentLockExpiresAt: paymentLockExpiresAt?.toISOString() ?? null,
+      capturedAt: capturedAt?.toISOString() ?? null,
+      createdAt: createdAt.toISOString(),
+      updatedAt: updatedAt.toISOString(),
       property: {
         id: property.id,
         title: property.title,
@@ -577,6 +600,9 @@ export class BookingsService {
       },
       promotionSummary: promotion
         ? this.promotionsService.toAppliedPromotionSummary(promotion)
+        : null,
+      securityDepositClaim: depositClaim
+        ? await this.depositClaimsService.toClaimView(depositClaim)
         : null,
     };
   }

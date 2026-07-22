@@ -1,5 +1,14 @@
 import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsInt, IsOptional, IsString, Min, MinLength } from 'class-validator';
+import { MAX_DEPOSIT_CLAIM_PHOTOS } from '@repo/shared/constants';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 export class CreateDepositClaimDto {
   @ApiProperty({ example: 15000, description: 'Amount to claim, in minor currency units' })
@@ -12,9 +21,10 @@ export class CreateDepositClaimDto {
   @MinLength(10)
   reason!: string;
 
-  @ApiPropertyOptional({ type: [String], description: 'S3 keys for evidence photos' })
+  @ApiPropertyOptional({ type: [String], description: 'S3 keys for evidence photos (max 5)' })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(MAX_DEPOSIT_CLAIM_PHOTOS)
   @IsString({ each: true })
   evidenceKeys?: string[];
 }

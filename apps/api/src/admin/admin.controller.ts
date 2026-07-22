@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swa
 import type { Property, SecurityDepositClaim, User } from '@repo/database/client';
 import type {
   AdminBooking,
+  AdminDepositClaim,
   AdminHost,
   AdminPaymentFailure,
   HostDashboardStats,
@@ -194,8 +195,8 @@ export class AdminController {
   @ApiOperation({ summary: 'List pending security-deposit damage claims' })
   @ApiOkResponse({ description: 'Pending claims awaiting review, oldest first' })
   @ApiStandardErrors()
-  getPendingDepositClaims(): Promise<SecurityDepositClaim[]> {
-    return this.depositClaims.findPending();
+  getPendingDepositClaims(): Promise<AdminDepositClaim[]> {
+    return this.depositClaims.findPendingDetailed();
   }
 
   @Patch('deposit-claims/:id')

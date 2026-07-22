@@ -12,10 +12,6 @@ export function formatCurrencyAmount(amount: number, currency: string): string {
   return `${value} ${currency}`;
 }
 
-export function formatAmd(amount: number): string {
-  return formatCurrencyAmount(amount, 'AMD');
-}
-
 const CURRENCY_SYMBOLS: Record<string, string> = {
   AMD: '֏',
   USD: '$',
@@ -30,11 +26,6 @@ export function formatCurrencySymbolAmount(amount: number, currency: string): st
   const symbol = CURRENCY_SYMBOLS[currency];
   if (symbol) return `${symbol}${value}`;
   return `${value} ${currency}`;
-}
-
-/** Formats an amount with the Armenian dram symbol (e.g. "֏18,500"). */
-export function formatDramSymbol(amount: number): string {
-  return formatCurrencySymbolAmount(amount, 'AMD');
 }
 
 /** Formats Stripe minor units (cents) as major USD, e.g. 2000 → "20.00 USD". */

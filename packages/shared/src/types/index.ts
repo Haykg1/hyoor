@@ -345,6 +345,32 @@ export interface BookingGuestProfile {
   email?: string | null;
 }
 
+export const SecurityDepositClaimStatuses = ['PENDING', 'APPROVED', 'REJECTED'] as const;
+export type SecurityDepositClaimStatus = (typeof SecurityDepositClaimStatuses)[number];
+
+export interface SecurityDepositClaimView {
+  id: string;
+  bookingId: string;
+  amount: number;
+  reason: string;
+  status: SecurityDepositClaimStatus;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  evidenceUrls: string[];
+  createdAt: string;
+}
+
+export interface AdminDepositClaim extends SecurityDepositClaimView {
+  currency: string;
+  securityDeposit: number;
+  checkIn: string;
+  checkOut: string;
+  propertyId: string;
+  propertyTitle: string;
+  guestName: string;
+  hostName: string;
+}
+
 export interface BookingDetail {
   id: string;
   propertyId: string;
@@ -380,6 +406,7 @@ export interface BookingDetail {
   property: BookingPropertySummary;
   guest: BookingGuestProfile;
   promotionSummary?: import('../dto/booking-quote').BookingPromotionSummary | null;
+  securityDepositClaim?: SecurityDepositClaimView | null;
 }
 
 export const PropertyStatuses = [

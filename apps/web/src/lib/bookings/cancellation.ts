@@ -30,10 +30,7 @@ export function isBookingCancellable(booking: { status: string; checkIn: string 
 }
 
 export function canGuestCancelBooking(booking: CancelBookingPreview): boolean {
-  return (
-    isBookingCancellable(booking) &&
-    isGuestCancellationAllowed(booking.cancellationPolicy, booking.cancellationFeeType)
-  );
+  return isBookingCancellable(booking) && isGuestCancellationAllowed(booking.cancellationPolicy);
 }
 
 export function cancellationFeePreview(

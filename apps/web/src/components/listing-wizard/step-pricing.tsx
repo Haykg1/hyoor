@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/ui/money-input';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import {
   Select,
@@ -34,6 +35,8 @@ interface StepPricingProps {
   form: UseFormReturn<ListingFormValues>;
 }
 
+const LISTING_CURRENCY = 'USD';
+
 export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
   const t = useTranslations('listing_wizard.pricing_rules');
   return (
@@ -49,12 +52,11 @@ export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
                 <FormItem>
                   <FormLabel>{t('price_per_night')} *</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      min={0}
+                    <MoneyInput
+                      currency={LISTING_CURRENCY}
                       placeholder={t('price_placeholder')}
-                      value={field.value || ''}
-                      onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                      value={field.value ?? 0}
+                      onValueChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />
@@ -68,12 +70,11 @@ export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
                 <FormItem>
                   <FormLabel>{t('cleaning_fee')}</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      min={0}
+                    <MoneyInput
+                      currency={LISTING_CURRENCY}
                       placeholder={t('cleaning_placeholder')}
-                      value={field.value ?? ''}
-                      onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                      value={field.value ?? 0}
+                      onValueChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />
@@ -87,12 +88,11 @@ export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
                 <FormItem>
                   <FormLabel>{t('security_deposit')}</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      min={0}
+                    <MoneyInput
+                      currency={LISTING_CURRENCY}
                       placeholder={t('deposit_placeholder')}
-                      value={field.value ?? ''}
-                      onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                      value={field.value ?? 0}
+                      onValueChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />
@@ -216,17 +216,25 @@ export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
                         : t('cancellation_fee_percent')}
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={isNonRefundable ? 100 : maxValue}
-                        disabled={isNonRefundable}
-                        value={isNonRefundable ? 100 : (field.value ?? 0)}
-                        onChange={(e) => {
-                          const next = Math.max(0, Number(e.target.value) || 0);
-                          field.onChange(Math.min(isNonRefundable ? 100 : maxValue, next));
-                        }}
-                      />
+                      {feeType === 'FIXED' && !isNonRefundable ? (
+                        <MoneyInput
+                          currency={LISTING_CURRENCY}
+                          value={field.value ?? 0}
+                          onValueChange={(minor) => field.onChange(Math.min(maxValue, minor))}
+                        />
+                      ) : (
+                        <Input
+                          type="number"
+                          min={0}
+                          max={isNonRefundable ? 100 : maxValue}
+                          disabled={isNonRefundable}
+                          value={isNonRefundable ? 100 : (field.value ?? 0)}
+                          onChange={(e) => {
+                            const next = Math.max(0, Number(e.target.value) || 0);
+                            field.onChange(Math.min(isNonRefundable ? 100 : maxValue, next));
+                          }}
+                        />
+                      )}
                     </FormControl>
                     <p className="text-xs text-muted-foreground">
                       {isNonRefundable

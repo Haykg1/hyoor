@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MoneyInput } from '@/components/ui/money-input';
 import { Textarea } from '@/components/ui/textarea';
 import { createPromotion } from '@/lib/api/promotions';
 import {
@@ -61,7 +62,7 @@ export function PromotionFormDialog({
   const [promotionType, setPromotionType] = useState<'DATE_RANGE' | 'PROMO_CODE'>('DATE_RANGE');
   const [discountType, setDiscountType] = useState<'PERCENT' | 'FIXED_AMOUNT'>('PERCENT');
   const [discountPercent, setDiscountPercent] = useState('20');
-  const [discountAmount, setDiscountAmount] = useState('');
+  const [discountAmount, setDiscountAmount] = useState(0);
   const [range, setRange] = useState<DateRange | undefined>();
   const [promoCode, setPromoCode] = useState('');
   const [maxApplications, setMaxApplications] = useState(String(MAX_APPLICATIONS_DEFAULT));
@@ -76,7 +77,7 @@ export function PromotionFormDialog({
     setPromotionType('DATE_RANGE');
     setDiscountType('PERCENT');
     setDiscountPercent('20');
-    setDiscountAmount('');
+    setDiscountAmount(0);
     setRange(undefined);
     setPromoCode('');
     setMaxApplications(String(MAX_APPLICATIONS_DEFAULT));
@@ -91,12 +92,11 @@ export function PromotionFormDialog({
       return;
     }
     const percent = Number(discountPercent);
-    const amount = Number(discountAmount);
     setDescription(
       buildSmartPromotionDescription({
         discountType,
         discountPercent: discountType === 'PERCENT' ? percent : undefined,
-        discountAmount: discountType === 'FIXED_AMOUNT' ? amount : undefined,
+        discountAmount: discountType === 'FIXED_AMOUNT' ? discountAmount : undefined,
         currency: property.currency,
         type: promotionType,
         bookingStartDate,
@@ -133,7 +133,7 @@ export function PromotionFormDialog({
         type: promotionType,
         discountType,
         discountPercent: discountType === 'PERCENT' ? Number(discountPercent) : undefined,
-        discountAmount: discountType === 'FIXED_AMOUNT' ? Number(discountAmount) : undefined,
+        discountAmount: discountType === 'FIXED_AMOUNT' ? discountAmount : undefined,
         description: description.trim(),
         bookingStartDate,
         bookingEndDate,
@@ -202,12 +202,11 @@ export function PromotionFormDialog({
                 <Label htmlFor="discount-amount">
                   {t('discount.fixed_label', { currency: property?.currency ?? '' })}
                 </Label>
-                <Input
+                <MoneyInput
                   id="discount-amount"
-                  type="number"
-                  min={1}
+                  currency={property?.currency ?? 'USD'}
                   value={discountAmount}
-                  onChange={(e) => setDiscountAmount(e.target.value)}
+                  onValueChange={setDiscountAmount}
                 />
               </div>
             )}

@@ -13,8 +13,14 @@ import { Label } from '@/components/ui/label';
 import { useDisplayMoney } from '@/hooks/use-display-money';
 import { useBuildEntriesForSelection, useSelectionDates } from '@/hooks/use-property-calendar';
 import { isLocalIsoEditable } from '@/lib/calendar/editable-window';
-import { parseRateInput, toSettlementAmount } from '@/lib/calendar/rate-display';
-import { formatCurrencyAmount } from '@/lib/format/price';
+import { toSettlementAmount } from '@/lib/calendar/rate-display';
+import {
+  formatMoneyInputDisplay,
+  formatStoredMoney,
+  minorToMajor,
+  parseMoneyInput,
+  sanitizeMoneyInputTyping,
+} from '@/lib/format/money';
 import { usePropertyCalendarStore } from '@/store';
 
 interface SelectionEditorProps {
@@ -54,7 +60,7 @@ export function SelectionEditor({ basePricePerNight }: SelectionEditorProps): Re
   const { displayCurrency, convert, formatMoney, rates } = useDisplayMoney();
   const convertedBase = convert(basePricePerNight, currency);
   const inputCurrency = convertedBase === null ? currency : displayCurrency;
-  const displayBase = convertedBase ?? basePricePerNight;
+  const displayBase = convertedBase ?? minorToMajor(basePricePerNight, currency);
   const showUsdApprox = convertedBase !== null && displayCurrency !== currency;
 
   const editableDates = selectionDates.filter(
@@ -72,7 +78,7 @@ export function SelectionEditor({ basePricePerNight }: SelectionEditorProps): Re
       selectionDates,
       daysByDate,
       displayBase,
-      (amount) => convert(amount, currency) ?? amount,
+      (amount) => convert(amount, currency) ?? minorToMajor(amount, currency),
     );
     setUseBase(initial.useBase);
     setPriceText(initial.value);
@@ -85,7 +91,7 @@ export function SelectionEditor({ basePricePerNight }: SelectionEditorProps): Re
 
   if (selectionDates.length === 0) return <EmptyHint />;
 
-  const typedDisplay = parseRateInput(useBase ? String(displayBase) : priceText);
+  const typedDisplay = parseMoneyInput(useBase ? String(displayBase) : priceText, inputCurrency);
   const settlementPreview =
     typedDisplay === null ? null : toSettlementAmount(typedDisplay, inputCurrency, currency, rates);
 
@@ -96,7 +102,7 @@ export function SelectionEditor({ basePricePerNight }: SelectionEditorProps): Re
     }
     let priceMinor: number | null = null;
     if (!useBase) {
-      const displayAmount = parseRateInput(priceText);
+      const displayAmount = parseMoneyInput(priceText, inputCurrency);
       if (displayAmount === null) {
         toast.error(t('invalid_price'));
         return;
@@ -150,10 +156,16 @@ export function SelectionEditor({ basePricePerNight }: SelectionEditorProps): Re
             <Input
               id="rate-input"
               type="text"
-              inputMode="numeric"
-              value={useBase ? String(displayBase) : priceText}
+              inputMode="decimal"
+              value={useBase ? formatMoneyInputDisplay(displayBase, inputCurrency) : priceText}
               disabled={useBase}
-              onChange={(e) => setPriceText(e.target.value)}
+              onChange={(e) =>
+                setPriceText(sanitizeMoneyInputTyping(e.target.value, inputCurrency))
+              }
+              onBlur={() => {
+                const major = parseMoneyInput(priceText, inputCurrency);
+                if (major !== null) setPriceText(formatMoneyInputDisplay(major, inputCurrency));
+              }}
               className="w-40"
             />
             <span className="text-xs text-muted-foreground">
@@ -161,7 +173,7 @@ export function SelectionEditor({ basePricePerNight }: SelectionEditorProps): Re
             </span>
             {showUsdApprox && settlementPreview !== null ? (
               <span className="text-xs text-muted-foreground">
-                (~{formatCurrencyAmount(settlementPreview, currency)})
+                (~{formatStoredMoney(settlementPreview, currency)})
               </span>
             ) : null}
           </div>
@@ -176,9 +188,7 @@ export function SelectionEditor({ basePricePerNight }: SelectionEditorProps): Re
             <span>
               {t('use_base_rate', { base: formatMoney(basePricePerNight, currency) })}
               {showUsdApprox ? (
-                <span className="ml-1">
-                  (~{formatCurrencyAmount(Math.round(basePricePerNight), currency)})
-                </span>
+                <span className="ml-1">(~{formatStoredMoney(basePricePerNight, currency)})</span>
               ) : null}
             </span>
           </label>

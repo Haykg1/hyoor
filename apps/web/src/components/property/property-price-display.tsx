@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { formatCurrencyAmount } from '@/lib/format/price';
+import { formatStoredMoney } from '@/lib/format/money';
 
 interface PropertyPriceDisplayProps {
   pricePerNight: number;
@@ -25,8 +25,8 @@ export function PropertyPriceDisplay({
   const isEstimate =
     hasDisplay && displayPrice!.currency !== currency && displayPrice!.amount !== pricePerNight;
   const mainText = hasDisplay
-    ? `${isEstimate ? '~' : ''}${formatCurrencyAmount(displayPrice!.amount, displayPrice!.currency)}`
-    : formatCurrencyAmount(pricePerNight, currency);
+    ? `${isEstimate ? '~' : ''}${formatStoredMoney(displayPrice!.amount, displayPrice!.currency)}`
+    : formatStoredMoney(pricePerNight, currency);
   const showListingCurrency = hasDisplay && displayPrice!.currency !== currency;
   return (
     <span className="inline-flex flex-col">
@@ -35,7 +35,7 @@ export function PropertyPriceDisplay({
         {suffix}
       </span>
       {showListingCurrency ? (
-        <span className={secondaryClassName}>{formatCurrencyAmount(pricePerNight, currency)}</span>
+        <span className={secondaryClassName}>{formatStoredMoney(pricePerNight, currency)}</span>
       ) : null}
     </span>
   );

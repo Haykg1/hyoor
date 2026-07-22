@@ -29,6 +29,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
 import { WRITE_THROTTLE } from '../common/throttle/throttle.constants';
 import { DepositClaimsService } from '../deposit-claims/deposit-claims.service';
+import { CreateDepositClaimPhotoPresignedUrlDto } from '../deposit-claims/dto/create-deposit-claim-photo-presigned-url.dto';
 import { CreateDepositClaimDto } from '../deposit-claims/dto/create-deposit-claim.dto';
 import { CheckoutDto } from '../payments/dto/checkout.dto';
 import type { CheckoutInitResult } from '../payments/payment-provider.interface';
@@ -230,5 +231,35 @@ export class BookingsController {
     @Body() dto: CreateDepositClaimDto,
   ): Promise<SecurityDepositClaim> {
     return this.depositClaims.submit(id, user.userId, dto);
+  }
+
+  @Post(':id/deposit-claim/photos/presigned-url')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a presigned S3 URL to upload a deposit-claim evidence photo' })
+  @ApiCreatedResponse({ description: '{ uploadUrl, key }' })
+  @ApiStandardErrors({ notFound: true, conflict: true })
+  createDepositClaimPhotoUploadUrl(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+    @Body() dto: CreateDepositClaimPhotoPresignedUrlDto,
+  ): Promise<{ uploadUrl: string; key: string }> {
+    return this.depositClaims.createEvidenceUploadUrl(id, user.userId, dto.mimeType);
+  }
+
+  @Post(':id/deposit-release')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HOST')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Release the security deposit hold early (irreversible)' })
+  @ApiOkResponse({ description: 'Deposit hold released; the deposit can no longer be charged' })
+  @ApiStandardErrors({ notFound: true, conflict: true })
+  releaseDeposit(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+  ): Promise<{ depositStatus: string }> {
+    return this.depositClaims.releaseByHost(id, user.userId);
   }
 }

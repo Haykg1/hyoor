@@ -46,6 +46,23 @@ describe('Bookings (e2e)', () => {
     expect(response.body.data.property.id).toBe(property.id);
   });
 
+  it('rejects create when checkOut is not after checkIn', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2027-07-10',
+        checkOut: '2027-07-08',
+        guestCount: 1,
+      })
+      .expect(400);
+    expect(response.body.success).toBe(false);
+  });
+
   it('rejects booking when the host has not finished Stripe payment setup', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
@@ -194,7 +211,7 @@ describe('Bookings (e2e)', () => {
       .expect(400);
   });
 
-  it('rejects guest cancel when cancellation fee type is FIXED', async () => {
+  it('applies fixed fee on guest cancel', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
     const property = await createActivePropertyDirect(app, host);
@@ -218,16 +235,20 @@ describe('Bookings (e2e)', () => {
       })
       .expect(201);
     const bookingId = create.body.data.id as string;
+    const rentAmount =
+      (create.body.data.totalAmount as number) - (create.body.data.securityDeposit as number);
     await request(app.getHttpServer())
       .post(`/api/v1/bookings/${bookingId}/payment/confirm`)
       .set(authHeader(guest.accessToken))
       .send({ paymentMethodId: 'pm_mock_test' })
       .expect(200);
-    await request(app.getHttpServer())
+    const cancel = await request(app.getHttpServer())
       .patch(`/api/v1/bookings/${bookingId}/cancel`)
       .set(authHeader(guest.accessToken))
       .send({})
-      .expect(400);
+      .expect(200);
+    expect(cancel.body.data.status).toBe('CANCELLED_BY_GUEST');
+    expect(cancel.body.data.refundedAmount).toBe(rentAmount - Math.min(5000, rentAmount));
   });
 
   it('applies percent fee on guest cancel', async () => {
