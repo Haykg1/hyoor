@@ -1,6 +1,10 @@
 'use client';
 
-import { CancellationPolicies } from '@repo/shared';
+import {
+  CancellationFeeTypes,
+  CancellationPolicies,
+  MAX_CANCELLATION_FEE_PERCENT,
+} from '@repo/shared';
 import { useTranslations } from 'next-intl';
 import type { UseFormReturn } from 'react-hook-form';
 
@@ -15,6 +19,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { ListingFormValues } from '@/lib/listing/schema';
 import { cn } from '@/lib/utils';
@@ -156,34 +167,80 @@ export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="nonRefundablePercent"
-            render={({ field }) => {
-              const isNonRefundable = form.watch('cancellationPolicy') === 'NON_REFUNDABLE';
-              return (
-                <FormItem>
-                  <FormLabel>{t('non_refundable_percent')}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={100}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="cancellationFeeType"
+              render={({ field }) => {
+                const isNonRefundable = form.watch('cancellationPolicy') === 'NON_REFUNDABLE';
+                return (
+                  <FormItem>
+                    <FormLabel>{t('cancellation_fee_type')}</FormLabel>
+                    <Select
                       disabled={isNonRefundable}
-                      value={isNonRefundable ? 100 : (field.value ?? 0)}
-                      onChange={(e) =>
-                        field.onChange(Math.min(100, Math.max(0, Number(e.target.value) || 0)))
-                      }
-                    />
-                  </FormControl>
-                  <p className="text-xs text-muted-foreground">
-                    {t('non_refundable_percent_hint')}
-                  </p>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
-          />
+                      value={isNonRefundable ? 'PERCENT' : (field.value ?? 'PERCENT')}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {CancellationFeeTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {t(`fee_types.${type}`)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
+            <FormField
+              control={form.control}
+              name="cancellationFeeValue"
+              render={({ field }) => {
+                const isNonRefundable = form.watch('cancellationPolicy') === 'NON_REFUNDABLE';
+                const feeType = form.watch('cancellationFeeType') ?? 'PERCENT';
+                const pricePerNight = form.watch('pricePerNight') ?? 0;
+                const maxValue =
+                  feeType === 'PERCENT' ? MAX_CANCELLATION_FEE_PERCENT : pricePerNight;
+                return (
+                  <FormItem>
+                    <FormLabel>
+                      {feeType === 'FIXED'
+                        ? t('cancellation_fee_fixed')
+                        : t('cancellation_fee_percent')}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={isNonRefundable ? 100 : maxValue}
+                        disabled={isNonRefundable}
+                        value={isNonRefundable ? 100 : (field.value ?? 0)}
+                        onChange={(e) => {
+                          const next = Math.max(0, Number(e.target.value) || 0);
+                          field.onChange(Math.min(isNonRefundable ? 100 : maxValue, next));
+                        }}
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      {isNonRefundable
+                        ? t('cancellation_fee_non_refundable_hint')
+                        : feeType === 'FIXED'
+                          ? t('cancellation_fee_fixed_hint')
+                          : t('cancellation_fee_percent_hint')}
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
+          </div>
         </div>
         <div className="space-y-6 border-t border-border pt-6">
           <h3 className="text-sm font-semibold">{t('rules_section')}</h3>

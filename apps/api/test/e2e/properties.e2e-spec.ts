@@ -43,6 +43,51 @@ describe('Properties (e2e)', () => {
     expect(response.body.data.hostId).toBe(host.hostProfileId);
   });
 
+  it('rejects percent cancellation fee above 50 when cancel is allowed', async () => {
+    const host = await registerHostUser(app);
+    await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send({
+        ...sampleProperty,
+        cancellationPolicy: 'MODERATE',
+        cancellationFeeType: 'PERCENT',
+        cancellationFeeValue: 51,
+      })
+      .expect(400);
+  });
+
+  it('rejects fixed cancellation fee above pricePerNight', async () => {
+    const host = await registerHostUser(app);
+    await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send({
+        ...sampleProperty,
+        pricePerNight: 25000,
+        cancellationPolicy: 'FLEXIBLE',
+        cancellationFeeType: 'FIXED',
+        cancellationFeeValue: 25001,
+      })
+      .expect(400);
+  });
+
+  it('forces NON_REFUNDABLE listings to 100% percent fee', async () => {
+    const host = await registerHostUser(app);
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send({
+        ...sampleProperty,
+        cancellationPolicy: 'NON_REFUNDABLE',
+        cancellationFeeType: 'FIXED',
+        cancellationFeeValue: 1,
+      })
+      .expect(201);
+    expect(response.body.data.cancellationFeeType).toBe('PERCENT');
+    expect(response.body.data.cancellationFeeValue).toBe(100);
+  });
+
   it('accepts optional guestInstructions on create and update', async () => {
     const host = await registerHostUser(app);
     const instructions = '<p>Lockbox code: <strong>1234</strong></p>';

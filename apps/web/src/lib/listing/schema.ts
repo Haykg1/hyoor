@@ -1,5 +1,7 @@
 import {
+  CancellationFeeTypes,
   CancellationPolicies,
+  MAX_CANCELLATION_FEE_PERCENT,
   MAX_FEATURED_POIS,
   PropertyTypes,
   type CreatePropertyInput,
@@ -69,24 +71,47 @@ export const stepMediaSchema = z.object({
   ),
 });
 
-export const stepPricingRulesSchema = z.object({
-  pricePerNight: z.number().int().min(0),
-  cleaningFee: z.number().int().min(0).optional(),
-  securityDeposit: z.number().int().min(0).optional(),
-  cancellationPolicy: z.enum(CancellationPolicies),
-  nonRefundablePercent: z.number().int().min(0).max(100).optional(),
-  minNights: z.number().int().min(1).optional(),
-  maxNights: z.number().int().min(1).optional(),
-  checkInTime: z.string().max(5).optional().or(z.literal('')),
-  checkOutTime: z.string().max(5).optional().or(z.literal('')),
-  smokingAllowed: z.boolean().optional(),
-  petsAllowed: z.boolean().optional(),
-  partiesAllowed: z.boolean().optional(),
-  quietHoursStart: z.string().max(5).optional().or(z.literal('')),
-  quietHoursEnd: z.string().max(5).optional().or(z.literal('')),
-  additionalRules: z.string().max(2000).optional().or(z.literal('')),
-  guestInstructions: z.string().max(10000).optional().or(z.literal('')),
-});
+export const stepPricingRulesSchema = z
+  .object({
+    pricePerNight: z.number().int().min(0),
+    cleaningFee: z.number().int().min(0).optional(),
+    securityDeposit: z.number().int().min(0).optional(),
+    cancellationPolicy: z.enum(CancellationPolicies),
+    cancellationFeeType: z.enum(CancellationFeeTypes).optional(),
+    cancellationFeeValue: z.number().int().min(0).optional(),
+    minNights: z.number().int().min(1).optional(),
+    maxNights: z.number().int().min(1).optional(),
+    checkInTime: z.string().max(5).optional().or(z.literal('')),
+    checkOutTime: z.string().max(5).optional().or(z.literal('')),
+    smokingAllowed: z.boolean().optional(),
+    petsAllowed: z.boolean().optional(),
+    partiesAllowed: z.boolean().optional(),
+    quietHoursStart: z.string().max(5).optional().or(z.literal('')),
+    quietHoursEnd: z.string().max(5).optional().or(z.literal('')),
+    additionalRules: z.string().max(2000).optional().or(z.literal('')),
+    guestInstructions: z.string().max(10000).optional().or(z.literal('')),
+  })
+  .superRefine((data, ctx) => {
+    if (data.cancellationPolicy === 'NON_REFUNDABLE') {
+      return;
+    }
+    const feeType = data.cancellationFeeType ?? 'PERCENT';
+    const feeValue = data.cancellationFeeValue ?? 0;
+    if (feeType === 'PERCENT' && feeValue > MAX_CANCELLATION_FEE_PERCENT) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['cancellationFeeValue'],
+        message: `Percent fee must be at most ${MAX_CANCELLATION_FEE_PERCENT}`,
+      });
+    }
+    if (feeType === 'FIXED' && feeValue > data.pricePerNight) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['cancellationFeeValue'],
+        message: 'Fixed fee must not exceed the nightly price',
+      });
+    }
+  });
 
 export const stepPricingSchema = stepPricingRulesSchema;
 
@@ -147,7 +172,8 @@ export const DEFAULT_LISTING_VALUES: ListingFormValues = {
   cleaningFee: 0,
   securityDeposit: 0,
   cancellationPolicy: 'MODERATE',
-  nonRefundablePercent: 0,
+  cancellationFeeType: 'PERCENT',
+  cancellationFeeValue: 0,
   minNights: 1,
   checkInTime: '15:00',
   checkOutTime: '11:00',
@@ -210,8 +236,12 @@ export function toCreatePropertyInput(values: ListingFormValues): CreateProperty
     cleaningFee: values.cleaningFee ?? 0,
     securityDeposit: values.securityDeposit ?? 0,
     cancellationPolicy: values.cancellationPolicy,
-    nonRefundablePercent:
-      values.cancellationPolicy === 'NON_REFUNDABLE' ? 100 : (values.nonRefundablePercent ?? 0),
+    cancellationFeeType:
+      values.cancellationPolicy === 'NON_REFUNDABLE'
+        ? 'PERCENT'
+        : (values.cancellationFeeType ?? 'PERCENT'),
+    cancellationFeeValue:
+      values.cancellationPolicy === 'NON_REFUNDABLE' ? 100 : (values.cancellationFeeValue ?? 0),
     minNights: values.minNights ?? 1,
     maxNights: values.maxNights,
     checkInTime: optionalTime(values.checkInTime),

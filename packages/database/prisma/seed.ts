@@ -805,6 +805,9 @@ async function main(): Promise<void> {
       pricePerNight: 220,
       cleaningFee: 30,
       securityDeposit: 130,
+      cancellationPolicy: 'NON_REFUNDABLE',
+      cancellationFeeType: 'PERCENT',
+      cancellationFeeValue: 100,
       maxAdults: 2,
       maxChildren: 2,
       maxInfants: 1,
@@ -834,6 +837,8 @@ async function main(): Promise<void> {
       description:
         'Luxury penthouse on the 18th floor with 360° Yerevan views. Private rooftop terrace, jacuzzi, and concierge service.',
       cancellationPolicy: 'NON_REFUNDABLE',
+      cancellationFeeType: 'PERCENT',
+      cancellationFeeValue: 100,
       country: 'AM',
       region: 'Yerevan',
       city: 'Yerevan',

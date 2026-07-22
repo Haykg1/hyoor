@@ -1,8 +1,12 @@
 import type { PropertyTitleLabels } from './geocoding';
 import type { HostSettlementCurrency, PropertyType } from '../types/index';
+import type { CancellationFeeType } from '../utils/cancellation-fee';
+import { CancellationFeeTypes } from '../utils/cancellation-fee';
 
 export const CancellationPolicies = ['FLEXIBLE', 'MODERATE', 'STRICT', 'NON_REFUNDABLE'] as const;
 export type CancellationPolicy = (typeof CancellationPolicies)[number];
+export { CancellationFeeTypes };
+export type { CancellationFeeType };
 
 export const PaymentProviders = ['STRIPE', 'ARCA', 'CASH', 'IDRAM'] as const;
 export type PaymentProvider = (typeof PaymentProviders)[number];
@@ -27,7 +31,9 @@ export interface CreatePropertyInput {
   bathrooms: number;
   pricePerNight: number;
   cancellationPolicy: CancellationPolicy;
-  nonRefundablePercent?: number;
+  cancellationFeeType?: CancellationFeeType;
+  /** Percent points (0–50 when cancel allowed) or fixed amount in minor units. */
+  cancellationFeeValue?: number;
   country?: string;
   region?: string;
   street?: string;

@@ -30,10 +30,12 @@ import type {
 } from '@repo/shared';
 import {
   AddressLocales,
+  MAX_CANCELLATION_FEE_PERCENT,
   MAX_FEATURED_POIS,
   normalizePropertySortBy,
   sanitizeSearchDateFields,
   todayIsoUtc,
+  type CancellationFeeType,
 } from '@repo/shared';
 import {
   DEFAULT_PAGE_SIZE,
@@ -188,8 +190,12 @@ export class PropertiesService {
         bathrooms: new Prisma.Decimal(dto.bathrooms),
         pricePerNight: dto.pricePerNight,
         cancellationPolicy: dto.cancellationPolicy,
-        nonRefundablePercent:
-          dto.cancellationPolicy === 'NON_REFUNDABLE' ? 100 : (dto.nonRefundablePercent ?? 0),
+        ...resolveCancellationFeeFields({
+          cancellationPolicy: dto.cancellationPolicy,
+          cancellationFeeType: dto.cancellationFeeType,
+          cancellationFeeValue: dto.cancellationFeeValue,
+          pricePerNight: dto.pricePerNight,
+        }),
         country: dto.country,
         region: dto.region,
         street: dto.street,
@@ -1292,8 +1298,21 @@ export class PropertiesService {
       data.slug = await this.generateUniqueSlug(dto.title, property.id);
     }
     const nextPolicy = dto.cancellationPolicy ?? property.cancellationPolicy;
-    if (nextPolicy === 'NON_REFUNDABLE') {
-      data.nonRefundablePercent = 100;
+    const nextPrice = dto.pricePerNight ?? property.pricePerNight;
+    const feeTouched =
+      dto.cancellationPolicy !== undefined ||
+      dto.cancellationFeeType !== undefined ||
+      dto.cancellationFeeValue !== undefined ||
+      dto.pricePerNight !== undefined;
+    if (feeTouched) {
+      const resolved = resolveCancellationFeeFields({
+        cancellationPolicy: nextPolicy,
+        cancellationFeeType: dto.cancellationFeeType ?? property.cancellationFeeType,
+        cancellationFeeValue: dto.cancellationFeeValue ?? property.cancellationFeeValue,
+        pricePerNight: nextPrice,
+      });
+      data.cancellationFeeType = resolved.cancellationFeeType;
+      data.cancellationFeeValue = resolved.cancellationFeeValue;
     }
     return this.prisma.property.update({
       where: { id: property.id },
@@ -1729,6 +1748,33 @@ export class PropertiesService {
       totalEarnings,
     };
   }
+}
+
+function resolveCancellationFeeFields(input: {
+  cancellationPolicy: string;
+  cancellationFeeType?: CancellationFeeType | null;
+  cancellationFeeValue?: number | null;
+  pricePerNight: number;
+}): { cancellationFeeType: CancellationFeeType; cancellationFeeValue: number } {
+  if (input.cancellationPolicy === 'NON_REFUNDABLE') {
+    return { cancellationFeeType: 'PERCENT', cancellationFeeValue: 100 };
+  }
+  const feeType: CancellationFeeType = input.cancellationFeeType ?? 'PERCENT';
+  const feeValue = input.cancellationFeeValue ?? 0;
+  if (feeType === 'PERCENT') {
+    if (feeValue > MAX_CANCELLATION_FEE_PERCENT) {
+      throw new BadRequestException(
+        `cancellationFeeValue must be at most ${MAX_CANCELLATION_FEE_PERCENT} when fee type is PERCENT`,
+      );
+    }
+    return { cancellationFeeType: 'PERCENT', cancellationFeeValue: feeValue };
+  }
+  if (feeValue > input.pricePerNight) {
+    throw new BadRequestException(
+      'cancellationFeeValue must not exceed pricePerNight when fee type is FIXED',
+    );
+  }
+  return { cancellationFeeType: 'FIXED', cancellationFeeValue: feeValue };
 }
 
 function startOfTodayUtc(): Date {
