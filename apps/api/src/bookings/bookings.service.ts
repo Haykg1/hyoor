@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import type { Booking, BookingStatus, Property } from '@repo/database/client';
 import { Prisma } from '@repo/database/client';
 import type { BookingQuoteResult, PaginatedResponse } from '@repo/shared';
+import { isGuestCancellationAllowed } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 
 import { AvailabilityService } from '../availability/availability.service';
@@ -44,6 +45,9 @@ export interface BookingPropertySummary {
   city: string;
   country: string;
   coverPhotoUrl: string | null;
+  cancellationPolicy: string;
+  cancellationFeeType: import('@repo/shared').CancellationFeeType;
+  cancellationFeeValue: number;
 }
 
 export interface BookingDetail extends Booking {
@@ -261,6 +265,17 @@ export class BookingsService {
     if (booking.checkIn <= new Date()) {
       throw new BadRequestException('This booking can no longer be cancelled after check-in');
     }
+    const property = await this.prisma.property.findUniqueOrThrow({
+      where: { id: booking.propertyId },
+    });
+    if (!access.asHost) {
+      if (!isGuestCancellationAllowed(property.cancellationPolicy, property.cancellationFeeType)) {
+        throw new BadRequestException(
+          'Guest cancellation is not available for this property cancellation policy',
+        );
+      }
+    }
+    const applyFee = access.asHost ? Boolean(dto.applyCancellationFee) : true;
     const wasPaymentBlocking = PAYMENT_BLOCKING_STATUSES.includes(booking.status);
     const nextStatus: BookingStatus = access.asHost ? 'CANCELLED_BY_HOST' : 'CANCELLED_BY_GUEST';
     await this.prisma.$transaction(async (tx) => {
@@ -277,7 +292,7 @@ export class BookingsService {
       }
     });
     if (wasPaymentBlocking) {
-      await this.stripeCheckout.cancelBookingPayment(booking, access.asHost);
+      await this.stripeCheckout.cancelBookingPayment(booking, applyFee);
       await this.availabilityService.unblockDatesForBooking(
         booking.propertyId,
         booking.checkIn,
@@ -440,11 +455,11 @@ export class BookingsService {
     requestingUserId: string,
     role: string,
   ): Promise<{ canView: boolean; canCancel: boolean; asHost: boolean }> {
-    if (role === 'ADMIN' || role === 'STAFF') {
-      return { canView: true, canCancel: true, asHost: false };
-    }
     if (booking.guestId === requestingUserId) {
       return { canView: true, canCancel: true, asHost: false };
+    }
+    if (role === 'ADMIN' || role === 'STAFF') {
+      return { canView: true, canCancel: true, asHost: true };
     }
     const hostProfile = await this.prisma.hostProfile.findUnique({
       where: { userId: requestingUserId },
@@ -549,6 +564,9 @@ export class BookingsService {
         city: property.city,
         country: property.country,
         coverPhotoUrl: await this.safeCoverPhotoUrl(property.photos[0]?.key),
+        cancellationPolicy: property.cancellationPolicy,
+        cancellationFeeType: property.cancellationFeeType,
+        cancellationFeeValue: property.cancellationFeeValue,
       },
       guest: {
         id: guest.id,

@@ -4,13 +4,20 @@ import type { BookingDetail } from '@repo/shared';
 import { getLocalizedTitle } from '@repo/shared';
 import { ArrowLeft, CheckCircle2, UserRound } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useState } from 'react';
 
+import { CancelBookingDialog } from '@/components/bookings/cancel-booking-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { useDisplayMoney } from '@/hooks/use-display-money';
 import { Link } from '@/i18n/navigation';
+import {
+  canGuestCancelBooking,
+  isBookingCancellable,
+  toCancelBookingPreview,
+} from '@/lib/bookings/cancellation';
 import {
   guestDisplayName,
   resolveHostPayoutAmount,
@@ -25,6 +32,7 @@ interface BookingConfirmationViewProps {
   booking: BookingDetail;
   variant: 'guest' | 'host';
   onContinuePayment?: () => void;
+  onCancelled?: () => void;
 }
 
 function MoneyRow({
@@ -52,11 +60,13 @@ export function BookingConfirmationView({
   booking,
   variant,
   onContinuePayment,
+  onCancelled,
 }: BookingConfirmationViewProps): React.JSX.Element {
   const t = useTranslations('booking.confirmation');
   const tBooking = useTranslations('booking');
   const locale = useLocale();
   const { formatMoney } = useDisplayMoney();
+  const [cancelOpen, setCancelOpen] = useState(false);
   const isHost = variant === 'host';
   const money = (amount: number) =>
     isHost ? formatMoney(amount, booking.currency) : formatCurrencyAmount(amount, booking.currency);
@@ -68,6 +78,8 @@ export function BookingConfirmationView({
     locale,
     booking.property.title,
   );
+  const cancelPreview = toCancelBookingPreview(booking);
+  const showCancel = isHost ? isBookingCancellable(booking) : canGuestCancelBooking(cancelPreview);
   return (
     <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
       {isHost ? (
@@ -185,6 +197,18 @@ export function BookingConfirmationView({
           {t('continue_payment')}
         </Button>
       ) : null}
+      {showCancel ? (
+        <Button className="mt-3 w-full" variant="outline" onClick={() => setCancelOpen(true)}>
+          {tBooking('cancel')}
+        </Button>
+      ) : null}
+      <CancelBookingDialog
+        booking={cancelPreview}
+        role={isHost ? 'host' : 'guest'}
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        onCancelled={() => onCancelled?.()}
+      />
     </div>
   );
 }

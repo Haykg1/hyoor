@@ -52,6 +52,9 @@ export default function BookingConfirmationPage(): React.JSX.Element {
       booking={booking}
       variant={isHostView ? 'host' : 'guest'}
       onContinuePayment={() => router.push(`/bookings/${id}/payment`)}
+      onCancelled={() => {
+        void getBookingById(id).then(setBooking);
+      }}
     />
   );
 }

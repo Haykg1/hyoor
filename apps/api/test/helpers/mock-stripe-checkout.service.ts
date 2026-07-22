@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Booking } from '@repo/database/client';
+import { computeCancellationFee } from '@repo/shared';
 
 import { PrismaService } from '../../src/database/prisma.service';
 import type {
@@ -89,7 +90,7 @@ export class MockStripeCheckoutService {
     return { stripeTransferId: `tr_mock_claim_${booking.id}` };
   }
 
-  async cancelBookingPayment(booking: Booking, cancelledByHost: boolean): Promise<void> {
+  async cancelBookingPayment(booking: Booking, applyFee: boolean): Promise<void> {
     const rentAmount = booking.totalAmount - booking.securityDeposit;
     if (!booking.stripePaymentIntentId) {
       await this.prisma.booking.update({
@@ -101,8 +102,13 @@ export class MockStripeCheckoutService {
     const property = await this.prisma.property.findUniqueOrThrow({
       where: { id: booking.propertyId },
     });
-    const nonRefundablePercent = cancelledByHost ? 0 : property.nonRefundablePercent;
-    const nonRefundableAmount = Math.round((rentAmount * nonRefundablePercent) / 100);
+    const nonRefundableAmount = applyFee
+      ? computeCancellationFee(
+          rentAmount,
+          property.cancellationFeeType,
+          property.cancellationFeeValue,
+        )
+      : 0;
     await this.prisma.booking.update({
       where: { id: booking.id },
       data: {

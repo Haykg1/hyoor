@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { CancelBookingDialog } from '@/components/bookings/cancel-booking-dialog';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
@@ -17,6 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Link } from '@/i18n/navigation';
+import { isBookingCancellable, type CancelBookingPreview } from '@/lib/bookings/cancellation';
 import { formatCurrencyAmount } from '@/lib/format/price';
 
 interface AdminBookingsTableProps {
@@ -30,6 +32,21 @@ interface AdminBookingsTableProps {
   onPageChange: (page: number) => void;
   onRetryRentCapture: (id: string) => Promise<void>;
   onRetryPayout: (id: string) => Promise<void>;
+  onCancelled?: () => void;
+}
+
+function toAdminCancelPreview(booking: AdminBooking): CancelBookingPreview {
+  return {
+    id: booking.id,
+    status: booking.status,
+    checkIn: booking.checkIn,
+    totalAmount: booking.totalAmount,
+    securityDeposit: booking.securityDeposit,
+    currency: booking.currency,
+    cancellationPolicy: booking.cancellationPolicy,
+    cancellationFeeType: booking.cancellationFeeType,
+    cancellationFeeValue: booking.cancellationFeeValue,
+  };
 }
 
 function formatDate(iso: string): string {
@@ -83,9 +100,12 @@ export function AdminBookingsTable({
   onPageChange,
   onRetryRentCapture,
   onRetryPayout,
+  onCancelled,
 }: AdminBookingsTableProps): React.JSX.Element {
   const t = useTranslations('admin.bookings');
+  const tBooking = useTranslations('booking');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<AdminBooking | null>(null);
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -189,6 +209,16 @@ export function AdminBookingsTable({
                           {busy ? t('retrying') : t('retry_payout')}
                         </Button>
                       ) : null}
+                      {isBookingCancellable(booking) ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={busy}
+                          onClick={() => setCancelTarget(booking)}
+                        >
+                          {tBooking('cancel')}
+                        </Button>
+                      ) : null}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -244,6 +274,20 @@ export function AdminBookingsTable({
           </Button>
         </div>
       </div>
+      {cancelTarget ? (
+        <CancelBookingDialog
+          booking={toAdminCancelPreview(cancelTarget)}
+          role="admin"
+          open
+          onOpenChange={(open) => {
+            if (!open) setCancelTarget(null);
+          }}
+          onCancelled={() => {
+            setCancelTarget(null);
+            onCancelled?.();
+          }}
+        />
+      ) : null}
     </div>
   );
 }

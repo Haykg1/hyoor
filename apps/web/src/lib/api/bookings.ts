@@ -64,3 +64,15 @@ export async function confirmStripePayment(
     paymentMethodId,
   });
 }
+
+export interface CancelBookingInput {
+  reason?: string;
+  applyCancellationFee?: boolean;
+}
+
+export async function cancelBooking(
+  bookingId: string,
+  input: CancelBookingInput = {},
+): Promise<BookingDetail> {
+  return api.patch<BookingDetail>(`/bookings/${bookingId}/cancel`, input);
+}

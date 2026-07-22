@@ -635,6 +635,9 @@ export class AdminService {
         id: string;
         title: string;
         hostId: string;
+        cancellationPolicy: string;
+        cancellationFeeType: import('@repo/shared').CancellationFeeType;
+        cancellationFeeValue: number;
         host: {
           id: string;
           hostType: string;
@@ -682,6 +685,9 @@ export class AdminService {
       guestName,
       hostProfileId: host.id,
       hostName,
+      cancellationPolicy: property.cancellationPolicy,
+      cancellationFeeType: property.cancellationFeeType,
+      cancellationFeeValue: property.cancellationFeeValue,
       canRetryRentCapture: this.isRentCaptureRetryable(row),
       canRetryPayout: this.isPayoutRetryable(row),
       createdAt: row.createdAt.toISOString(),

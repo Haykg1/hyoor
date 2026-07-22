@@ -7,11 +7,14 @@ import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
+import { CancelBookingDialog } from '@/components/bookings/cancel-booking-dialog';
+import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { useDisplayMoney } from '@/hooks/use-display-money';
 import { Link, useRouter } from '@/i18n/navigation';
 import { ApiError } from '@/lib/api';
 import { listMyBookings } from '@/lib/api/bookings';
+import { isBookingCancellable, toCancelBookingPreview } from '@/lib/bookings/cancellation';
 import {
   guestDisplayName,
   resolveHostPayoutAmount,
@@ -22,11 +25,19 @@ import { splitHostReservations } from '@/lib/host-reservations';
 
 type ReservationTab = 'upcoming' | 'past';
 
-function ReservationCard({ booking }: { booking: BookingDetail }): React.JSX.Element {
+function ReservationCard({
+  booking,
+  onCancelled,
+}: {
+  booking: BookingDetail;
+  onCancelled: () => void;
+}): React.JSX.Element {
   const locale = useLocale();
   const t = useTranslations('dashboard.reservations');
+  const tBooking = useTranslations('booking');
   const tConfirm = useTranslations('booking.confirmation');
   const { formatMoney } = useDisplayMoney();
+  const [cancelOpen, setCancelOpen] = useState(false);
   const localizedTitle = getLocalizedTitle(
     booking.property.titleLabels,
     locale,
@@ -35,53 +46,68 @@ function ReservationCard({ booking }: { booking: BookingDetail }): React.JSX.Ele
   const guestName = guestDisplayName(booking.guest) ?? tConfirm('guest_fallback');
   const hostPayout = resolveHostPayoutAmount(booking);
   const platformFee = resolvePlatformFeeAmount(booking);
+  const cancelPreview = toCancelBookingPreview(booking);
+  const showCancel = isBookingCancellable(booking);
   return (
-    <Link
-      href={`/bookings/${booking.id}`}
-      className="flex gap-4 rounded-2xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
-    >
-      <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-muted">
-        {booking.property.coverPhotoUrl ? (
-          <Image
-            src={booking.property.coverPhotoUrl}
-            alt={localizedTitle}
-            fill
-            className="object-cover"
-            sizes="96px"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <House className="h-8 w-8 text-muted-foreground/40" />
+    <div className="rounded-2xl border border-border bg-card p-4 transition-shadow hover:shadow-md">
+      <Link href={`/bookings/${booking.id}`} className="flex gap-4">
+        <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-muted">
+          {booking.property.coverPhotoUrl ? (
+            <Image
+              src={booking.property.coverPhotoUrl}
+              alt={localizedTitle}
+              fill
+              className="object-cover"
+              sizes="96px"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <House className="h-8 w-8 text-muted-foreground/40" />
+            </div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <p className="truncate font-medium">{localizedTitle}</p>
+            <StatusBadge status={booking.status} namespace="booking" />
           </div>
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <p className="truncate font-medium">{localizedTitle}</p>
-          <StatusBadge status={booking.status} namespace="booking" />
+          <p className="text-sm text-muted-foreground">
+            {booking.property.city}, {booking.property.country}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t('guest_label')}: <span className="text-foreground">{guestName}</span>
+          </p>
+          <p className="mt-1 text-sm">
+            {formatBookingDate(booking.checkIn)} – {formatBookingDate(booking.checkOut)}
+          </p>
+          <div className="mt-2 space-y-0.5 text-sm">
+            <p className="font-semibold text-emerald-700 dark:text-emerald-400">
+              {t('your_payout')}: {formatMoney(hostPayout, booking.currency)}
+            </p>
+            <p className="text-muted-foreground">
+              {t('platform_fee')}: {formatMoney(platformFee, booking.currency)}
+            </p>
+            <p className="text-muted-foreground">
+              {t('guest_paid')}: {formatMoney(booking.totalAmount, booking.currency)}
+            </p>
+          </div>
         </div>
-        <p className="text-sm text-muted-foreground">
-          {booking.property.city}, {booking.property.country}
-        </p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t('guest_label')}: <span className="text-foreground">{guestName}</span>
-        </p>
-        <p className="mt-1 text-sm">
-          {formatBookingDate(booking.checkIn)} – {formatBookingDate(booking.checkOut)}
-        </p>
-        <div className="mt-2 space-y-0.5 text-sm">
-          <p className="font-semibold text-emerald-700 dark:text-emerald-400">
-            {t('your_payout')}: {formatMoney(hostPayout, booking.currency)}
-          </p>
-          <p className="text-muted-foreground">
-            {t('platform_fee')}: {formatMoney(platformFee, booking.currency)}
-          </p>
-          <p className="text-muted-foreground">
-            {t('guest_paid')}: {formatMoney(booking.totalAmount, booking.currency)}
-          </p>
+      </Link>
+      {showCancel ? (
+        <div className="mt-3 flex justify-end border-t border-border pt-3">
+          <Button type="button" size="sm" variant="outline" onClick={() => setCancelOpen(true)}>
+            {tBooking('cancel')}
+          </Button>
         </div>
-      </div>
-    </Link>
+      ) : null}
+      <CancelBookingDialog
+        booking={cancelPreview}
+        role="host"
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        onCancelled={onCancelled}
+      />
+    </div>
   );
 }
 
@@ -145,7 +171,13 @@ export function HostReservationsPanel(): React.JSX.Element {
       ) : (
         <div className="space-y-3">
           {items.map((booking) => (
-            <ReservationCard key={booking.id} booking={booking} />
+            <ReservationCard
+              key={booking.id}
+              booking={booking}
+              onCancelled={() => {
+                void listMyBookings({ limit: 100 }).then((res) => setBookings(res.data));
+              }}
+            />
           ))}
         </div>
       )}

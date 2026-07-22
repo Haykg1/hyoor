@@ -260,7 +260,8 @@ export interface PropertyDetail {
   cleaningFee: number | null;
   securityDeposit: number | null;
   cancellationPolicy: string;
-  nonRefundablePercent: number;
+  cancellationFeeType: import('../utils/cancellation-fee').CancellationFeeType;
+  cancellationFeeValue: number;
   minNights: number;
   maxNights: number | null;
   checkInTime: string | null;
@@ -330,6 +331,9 @@ export interface BookingPropertySummary {
   city: string;
   country: string;
   coverPhotoUrl: string | null;
+  cancellationPolicy: string;
+  cancellationFeeType: import('../utils/cancellation-fee').CancellationFeeType;
+  cancellationFeeValue: number;
 }
 
 export interface BookingGuestProfile {
@@ -603,6 +607,9 @@ export interface AdminBooking {
   guestName: string;
   hostProfileId: string;
   hostName: string;
+  cancellationPolicy: string;
+  cancellationFeeType: import('../utils/cancellation-fee').CancellationFeeType;
+  cancellationFeeValue: number;
   canRetryRentCapture: boolean;
   canRetryPayout: boolean;
   createdAt: string;

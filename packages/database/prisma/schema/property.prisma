@@ -25,17 +25,23 @@ enum CancellationPolicy {
   NON_REFUNDABLE
 }
 
+enum CancellationFeeType {
+  PERCENT
+  FIXED
+}
+
 model Property {
-  id                   String             @id @default(cuid())
+  id                   String              @id @default(cuid())
   hostId               String
-  status               PropertyStatus     @default(DRAFT)
+  status               PropertyStatus      @default(DRAFT)
   propertyType         PropertyType
   title                String
-  slug                 String             @unique
+  slug                 String              @unique
   description          String
-  cancellationPolicy   CancellationPolicy @default(MODERATE)
-  nonRefundablePercent Int                @default(0)
-  country              String             @default("AM")
+  cancellationPolicy   CancellationPolicy  @default(MODERATE)
+  cancellationFeeType  CancellationFeeType @default(PERCENT)
+  cancellationFeeValue Int                 @default(0)
+  country              String              @default("AM")
   region               String?
   city                 String
   street               String?
@@ -46,35 +52,35 @@ model Property {
   titleLabels          Json?
   apartmentNumber      String?
   addressLine          String?
-  latitude             Decimal?           @db.Decimal(10, 7)
-  longitude            Decimal?           @db.Decimal(10, 7)
+  latitude             Decimal?            @db.Decimal(10, 7)
+  longitude            Decimal?            @db.Decimal(10, 7)
   maxGuests            Int
-  maxAdults            Int                @default(0)
-  maxChildren          Int                @default(0)
-  maxInfants           Int                @default(0)
+  maxAdults            Int                 @default(0)
+  maxChildren          Int                 @default(0)
+  maxInfants           Int                 @default(0)
   bedrooms             Int
   beds                 Int
-  bathrooms            Decimal            @db.Decimal(3, 1)
-  currency             String             @default("AMD")
+  bathrooms            Decimal             @db.Decimal(3, 1)
+  currency             String              @default("AMD")
   pricePerNight        Int
-  cleaningFee          Int                @default(0)
-  securityDeposit      Int                @default(0)
-  minNights            Int                @default(1)
+  cleaningFee          Int                 @default(0)
+  securityDeposit      Int                 @default(0)
+  minNights            Int                 @default(1)
   maxNights            Int?
   checkInTime          String?
   checkOutTime         String?
-  smokingAllowed       Boolean            @default(false)
-  petsAllowed          Boolean            @default(false)
-  partiesAllowed       Boolean            @default(false)
+  smokingAllowed       Boolean             @default(false)
+  petsAllowed          Boolean             @default(false)
+  partiesAllowed       Boolean             @default(false)
   quietHoursStart      String?
   quietHoursEnd        String?
   additionalRules      String?
-  guestInstructions    String?            @db.Text
+  guestInstructions    String?             @db.Text
   externalBookingUrl   String?
-  featured             Boolean            @default(false)
-  featuredPoiIds       String[]           @default([])
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
+  featured             Boolean             @default(false)
+  featuredPoiIds       String[]            @default([])
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 
   host           HostProfile         @relation(fields: [hostId], references: [id], onDelete: Restrict)
   photos         PropertyPhoto[]

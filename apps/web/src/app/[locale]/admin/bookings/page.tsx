@@ -43,6 +43,7 @@ export default function AdminBookingsPage(): React.JSX.Element {
     resetFilters,
     retryRentCapture,
     retryPayout,
+    fetchBookings,
   } = useAdminBookings();
 
   useEffect(() => {
@@ -105,6 +106,9 @@ export default function AdminBookingsPage(): React.JSX.Element {
         onPageChange={setPage}
         onRetryRentCapture={retryRentCapture}
         onRetryPayout={retryPayout}
+        onCancelled={() => {
+          void fetchBookings();
+        }}
       />
     </div>
   );

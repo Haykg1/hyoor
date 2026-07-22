@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import type { Booking } from '@repo/database/client';
 import { Prisma } from '@repo/database/client';
+import { computeCancellationFee } from '@repo/shared';
 import Stripe from 'stripe';
 
 import { isPrismaSerializationFailure, runWithRetry } from '../../common/connection/retry';
@@ -335,18 +336,23 @@ export class StripeCheckoutService {
   }
 
   /**
-   * Cancellation refund rule: host-initiated or a 0% non-refundable policy fully
-   * releases the guest's hold. Otherwise the property's nonRefundablePercent of the
-   * rent is captured (kept) and the remaining hold auto-releases; the deposit is
-   * always released (no damage claims possible pre-check-in).
+   * Cancellation refund rule: when `applyFee` is false the guest's rent hold is
+   * fully released. When true, the property cancellation fee (percent or fixed)
+   * is captured and the remainder auto-releases. Deposit is always released
+   * (no damage claims possible pre-check-in).
    */
-  async cancelBookingPayment(booking: Booking, cancelledByHost: boolean): Promise<void> {
+  async cancelBookingPayment(booking: Booking, applyFee: boolean): Promise<void> {
     const property = await this.prisma.property.findUniqueOrThrow({
       where: { id: booking.propertyId },
     });
     const rentAmount = booking.totalAmount - booking.securityDeposit;
-    const nonRefundablePercent = cancelledByHost ? 0 : property.nonRefundablePercent;
-    const nonRefundableAmount = Math.round((rentAmount * nonRefundablePercent) / 100);
+    const nonRefundableAmount = applyFee
+      ? computeCancellationFee(
+          rentAmount,
+          property.cancellationFeeType,
+          property.cancellationFeeValue,
+        )
+      : 0;
 
     if (booking.stripeDepositPaymentIntentId) {
       await this.safeCancelIntent(booking.stripeDepositPaymentIntentId);

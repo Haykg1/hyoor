@@ -94,5 +94,6 @@ export function useAdminBookings() {
     resetFilters,
     retryRentCapture,
     retryPayout,
+    fetchBookings,
   };
 }

@@ -1,6 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { CreatePropertyInput, PropertyTitleLabels } from '@repo/shared';
-import { CancellationPolicies, HostSettlementCurrencies, PropertyTypes } from '@repo/shared';
+import {
+  CancellationFeeTypes,
+  CancellationPolicies,
+  HostSettlementCurrencies,
+  PropertyTypes,
+} from '@repo/shared';
 import { MAX_FEATURED_POIS } from '@repo/shared';
 import { Type } from 'class-transformer';
 import {
@@ -15,7 +20,6 @@ import {
   IsOptional,
   IsString,
   IsUrl,
-  Max,
   MaxLength,
   Min,
   ValidateNested,
@@ -135,18 +139,26 @@ export class CreatePropertyDto implements CreatePropertyInput {
   cancellationPolicy!: (typeof CANCELLATION_POLICIES)[number];
 
   @ApiPropertyOptional({
+    enum: CancellationFeeTypes,
+    example: 'PERCENT',
+    description:
+      'How cancellationFeeValue is interpreted. Forced to PERCENT when cancellationPolicy is NON_REFUNDABLE.',
+  })
+  @IsOptional()
+  @IsIn(CancellationFeeTypes)
+  cancellationFeeType?: (typeof CancellationFeeTypes)[number];
+
+  @ApiPropertyOptional({
     example: 10,
     minimum: 0,
-    maximum: 100,
     description:
-      'Percent of the rent kept (not refunded) when a guest cancels. Ignored (treated as 100) when cancellationPolicy is NON_REFUNDABLE.',
+      'Percent points (max 50 when cancel allowed) or fixed fee in minor units (max pricePerNight). Forced to 100 when NON_REFUNDABLE.',
   })
   @IsOptional()
   @IsInt()
   @Min(0)
-  @Max(100)
   @Type(() => Number)
-  nonRefundablePercent?: number;
+  cancellationFeeValue?: number;
 
   @ApiPropertyOptional({ example: 'AM', maxLength: 2 })
   @IsOptional()

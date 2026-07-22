@@ -158,6 +158,231 @@ describe('Bookings (e2e)', () => {
     expect(blocked.body.data.dates).toEqual([]);
   });
 
+  it('rejects guest cancel when property is NON_REFUNDABLE', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    await prisma.property.update({
+      where: { id: property.id },
+      data: {
+        cancellationPolicy: 'NON_REFUNDABLE',
+        cancellationFeeType: 'PERCENT',
+        cancellationFeeValue: 100,
+      },
+    });
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2027-08-10',
+        checkOut: '2027-08-13',
+        guestCount: 2,
+      })
+      .expect(201);
+    const bookingId = create.body.data.id as string;
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${bookingId}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${bookingId}/cancel`)
+      .set(authHeader(guest.accessToken))
+      .send({})
+      .expect(400);
+  });
+
+  it('rejects guest cancel when cancellation fee type is FIXED', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    await prisma.property.update({
+      where: { id: property.id },
+      data: {
+        cancellationPolicy: 'MODERATE',
+        cancellationFeeType: 'FIXED',
+        cancellationFeeValue: 5000,
+      },
+    });
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2027-08-15',
+        checkOut: '2027-08-18',
+        guestCount: 2,
+      })
+      .expect(201);
+    const bookingId = create.body.data.id as string;
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${bookingId}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${bookingId}/cancel`)
+      .set(authHeader(guest.accessToken))
+      .send({})
+      .expect(400);
+  });
+
+  it('applies percent fee on guest cancel', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    await prisma.property.update({
+      where: { id: property.id },
+      data: {
+        cancellationPolicy: 'MODERATE',
+        cancellationFeeType: 'PERCENT',
+        cancellationFeeValue: 20,
+      },
+    });
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2027-08-20',
+        checkOut: '2027-08-23',
+        guestCount: 2,
+      })
+      .expect(201);
+    const bookingId = create.body.data.id as string;
+    const rentAmount =
+      (create.body.data.totalAmount as number) - (create.body.data.securityDeposit as number);
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${bookingId}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
+    const cancel = await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${bookingId}/cancel`)
+      .set(authHeader(guest.accessToken))
+      .send({})
+      .expect(200);
+    expect(cancel.body.data.status).toBe('CANCELLED_BY_GUEST');
+    expect(cancel.body.data.refundedAmount).toBe(rentAmount - Math.round((rentAmount * 20) / 100));
+  });
+
+  it('lets host waive fee by default and apply fee when requested', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    await prisma.property.update({
+      where: { id: property.id },
+      data: {
+        cancellationPolicy: 'MODERATE',
+        cancellationFeeType: 'FIXED',
+        cancellationFeeValue: 10000,
+      },
+    });
+    const createWaive = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2027-09-01',
+        checkOut: '2027-09-04',
+        guestCount: 2,
+      })
+      .expect(201);
+    const waiveId = createWaive.body.data.id as string;
+    const waiveRent =
+      (createWaive.body.data.totalAmount as number) -
+      (createWaive.body.data.securityDeposit as number);
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${waiveId}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
+    const waiveCancel = await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${waiveId}/cancel`)
+      .set(authHeader(host.accessToken))
+      .send({})
+      .expect(200);
+    expect(waiveCancel.body.data.status).toBe('CANCELLED_BY_HOST');
+    expect(waiveCancel.body.data.refundedAmount).toBe(waiveRent);
+    const guest2 = await registerUser(app, { email: uniqueEmail('guest2') });
+    const createApply = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest2.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2027-09-10',
+        checkOut: '2027-09-13',
+        guestCount: 2,
+      })
+      .expect(201);
+    const applyId = createApply.body.data.id as string;
+    const applyRent =
+      (createApply.body.data.totalAmount as number) -
+      (createApply.body.data.securityDeposit as number);
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${applyId}/payment/confirm`)
+      .set(authHeader(guest2.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
+    const applyCancel = await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${applyId}/cancel`)
+      .set(authHeader(host.accessToken))
+      .send({ applyCancellationFee: true })
+      .expect(200);
+    expect(applyCancel.body.data.status).toBe('CANCELLED_BY_HOST');
+    expect(applyCancel.body.data.refundedAmount).toBe(applyRent - 10000);
+  });
+
+  it('lets admin cancel with fee apply and marks CANCELLED_BY_HOST', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    await prisma.property.update({
+      where: { id: property.id },
+      data: {
+        cancellationFeeType: 'PERCENT',
+        cancellationFeeValue: 10,
+      },
+    });
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2027-10-01',
+        checkOut: '2027-10-04',
+        guestCount: 2,
+      })
+      .expect(201);
+    const bookingId = create.body.data.id as string;
+    const rentAmount =
+      (create.body.data.totalAmount as number) - (create.body.data.securityDeposit as number);
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${bookingId}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
+    const admin = await registerUser(app, { email: uniqueEmail('admin') });
+    await prisma.user.update({ where: { id: admin.userId }, data: { role: 'ADMIN' } });
+    const adminLogin = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ email: admin.email, password: admin.password })
+      .expect(201);
+    const cancel = await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${bookingId}/cancel`)
+      .set(authHeader(adminLogin.body.data.accessToken))
+      .send({ applyCancellationFee: true })
+      .expect(200);
+    expect(cancel.body.data.status).toBe('CANCELLED_BY_HOST');
+    expect(cancel.body.data.refundedAmount).toBe(rentAmount - Math.round((rentAmount * 10) / 100));
+  });
+
   it('rejects cancelling a booking on or after its check-in date', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
