@@ -6,6 +6,9 @@ import { createTestApp, type TestAppContext } from '../helpers/create-test-app';
 import {
   createActivePropertyDirect,
   createCompletedGuestBooking,
+  createRulesModeCatchAllAndSeason,
+  createRulesModeSeasonOnly,
+  createSimpleStayFeeRule,
   registerHostUser,
   sampleProperty,
 } from '../helpers/property-test.helper';
@@ -106,6 +109,92 @@ describe('Properties (e2e)', () => {
     expect(cleared.body.data.guestInstructions).toBeNull();
   });
 
+  it('mode-only PATCH preserves stay fee rules', async () => {
+    const host = await registerHostUser(app);
+    const property = await createActivePropertyDirect(app, host);
+    await createSimpleStayFeeRule(app, property.id, 5000, 15000);
+    const modeOnly = await request(app.getHttpServer())
+      .patch(`/api/v1/properties/${property.id}`)
+      .set(authHeader(host.accessToken))
+      .send({ stayFeeRulesMode: 'RULES' })
+      .expect(200);
+    expect(modeOnly.body.data.stayFeeRulesMode).toBe('RULES');
+    const detail = await request(app.getHttpServer())
+      .get(`/api/v1/properties/${property.id}`)
+      .expect(200);
+    expect(detail.body.data.cleaningFee).toBeNull();
+    expect(detail.body.data.securityDeposit).toBeNull();
+    const prisma = app.get(PrismaService);
+    const rules = await prisma.propertyStayFeeRule.findMany({
+      where: { propertyId: property.id },
+    });
+    expect(rules).toHaveLength(1);
+    expect(rules[0]?.cleaningFee).toBe(5000);
+    expect(rules[0]?.depositValue).toBe(15000);
+  });
+
+  it('rejects RULES mode PATCH with simple fee fields', async () => {
+    const host = await registerHostUser(app);
+    const property = await createActivePropertyDirect(app, host);
+    await createSimpleStayFeeRule(app, property.id, 5000, 15000);
+    const response = await request(app.getHttpServer())
+      .patch(`/api/v1/properties/${property.id}`)
+      .set(authHeader(host.accessToken))
+      .send({ stayFeeRulesMode: 'RULES', cleaningFee: 9999 })
+      .expect(400);
+    expect(response.body.message).toBe('SIMPLE_FIELDS_IN_RULES_MODE');
+  });
+
+  it('rejects empty stayFeeRules array on PATCH', async () => {
+    const host = await registerHostUser(app);
+    const property = await createActivePropertyDirect(app, host);
+    await createSimpleStayFeeRule(app, property.id, 5000, 15000);
+    const response = await request(app.getHttpServer())
+      .patch(`/api/v1/properties/${property.id}`)
+      .set(authHeader(host.accessToken))
+      .send({ stayFeeRulesMode: 'RULES', stayFeeRules: [] })
+      .expect(400);
+    expect(response.body.message).toBe('EMPTY_STAY_FEE_RULES');
+  });
+
+  it('rejects mode-only switch to SIMPLE without catch-all', async () => {
+    const host = await registerHostUser(app);
+    const property = await createActivePropertyDirect(app, host);
+    await createRulesModeSeasonOnly(app, property.id);
+    const response = await request(app.getHttpServer())
+      .patch(`/api/v1/properties/${property.id}`)
+      .set(authHeader(host.accessToken))
+      .send({ stayFeeRulesMode: 'SIMPLE' })
+      .expect(400);
+    expect(response.body.message).toBe('MODE_SWITCH_SIMPLE_REQUIRES_CATCH_ALL');
+  });
+
+  it('mode-only switch to SIMPLE prunes seasonal rules', async () => {
+    const host = await registerHostUser(app);
+    const property = await createActivePropertyDirect(app, host);
+    await createRulesModeCatchAllAndSeason(app, property.id, 5000, 15000);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/properties/${property.id}`)
+      .set(authHeader(host.accessToken))
+      .send({ stayFeeRulesMode: 'SIMPLE' })
+      .expect(200);
+    const prisma = app.get(PrismaService);
+    const rules = await prisma.propertyStayFeeRule.findMany({
+      where: { propertyId: property.id },
+    });
+    expect(rules).toHaveLength(1);
+    expect(rules[0]?.dateFrom).toBeNull();
+    expect(rules[0]?.dateTo).toBeNull();
+    expect(rules[0]?.cleaningFee).toBe(5000);
+    expect(rules[0]?.depositValue).toBe(15000);
+    const detail = await request(app.getHttpServer())
+      .get(`/api/v1/properties/${property.id}`)
+      .expect(200);
+    expect(detail.body.data.stayFeeRulesMode).toBe('SIMPLE');
+    expect(detail.body.data.cleaningFee).toBe(5000);
+    expect(detail.body.data.securityDeposit).toBe(15000);
+  });
+
   it('rejects property creation for non-host users', async () => {
     const guest = await registerUser(app);
     const response = await request(app.getHttpServer())
@@ -161,8 +250,19 @@ describe('Properties (e2e)', () => {
         pricePerNight: 30000,
         currency: 'AMD',
         cancellationPolicy: 'MODERATE',
-        cleaningFee: 5000,
-        securityDeposit: 20000,
+        stayFeeRulesMode: 'SIMPLE',
+        stayFeeRules: {
+          create: {
+            dateFrom: null,
+            dateTo: null,
+            minNights: 1,
+            maxNights: null,
+            cleaningFee: 5000,
+            depositType: 'FIXED',
+            depositValue: 20000,
+            sortOrder: 0,
+          },
+        },
         minNights: 2,
         maxNights: 10,
         petsAllowed: true,
@@ -191,8 +291,19 @@ describe('Properties (e2e)', () => {
         pricePerNight: 15000,
         currency: 'AMD',
         cancellationPolicy: 'MODERATE',
-        cleaningFee: 0,
-        securityDeposit: 0,
+        stayFeeRulesMode: 'SIMPLE',
+        stayFeeRules: {
+          create: {
+            dateFrom: null,
+            dateTo: null,
+            minNights: 1,
+            maxNights: null,
+            cleaningFee: 0,
+            depositType: 'FIXED',
+            depositValue: 0,
+            sortOrder: 0,
+          },
+        },
         minNights: 5,
         maxNights: null,
         petsAllowed: false,

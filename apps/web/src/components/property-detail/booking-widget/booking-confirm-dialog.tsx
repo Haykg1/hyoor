@@ -1,10 +1,11 @@
 'use client';
 
-import type { BookingQuoteResult, PropertyTitleLabels } from '@repo/shared';
+import type { BookingQuoteResult, CancellationFeeType, PropertyTitleLabels } from '@repo/shared';
 import { getLocalizedTitle } from '@repo/shared';
 import { Loader2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
+import { CancellationPolicyNotice } from '@/components/bookings/cancellation-policy-notice';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -28,6 +29,10 @@ interface BookingConfirmDialogProps {
   guests: number;
   nights: number;
   quote: BookingQuoteResult | null;
+  cancellationPolicy: string;
+  cancellationFeeType: CancellationFeeType;
+  cancellationFeeValue: number;
+  currency: string;
   isSubmitting: boolean;
   onConfirm: () => void;
 }
@@ -42,6 +47,10 @@ export function BookingConfirmDialog({
   guests,
   nights,
   quote,
+  cancellationPolicy,
+  cancellationFeeType,
+  cancellationFeeValue,
+  currency,
   isSubmitting,
   onConfirm,
 }: BookingConfirmDialogProps): React.JSX.Element {
@@ -110,6 +119,12 @@ export function BookingConfirmDialog({
               </div>
             </>
           )}
+          <CancellationPolicyNotice
+            cancellationPolicy={cancellationPolicy}
+            cancellationFeeType={cancellationFeeType}
+            cancellationFeeValue={cancellationFeeValue}
+            currency={quote?.currency ?? currency}
+          />
         </div>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>

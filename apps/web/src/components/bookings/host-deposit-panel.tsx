@@ -37,7 +37,7 @@ export function HostDepositPanel({
   const hoursLeft = Math.max(0, Math.ceil((deadline.getTime() - now.getTime()) / (60 * 60 * 1000)));
   const windowOpen =
     booking.depositStatus === 'AUTHORIZED' && now >= windowStart && now <= deadline;
-  const canRelease = booking.depositStatus === 'AUTHORIZED' && !claim;
+  const canRelease = booking.depositStatus === 'AUTHORIZED' && !claim && now >= windowStart;
   let statusContent: React.ReactNode;
   if (claim?.status === 'PENDING') {
     statusContent = (

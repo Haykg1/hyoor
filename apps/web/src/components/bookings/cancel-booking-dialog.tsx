@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { CancellationPolicyNotice } from '@/components/bookings/cancellation-policy-notice';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -87,6 +88,12 @@ export function CancelBookingDialog({
               {t('host_warning')}
             </p>
           ) : null}
+          <CancellationPolicyNotice
+            cancellationPolicy={booking.cancellationPolicy}
+            cancellationFeeType={booking.cancellationFeeType}
+            cancellationFeeValue={booking.cancellationFeeValue}
+            currency={booking.currency}
+          />
           <div className="space-y-1.5 rounded-lg border border-border bg-muted/40 px-3 py-2">
             <div className="flex justify-between gap-3">
               <span className="text-muted-foreground">{t('rent')}</span>

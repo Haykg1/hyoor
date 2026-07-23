@@ -6,6 +6,7 @@ export * from './property-type';
 export * from './search-intent';
 export * from './host-calendar-suggestion-currency';
 export * from './cancellation-fee';
+export * from './stay-fee-rules';
 
 export function slugify(text: string): string {
   return text

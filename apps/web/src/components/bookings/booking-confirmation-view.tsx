@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { CancelBookingDialog } from '@/components/bookings/cancel-booking-dialog';
+import { CancellationPolicyNotice } from '@/components/bookings/cancellation-policy-notice';
 import { HostDepositPanel } from '@/components/bookings/host-deposit-panel';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -78,6 +79,7 @@ export function BookingConfirmationView({
 }: BookingConfirmationViewProps): React.JSX.Element {
   const t = useTranslations('booking.confirmation');
   const tBooking = useTranslations('booking');
+  const tPolicy = useTranslations('booking.cancellation_policy');
   const locale = useLocale();
   const { formatMoney } = useDisplayMoney();
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -119,6 +121,19 @@ export function BookingConfirmationView({
         <p className="text-muted-foreground">
           {isCancelled ? t('cancelled_subtitle') : isHost ? t('host_subtitle') : t('subtitle')}
         </p>
+        {!isHost && isCancelled ? (
+          <p
+            className={`rounded-lg border px-3 py-2 text-sm ${
+              cancellationFee > 0
+                ? 'border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100'
+                : 'border-border bg-muted/40 text-muted-foreground'
+            }`}
+          >
+            {cancellationFee > 0
+              ? tPolicy('fee_charged', { amount: money(cancellationFee) })
+              : tPolicy('fee_none')}
+          </p>
+        ) : null}
       </div>
       <Card>
         <CardHeader>
@@ -215,17 +230,21 @@ export function BookingConfirmationView({
             <>
               <MoneyRow label={tBooking('total')} value={money(booking.totalAmount)} emphasize />
               {cancellationFee > 0 ? (
-                <MoneyRow
-                  label={t('cancellation_fee')}
-                  value={`−${money(cancellationFee)}`}
-                  muted
-                />
+                <MoneyRow label={t('cancellation_fee')} value={money(cancellationFee)} />
               ) : null}
               {isCancelled && booking.refundedAmount > 0 ? (
                 <MoneyRow label={t('refunded')} value={money(booking.refundedAmount)} />
               ) : null}
             </>
           )}
+          {!isCancelled ? (
+            <CancellationPolicyNotice
+              cancellationPolicy={booking.property.cancellationPolicy}
+              cancellationFeeType={booking.property.cancellationFeeType}
+              cancellationFeeValue={booking.property.cancellationFeeValue}
+              currency={booking.currency}
+            />
+          ) : null}
         </CardContent>
       </Card>
       {isHost ? (

@@ -166,7 +166,7 @@ export interface UpdatePropertyCapacityInput {
 
 export async function updateProperty(
   id: string,
-  data: UpdatePropertyCapacityInput,
+  data: UpdatePropertyCapacityInput | UpdatePropertyInput,
 ): Promise<PropertyDetail> {
   return api.patch<PropertyDetail>(`/properties/${id}`, data);
 }

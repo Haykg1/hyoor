@@ -9,6 +9,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import { CancellationPolicyNotice } from '@/components/bookings/cancellation-policy-notice';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -225,6 +226,12 @@ export default function BookingPaymentPage(): React.JSX.Element {
             <span>{t('total_due')}</span>
             <span>{formatPrice(booking.totalAmount, booking.currency)}</span>
           </div>
+          <CancellationPolicyNotice
+            cancellationPolicy={booking.property.cancellationPolicy}
+            cancellationFeeType={booking.property.cancellationFeeType}
+            cancellationFeeValue={booking.property.cancellationFeeValue}
+            currency={booking.currency}
+          />
         </CardContent>
       </Card>
 

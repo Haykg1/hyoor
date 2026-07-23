@@ -19,6 +19,9 @@ import { PaymentFailuresService } from '../../payment-failures/payment-failures.
 
 import { STRIPE_CLIENT } from './stripe-client.provider';
 
+export const INSUFFICIENT_BALANCE_MESSAGE =
+  'Insufficient card balance to authorize the stay and security deposit.';
+
 export interface SetupIntentResult {
   clientSecret: string;
 }
@@ -56,9 +59,10 @@ export class StripeCheckoutService {
   }
 
   /**
-   * Idempotent: safe to call again after the guest completes 3DS on the client for a
-   * PaymentIntent created by a previous call (checks existing intent status first
-   * instead of creating a duplicate).
+   * Authorizes rent (+ deposit when present) all-or-nothing. If either hold fails,
+   * both PaymentIntents are canceled and the booking stays AWAITING_PAYMENT with
+   * paymentStatus FAILED so the guest can retry. Idempotent for 3DS continuation
+   * when the same payment method is reused.
    */
   async confirmBookingPayment(
     bookingId: string,
@@ -69,43 +73,51 @@ export class StripeCheckoutService {
     const customerId = await this.ensureStripeCustomer(booking.guestId);
     const rentAmount = booking.totalAmount - booking.securityDeposit;
     const currency = booking.currency.toLowerCase();
-
-    const rentIntent = await this.confirmOrRetrieveIntent(
-      booking.stripePaymentIntentId,
-      rentAmount,
-      currency,
-      customerId,
-      paymentMethodId,
-      { bookingId: booking.id, kind: 'rent' },
-    );
-    if (rentIntent.id !== booking.stripePaymentIntentId) {
-      await this.prisma.booking.update({
-        where: { id: booking.id },
-        data: { stripePaymentIntentId: rentIntent.id },
-      });
-    }
-    if (rentIntent.status === 'requires_action') {
-      return { status: 'REQUIRES_ACTION', clientSecret: rentIntent.client_secret ?? undefined };
-    }
-    if (rentIntent.status !== 'requires_capture') {
-      throw new BadRequestException(`Payment could not be authorized (${rentIntent.status})`);
-    }
-
-    let depositIntentId: string | null = null;
-    if (booking.securityDeposit > 0) {
-      try {
+    let rentIntentId: string | null = booking.stripePaymentIntentId;
+    let depositIntentId: string | null = booking.stripeDepositPaymentIntentId;
+    let rentAuthorized = false;
+    let rentIntent: Stripe.PaymentIntent;
+    let authorizedDepositIntentId: string | null = null;
+    try {
+      rentIntent = await this.confirmOrRetrieveIntent(
+        rentIntentId,
+        rentAmount,
+        currency,
+        customerId,
+        paymentMethodId,
+        { bookingId: booking.id, kind: 'rent' },
+      );
+      rentIntentId = rentIntent.id;
+      if (rentIntent.id !== booking.stripePaymentIntentId) {
+        await this.prisma.booking.update({
+          where: { id: booking.id },
+          data: { stripePaymentIntentId: rentIntent.id },
+        });
+      }
+      if (rentIntent.status === 'requires_action') {
+        return { status: 'REQUIRES_ACTION', clientSecret: rentIntent.client_secret ?? undefined };
+      }
+      if (rentIntent.status !== 'requires_capture') {
+        throw new BadRequestException(`Payment could not be authorized (${rentIntent.status})`);
+      }
+      rentAuthorized = true;
+      if (booking.securityDeposit > 0) {
         const depositIntent = await this.confirmOrRetrieveIntent(
-          booking.stripeDepositPaymentIntentId,
+          depositIntentId,
           booking.securityDeposit,
           currency,
           customerId,
           paymentMethodId,
           { bookingId: booking.id, kind: 'deposit' },
         );
+        depositIntentId = depositIntent.id;
         if (depositIntent.status === 'requires_action') {
           await this.prisma.booking.update({
             where: { id: booking.id },
-            data: { stripeDepositPaymentIntentId: depositIntent.id },
+            data: {
+              stripePaymentIntentId: rentIntent.id,
+              stripeDepositPaymentIntentId: depositIntent.id,
+            },
           });
           return {
             status: 'REQUIRES_ACTION',
@@ -113,23 +125,14 @@ export class StripeCheckoutService {
           };
         }
         if (depositIntent.status !== 'requires_capture') {
-          throw new BadRequestException(
-            `Security deposit hold could not be authorized (${depositIntent.status})`,
-          );
+          throw new BadRequestException(INSUFFICIENT_BALANCE_MESSAGE);
         }
-        depositIntentId = depositIntent.id;
-      } catch (error) {
-        // Roll back the rent hold so the guest isn't left with an authorized charge
-        // for a booking that never gets confirmed.
-        await this.safeCancelIntent(rentIntent.id);
-        await this.prisma.booking.update({
-          where: { id: booking.id },
-          data: { stripePaymentIntentId: null },
-        });
-        throw error;
+        authorizedDepositIntentId = depositIntent.id;
       }
+    } catch (error) {
+      await this.rollbackPaymentAuths(booking.id, rentIntentId, depositIntentId);
+      throw this.toAuthFailureException(error, rentAuthorized);
     }
-
     await this.prisma.booking.update({
       where: { id: booking.id },
       data: {
@@ -137,8 +140,8 @@ export class StripeCheckoutService {
         paymentStatus: 'AUTHORIZED',
         paymentInitiatedAt: booking.paymentInitiatedAt ?? new Date(),
         stripePaymentIntentId: rentIntent.id,
-        stripeDepositPaymentIntentId: depositIntentId,
-        depositStatus: depositIntentId ? 'AUTHORIZED' : 'NONE',
+        stripeDepositPaymentIntentId: authorizedDepositIntentId,
+        depositStatus: authorizedDepositIntentId ? 'AUTHORIZED' : 'NONE',
       },
     });
     await this.notifications.notify(booking.guestId, 'BOOKING_CONFIRMED', booking.id, 'booking');
@@ -444,8 +447,18 @@ export class StripeCheckoutService {
   ): Promise<Stripe.PaymentIntent> {
     if (existingIntentId) {
       const existing = await this.stripe.paymentIntents.retrieve(existingIntentId);
-      if (existing.status === 'requires_capture' || existing.status === 'requires_action') {
+      const samePaymentMethod = this.paymentMethodIdOf(existing) === paymentMethodId;
+      const reusableStatus =
+        existing.status === 'requires_capture' || existing.status === 'requires_action';
+      if (reusableStatus && samePaymentMethod) {
         return existing;
+      }
+      if (
+        reusableStatus ||
+        existing.status === 'requires_confirmation' ||
+        existing.status === 'requires_payment_method'
+      ) {
+        await this.safeCancelIntent(existingIntentId);
       }
     }
     try {
@@ -460,24 +473,87 @@ export class StripeCheckoutService {
         metadata,
       });
     } catch (error) {
-      if (error instanceof Stripe.errors.StripeCardError) {
+      if (error instanceof Stripe.errors.StripeError) {
+        if (error.code === 'insufficient_funds') {
+          throw new BadRequestException(INSUFFICIENT_BALANCE_MESSAGE);
+        }
         throw new BadRequestException(error.message);
       }
       throw error;
     }
   }
 
+  private paymentMethodIdOf(intent: Stripe.PaymentIntent): string | null {
+    const paymentMethod = intent.payment_method;
+    if (typeof paymentMethod === 'string') return paymentMethod;
+    return paymentMethod?.id ?? null;
+  }
+
+  /**
+   * Compensates a partial auth: cancel both Stripe holds and mark the booking payment
+   * failed while leaving status AWAITING_PAYMENT for retry within the lock window.
+   */
+  private async rollbackPaymentAuths(
+    bookingId: string,
+    rentIntentId: string | null,
+    depositIntentId: string | null,
+  ): Promise<void> {
+    for (const intentId of [rentIntentId, depositIntentId]) {
+      if (!intentId) continue;
+      try {
+        await this.cancelIntentOrThrow(intentId);
+      } catch (error) {
+        this.logger.error(
+          `Failed to cancel PaymentIntent ${intentId} during auth rollback for booking ${bookingId}: ${String(error)}`,
+        );
+      }
+    }
+    await this.prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        stripePaymentIntentId: null,
+        stripeDepositPaymentIntentId: null,
+        paymentStatus: 'FAILED',
+        depositStatus: 'NONE',
+      },
+    });
+  }
+
+  private toAuthFailureException(error: unknown, afterPartialAuth: boolean): BadRequestException {
+    if (error instanceof BadRequestException) {
+      if (afterPartialAuth && error.message !== INSUFFICIENT_BALANCE_MESSAGE) {
+        return new BadRequestException(INSUFFICIENT_BALANCE_MESSAGE);
+      }
+      return error;
+    }
+    if (error instanceof Stripe.errors.StripeError) {
+      if (error.code === 'insufficient_funds' || afterPartialAuth) {
+        return new BadRequestException(INSUFFICIENT_BALANCE_MESSAGE);
+      }
+      return new BadRequestException(error.message);
+    }
+    if (afterPartialAuth) {
+      return new BadRequestException(INSUFFICIENT_BALANCE_MESSAGE);
+    }
+    const message = error instanceof Error ? error.message : 'Payment could not be authorized';
+    return new BadRequestException(message);
+  }
+
+  private async cancelIntentOrThrow(intentId: string): Promise<void> {
+    const intent = await this.stripe.paymentIntents.retrieve(intentId);
+    if (
+      intent.status === 'requires_capture' ||
+      intent.status === 'requires_confirmation' ||
+      intent.status === 'requires_payment_method' ||
+      intent.status === 'requires_action'
+    ) {
+      await this.stripe.paymentIntents.cancel(intentId);
+    }
+  }
+
   private async safeCancelIntent(intentId: string): Promise<void> {
     try {
-      const intent = await this.stripe.paymentIntents.retrieve(intentId);
-      if (intent.status === 'requires_capture' || intent.status === 'requires_confirmation') {
-        await this.stripe.paymentIntents.cancel(intentId);
-      } else if (
-        intent.status === 'requires_payment_method' ||
-        intent.status === 'requires_action'
-      ) {
-        await this.stripe.paymentIntents.cancel(intentId);
-      }
+      await this.cancelIntentOrThrow(intentId);
     } catch (error) {
       this.logger.warn(`Failed to cancel PaymentIntent ${intentId}: ${String(error)}`);
     }

@@ -97,9 +97,114 @@ export async function createActivePropertyDirect(
       currency: 'AMD',
       cancellationPolicy: 'MODERATE',
       status: 'ACTIVE',
+      stayFeeRulesMode: 'SIMPLE',
+      stayFeeRules: {
+        create: {
+          dateFrom: null,
+          dateTo: null,
+          minNights: 1,
+          maxNights: null,
+          cleaningFee: 0,
+          depositType: 'FIXED',
+          depositValue: 0,
+          sortOrder: 0,
+        },
+      },
     },
   });
   return { id: property.id };
+}
+
+export async function createSimpleStayFeeRule(
+  app: INestApplication,
+  propertyId: string,
+  cleaningFee: number,
+  securityDeposit: number,
+): Promise<void> {
+  const prisma = app.get(PrismaService);
+  await prisma.propertyStayFeeRule.deleteMany({ where: { propertyId } });
+  await prisma.propertyStayFeeRule.create({
+    data: {
+      propertyId,
+      dateFrom: null,
+      dateTo: null,
+      minNights: 1,
+      maxNights: null,
+      cleaningFee,
+      depositType: 'FIXED',
+      depositValue: securityDeposit,
+      sortOrder: 0,
+    },
+  });
+  await prisma.property.update({
+    where: { id: propertyId },
+    data: { stayFeeRulesMode: 'SIMPLE' },
+  });
+}
+
+export async function createRulesModeSeasonOnly(
+  app: INestApplication,
+  propertyId: string,
+): Promise<void> {
+  const prisma = app.get(PrismaService);
+  await prisma.propertyStayFeeRule.deleteMany({ where: { propertyId } });
+  await prisma.property.update({
+    where: { id: propertyId },
+    data: { stayFeeRulesMode: 'RULES' },
+  });
+  await prisma.propertyStayFeeRule.create({
+    data: {
+      propertyId,
+      dateFrom: new Date('2026-06-01T00:00:00.000Z'),
+      dateTo: new Date('2026-08-31T00:00:00.000Z'),
+      minNights: 1,
+      maxNights: null,
+      cleaningFee: 800,
+      depositType: 'FIXED',
+      depositValue: 200,
+      sortOrder: 0,
+    },
+  });
+}
+
+export async function createRulesModeCatchAllAndSeason(
+  app: INestApplication,
+  propertyId: string,
+  cleaningFee: number,
+  securityDeposit: number,
+): Promise<void> {
+  const prisma = app.get(PrismaService);
+  await prisma.propertyStayFeeRule.deleteMany({ where: { propertyId } });
+  await prisma.property.update({
+    where: { id: propertyId },
+    data: { stayFeeRulesMode: 'RULES' },
+  });
+  await prisma.propertyStayFeeRule.createMany({
+    data: [
+      {
+        propertyId,
+        dateFrom: null,
+        dateTo: null,
+        minNights: 1,
+        maxNights: null,
+        cleaningFee,
+        depositType: 'FIXED',
+        depositValue: securityDeposit,
+        sortOrder: 0,
+      },
+      {
+        propertyId,
+        dateFrom: new Date('2026-06-01T00:00:00.000Z'),
+        dateTo: new Date('2026-08-31T00:00:00.000Z'),
+        minNights: 1,
+        maxNights: null,
+        cleaningFee: 1200,
+        depositType: 'FIXED',
+        depositValue: 300,
+        sortOrder: 1,
+      },
+    ],
+  });
 }
 
 export async function createGuestHostConversation(

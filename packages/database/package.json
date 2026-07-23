@@ -7,8 +7,9 @@
     "migrate:deploy": "prisma migrate deploy",
     "studio": "prisma studio",
     "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts",
-    "format": "prettier --write 'prisma/**/*.{prisma,ts}'",
-    "format:check": "prettier --check 'prisma/**/*.{prisma,ts}'"
+    "backfill:stay-fee-rules": "ts-node --project tsconfig.seed.json scripts/backfill-stay-fee-rules.ts",
+    "format": "prettier --write 'prisma/**/*.{prisma,ts}' 'scripts/**/*.ts'",
+    "format:check": "prettier --check 'prisma/**/*.{prisma,ts}' 'scripts/**/*.ts'"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.0.0",

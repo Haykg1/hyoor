@@ -16,6 +16,7 @@ import { usePropertyCalendarStore } from '@/store';
 
 import { AvailabilityMonth } from './availability-month';
 import { CalendarLegend } from './calendar-legend';
+import { CalendarStayFeesSection } from './calendar-stay-fees-section';
 import { CalendarToolbar } from './calendar-toolbar';
 import { HostCalendarAiPanel } from './host-calendar-ai-panel';
 import { OpenYearDialog } from './open-year-dialog';
@@ -30,7 +31,8 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
   const t = useTranslations('dashboard.calendar');
   const locale = useLocale();
   const { displayCurrency, setDisplayCurrency, formatMoney, convert } = useDisplayMoney();
-  usePropertyCalendar(property);
+  const [propertyState, setPropertyState] = useState(property);
+  usePropertyCalendar(propertyState);
   const monthCursor = usePropertyCalendarStore((s) => s.monthCursor);
   const isLoading = usePropertyCalendarStore((s) => s.isLoading);
   const isSaving = usePropertyCalendarStore((s) => s.isSaving);
@@ -49,7 +51,7 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
   const [rangeRateOpen, setRangeRateOpen] = useState(false);
 
   const nextMonth = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1);
-  const localizedTitle = getLocalizedTitle(property.titleLabels, locale, property.title);
+  const localizedTitle = getLocalizedTitle(propertyState.titleLabels, locale, propertyState.title);
 
   function handleDayClick(iso: string): void {
     if (!isLocalIsoEditable(iso)) return;
@@ -86,11 +88,11 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
                 {t('base_rate')}
               </p>
               <p className="text-lg font-semibold">
-                {formatMoney(basePricePerNight, property.currency)}
-                {convert(basePricePerNight, property.currency) !== null &&
-                displayCurrency !== property.currency ? (
+                {formatMoney(basePricePerNight, propertyState.currency)}
+                {convert(basePricePerNight, propertyState.currency) !== null &&
+                displayCurrency !== propertyState.currency ? (
                   <span className="ml-1 text-sm font-normal text-muted-foreground">
-                    (~{formatStoredMoney(basePricePerNight, property.currency)})
+                    (~{formatStoredMoney(basePricePerNight, propertyState.currency)})
                   </span>
                 ) : null}
               </p>
@@ -123,7 +125,7 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
               daysByDate={daysByDate}
               selectedDates={selectedDates}
               basePricePerNight={basePricePerNight}
-              currency={property.currency}
+              currency={propertyState.currency}
               onDayClick={handleDayClick}
             />
             <AvailabilityMonth
@@ -131,7 +133,7 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
               daysByDate={daysByDate}
               selectedDates={selectedDates}
               basePricePerNight={basePricePerNight}
-              currency={property.currency}
+              currency={propertyState.currency}
               onDayClick={handleDayClick}
             />
           </div>
@@ -146,10 +148,12 @@ export function PropertyCalendarView({ property }: PropertyCalendarViewProps): R
 
       <SelectionEditor basePricePerNight={basePricePerNight} />
 
+      <CalendarStayFeesSection property={propertyState} onPropertyUpdated={setPropertyState} />
+
       <HostCalendarAiPanel
-        propertyId={property.id}
+        propertyId={propertyState.id}
         propertyTitle={localizedTitle}
-        currency={property.currency}
+        currency={propertyState.currency}
       />
 
       <OpenYearDialog open={openYearOpen} onOpenChange={setOpenYearOpen} />

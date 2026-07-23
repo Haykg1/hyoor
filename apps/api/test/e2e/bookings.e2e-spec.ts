@@ -7,6 +7,13 @@ import { createActivePropertyDirect, registerHostUser } from '../helpers/propert
 import { resetE2eDatabase } from '../helpers/reset-database';
 import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
 
+function utcIsoDaysFromToday(offsetDays: number): string {
+  const date = new Date();
+  date.setUTCHours(0, 0, 0, 0);
+  date.setUTCDate(date.getUTCDate() + offsetDays);
+  return date.toISOString().slice(0, 10);
+}
+
 describe('Bookings (e2e)', () => {
   let app: INestApplication;
 
@@ -662,6 +669,10 @@ describe('Bookings (e2e)', () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
     const property = await createActivePropertyDirect(app, host);
+    const bookingStartDate = utcIsoDaysFromToday(0);
+    const bookingEndDate = utcIsoDaysFromToday(30);
+    const checkIn = utcIsoDaysFromToday(10);
+    const checkOut = utcIsoDaysFromToday(13);
     const promo = await request(app.getHttpServer())
       .post('/api/v1/promotions')
       .set(authHeader(host.accessToken))
@@ -671,8 +682,8 @@ describe('Bookings (e2e)', () => {
         discountType: 'PERCENT',
         discountPercent: 20,
         description: 'Summer deal: 20% off eligible stays in July.',
-        bookingStartDate: '2026-07-01',
-        bookingEndDate: '2026-07-31',
+        bookingStartDate,
+        bookingEndDate,
         maxApplications: 5,
         notifyGuests: false,
       })
@@ -682,8 +693,8 @@ describe('Bookings (e2e)', () => {
       .get('/api/v1/bookings/quote')
       .query({
         propertyId: property.id,
-        checkIn: '2026-07-10',
-        checkOut: '2026-07-13',
+        checkIn,
+        checkOut,
       })
       .expect(200);
     expect(quote.body.data.accommodationSubtotal).toBe(75000);
@@ -694,8 +705,8 @@ describe('Bookings (e2e)', () => {
       .set(authHeader(guest.accessToken))
       .send({
         propertyId: property.id,
-        checkIn: '2026-07-10',
-        checkOut: '2026-07-13',
+        checkIn,
+        checkOut,
         guestCount: 2,
       })
       .expect(201);
@@ -727,6 +738,10 @@ describe('Bookings (e2e)', () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
     const property = await createActivePropertyDirect(app, host);
+    const bookingStartDate = utcIsoDaysFromToday(0);
+    const bookingEndDate = utcIsoDaysFromToday(30);
+    const checkIn = utcIsoDaysFromToday(10);
+    const checkOut = utcIsoDaysFromToday(13);
     await request(app.getHttpServer())
       .post('/api/v1/promotions')
       .set(authHeader(host.accessToken))
@@ -736,8 +751,8 @@ describe('Bookings (e2e)', () => {
         discountType: 'PERCENT',
         discountPercent: 10,
         description: 'Small date-range deal for best-discount comparison test.',
-        bookingStartDate: '2026-07-01',
-        bookingEndDate: '2026-07-31',
+        bookingStartDate,
+        bookingEndDate,
         maxApplications: 5,
         notifyGuests: false,
       })
@@ -751,8 +766,8 @@ describe('Bookings (e2e)', () => {
         discountType: 'PERCENT',
         discountPercent: 25,
         description: 'Better promo code for best-discount comparison test.',
-        bookingStartDate: '2026-07-01',
-        bookingEndDate: '2026-07-31',
+        bookingStartDate,
+        bookingEndDate,
         promoCode: 'BEST25',
         maxApplications: 5,
         notifyGuests: false,
@@ -762,8 +777,8 @@ describe('Bookings (e2e)', () => {
       .get('/api/v1/bookings/quote')
       .query({
         propertyId: property.id,
-        checkIn: '2026-07-10',
-        checkOut: '2026-07-13',
+        checkIn,
+        checkOut,
         promoCode: 'BEST25',
       })
       .expect(200);
@@ -773,8 +788,8 @@ describe('Bookings (e2e)', () => {
       .set(authHeader(guest.accessToken))
       .send({
         propertyId: property.id,
-        checkIn: '2026-07-10',
-        checkOut: '2026-07-13',
+        checkIn,
+        checkOut,
         guestCount: 2,
         promoCode: 'BEST25',
       })

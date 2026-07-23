@@ -257,8 +257,12 @@ export interface PropertyDetail {
   currency: string;
   pricePerNight: number;
   displayPrice?: DisplayPrice | null;
+  /** Derived from stay-fee rules (SIMPLE catch-all or matched default). */
   cleaningFee: number | null;
+  /** Derived from stay-fee rules (SIMPLE catch-all fixed deposit). */
   securityDeposit: number | null;
+  stayFeeRulesMode: import('../utils/stay-fee-rules').StayFeeRulesMode;
+  stayFeeRules: import('../dto/property').StayFeeRuleView[];
   cancellationPolicy: string;
   cancellationFeeType: import('../utils/cancellation-fee').CancellationFeeType;
   cancellationFeeValue: number;

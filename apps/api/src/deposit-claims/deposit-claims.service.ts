@@ -288,11 +288,11 @@ export class DepositClaimsService {
     if (booking.securityDepositClaim) {
       throw new ConflictException('A damage claim already exists for this booking');
     }
-    if (opts.requireWindowOpen === false) return booking;
     const now = new Date();
     if (now < booking.checkOut) {
-      throw new BadRequestException('The damage-claim window opens after checkout');
+      throw new BadRequestException('The security deposit can only be managed after checkout');
     }
+    if (opts.requireWindowOpen === false) return booking;
     const claimWindowHours = this.config.get('stripe.depositClaimWindowHours', { infer: true });
     const deadline = new Date(booking.checkOut.getTime() + claimWindowHours * 60 * 60 * 1000);
     if (now > deadline) {

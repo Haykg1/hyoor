@@ -48,8 +48,10 @@ const STEP_FIELDS: Record<number, (keyof ListingFormValues)[]> = {
   3: ['amenities'],
   4: [
     'pricePerNight',
+    'stayFeeRulesMode',
     'cleaningFee',
     'securityDeposit',
+    'stayFeeRules',
     'cancellationPolicy',
     'minNights',
     'maxNights',

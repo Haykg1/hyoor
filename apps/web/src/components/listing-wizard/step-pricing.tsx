@@ -4,10 +4,13 @@ import {
   CancellationFeeTypes,
   CancellationPolicies,
   MAX_CANCELLATION_FEE_PERCENT,
+  type StayFeeRuleInput,
+  type StayFeeRulesMode,
 } from '@repo/shared';
 import { useTranslations } from 'next-intl';
 import type { UseFormReturn } from 'react-hook-form';
 
+import { StayFeeRulesEditor } from '@/components/listing-wizard/stay-fee-rules-editor';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
@@ -39,6 +42,12 @@ const LISTING_CURRENCY = 'USD';
 
 export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
   const t = useTranslations('listing_wizard.pricing_rules');
+  const mode = form.watch('stayFeeRulesMode') ?? 'SIMPLE';
+  const cleaningFee = form.watch('cleaningFee') ?? 0;
+  const securityDeposit = form.watch('securityDeposit') ?? 0;
+  const stayFeeRules = (form.watch('stayFeeRules') ?? []) as StayFeeRuleInput[];
+  const minNights = form.watch('minNights') ?? 1;
+  const maxNights = form.watch('maxNights') ?? null;
   return (
     <Form {...form}>
       <div className="space-y-8">
@@ -55,42 +64,6 @@ export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
                     <MoneyInput
                       currency={LISTING_CURRENCY}
                       placeholder={t('price_placeholder')}
-                      value={field.value ?? 0}
-                      onValueChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="cleaningFee"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('cleaning_fee')}</FormLabel>
-                  <FormControl>
-                    <MoneyInput
-                      currency={LISTING_CURRENCY}
-                      placeholder={t('cleaning_placeholder')}
-                      value={field.value ?? 0}
-                      onValueChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="securityDeposit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('security_deposit')}</FormLabel>
-                  <FormControl>
-                    <MoneyInput
-                      currency={LISTING_CURRENCY}
-                      placeholder={t('deposit_placeholder')}
                       value={field.value ?? 0}
                       onValueChange={field.onChange}
                     />
@@ -138,6 +111,33 @@ export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
                   <FormMessage />
                 </FormItem>
               )}
+            />
+          </div>
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">{t('stay_fees_section')}</h4>
+            <StayFeeRulesEditor
+              mode={mode}
+              rules={stayFeeRules}
+              cleaningFee={cleaningFee}
+              securityDeposit={securityDeposit}
+              currency={LISTING_CURRENCY}
+              propertyMinNights={minNights}
+              propertyMaxNights={maxNights}
+              onModeChange={(next: StayFeeRulesMode) =>
+                form.setValue('stayFeeRulesMode', next, { shouldDirty: true, shouldValidate: true })
+              }
+              onCleaningFeeChange={(value) =>
+                form.setValue('cleaningFee', value, { shouldDirty: true, shouldValidate: true })
+              }
+              onSecurityDepositChange={(value) =>
+                form.setValue('securityDeposit', value, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+              }
+              onRulesChange={(rules) =>
+                form.setValue('stayFeeRules', rules, { shouldDirty: true, shouldValidate: true })
+              }
             />
           </div>
           <FormField

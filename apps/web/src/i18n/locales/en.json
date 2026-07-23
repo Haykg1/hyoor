@@ -355,6 +355,15 @@
     "decline": "Decline",
     "cancel": "Cancel booking",
     "cancel_confirm": "Are you sure you want to cancel this booking?",
+    "cancellation_policy": {
+      "title": "Cancellation policy",
+      "free": "Free cancellation before check-in — the full rent is refunded.",
+      "percent": "If you cancel after payment, {percent}% of the rent is non-refundable. The rest is refunded.",
+      "fixed": "If you cancel after payment, a {amount} cancellation fee is non-refundable. The rest of the rent is refunded.",
+      "non_refundable": "This stay is non-refundable. Guests cannot cancel after payment.",
+      "fee_charged": "A cancellation fee of {amount} was charged.",
+      "fee_none": "No cancellation fee was charged. The rent was refunded in full."
+    },
     "cancel_dialog": {
       "guest_title": "Cancel this trip?",
       "guest_description": "Review the refund below. The cancellation fee is kept per the listing policy.",
@@ -947,6 +956,13 @@
         "limit_reached": "You have used all AI messages for today.",
         "message_too_long": "Keep your message under {max} characters.",
         "error_generic": "Something went wrong. Please try again."
+      },
+      "fees": {
+        "title": "Fees",
+        "description": "Set cleaning fees and security deposits by season or stay length. Nightly rates stay on the calendar above.",
+        "save": "Save fees",
+        "saved": "Fees updated",
+        "save_failed": "Failed to save fees"
       }
     },
     "overview": "Dashboard",
@@ -1136,7 +1152,8 @@
         "MODERATE": "Moderate",
         "STRICT": "Strict",
         "NON_REFUNDABLE": "Non-refundable"
-      }
+      },
+      "stay_fees_section": "Stay fees & deposit"
     }
   },
   "property_form": {
@@ -1647,5 +1664,60 @@
     "safety_notice_title": "Keep it on RentStar",
     "safety_notice_body": "For your safety, avoid sharing phone numbers or other contact details, and always book and pay through RentStar — payments made outside the app aren't protected.",
     "safety_notice_dismiss": "Dismiss"
+  },
+  "stay_fee_rules": {
+    "mode_label": "Cleaning fee & deposit",
+    "modes": {
+      "SIMPLE": "Simple",
+      "RULES": "Rules"
+    },
+    "mode_hints": {
+      "SIMPLE": "One year-round cleaning fee and fixed security deposit.",
+      "RULES": "Seasonal windows and stay-length bands for fees and deposits."
+    },
+    "cleaning_fee": "Cleaning fee",
+    "cleaning_placeholder": "e.g. 50",
+    "security_deposit": "Security deposit",
+    "deposit_placeholder": "e.g. 500",
+    "rules_hint": "Leave dates empty for a year-round default season. Deposit percent is based on accommodation after promo.",
+    "date_from": "Season start",
+    "date_to": "Season end",
+    "year_round_hint": "Year-round / off-season default (no dates).",
+    "season_window_hint": "Applies when check-in falls in this date range.",
+    "min_nights": "Min nights",
+    "max_nights": "Max nights",
+    "max_nights_open": "Open-ended",
+    "deposit_type": "Deposit type",
+    "deposit_types": {
+      "FIXED": "Fixed amount",
+      "PERCENT": "Percent of stay"
+    },
+    "deposit_percent": "Deposit %",
+    "add_band": "Add stay-length band",
+    "add_season": "Add season",
+    "remove_season": "Remove season",
+    "remove_band": "Remove band",
+    "validation": {
+      "SIMPLE_REQUIRES_CATCH_ALL": "Simple mode requires exactly one year-round catch-all fee rule.",
+      "SIMPLE_DEPOSIT_MUST_BE_FIXED": "Simple mode deposit must be a fixed amount.",
+      "DATES_BOTH_OR_NEITHER": "Each fee rule must set both season dates, or leave both empty.",
+      "DATE_FROM_AFTER_TO": "Season start must be on or before season end.",
+      "MIN_NIGHTS_INVALID": "Minimum nights must be an integer of at least 1.",
+      "MAX_NIGHTS_INVALID": "Maximum nights must be empty or greater than minimum nights.",
+      "MIN_NIGHTS_BELOW_PROPERTY": "Fee band minimum nights cannot be below the property minimum stay.",
+      "MIN_NIGHTS_ABOVE_PROPERTY_MAX": "Fee band minimum nights cannot exceed the property maximum stay.",
+      "MAX_NIGHTS_ABOVE_PROPERTY_MAX": "Fee band maximum nights cannot exceed the property maximum stay.",
+      "CLEANING_FEE_INVALID": "Cleaning fee must be a non-negative whole amount.",
+      "PERCENT_DEPOSIT_INVALID": "Percent deposit must be a whole number from 0 to 100.",
+      "FIXED_DEPOSIT_INVALID": "Fixed deposit must be a non-negative whole amount.",
+      "SEASON_OVERLAP": "Seasonal fee windows cannot overlap.",
+      "BAND_OVERLAP": "Stay-length fee bands cannot overlap within the same season.",
+      "SIMPLE_FIELDS_IN_RULES_MODE": "Cleaning fee and security deposit cannot be sent in Rules mode. Use stay fee rules instead.",
+      "RULES_PAYLOAD_IN_SIMPLE_MODE": "Stay fee rules cannot be sent in Simple mode. Use cleaning fee and security deposit instead.",
+      "STAY_FEE_PAYLOAD_REQUIRED": "A stay fee update must include fee fields or existing rules.",
+      "EMPTY_STAY_FEE_RULES": "Stay fee rules cannot be empty.",
+      "MODE_SWITCH_SIMPLE_REQUIRES_CATCH_ALL": "Switching to Simple mode requires a year-round default fee rule."
+    },
+    "coverage_warning": "Add a year-round default season (empty dates) so off-season check-ins still get fees. Without it, unmatched stays charge zero fees."
   }
 }

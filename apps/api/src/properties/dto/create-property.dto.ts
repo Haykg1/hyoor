@@ -5,6 +5,7 @@ import {
   CancellationPolicies,
   HostSettlementCurrencies,
   PropertyTypes,
+  StayFeeRulesModes,
 } from '@repo/shared';
 import { MAX_FEATURED_POIS } from '@repo/shared';
 import { Type } from 'class-transformer';
@@ -24,6 +25,8 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+
+import { StayFeeRuleDto } from './stay-fee-rule.dto';
 
 class TitleLabelsDto {
   @ApiPropertyOptional({ maxLength: 200 })
@@ -227,19 +230,39 @@ export class CreatePropertyDto implements CreatePropertyInput {
   @IsIn(HOST_SETTLEMENT_CURRENCIES)
   currency!: (typeof HOST_SETTLEMENT_CURRENCIES)[number];
 
-  @ApiPropertyOptional({ example: 5000, minimum: 0 })
+  @ApiPropertyOptional({
+    example: 5000,
+    minimum: 0,
+    description: 'Simple-mode cleaning fee (catch-all rule). Ignored when stayFeeRules is sent.',
+  })
   @IsOptional()
   @IsInt()
   @Min(0)
   @Type(() => Number)
   cleaningFee?: number;
 
-  @ApiPropertyOptional({ example: 50000, minimum: 0 })
+  @ApiPropertyOptional({
+    example: 50000,
+    minimum: 0,
+    description: 'Simple-mode fixed deposit (catch-all rule). Ignored when stayFeeRules is sent.',
+  })
   @IsOptional()
   @IsInt()
   @Min(0)
   @Type(() => Number)
   securityDeposit?: number;
+
+  @ApiPropertyOptional({ enum: StayFeeRulesModes, example: 'SIMPLE' })
+  @IsOptional()
+  @IsIn(StayFeeRulesModes)
+  stayFeeRulesMode?: (typeof StayFeeRulesModes)[number];
+
+  @ApiPropertyOptional({ type: [StayFeeRuleDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => StayFeeRuleDto)
+  stayFeeRules?: StayFeeRuleDto[];
 
   @ApiPropertyOptional({ example: 2, minimum: 1 })
   @IsOptional()

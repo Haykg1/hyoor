@@ -108,6 +108,18 @@ describe('Deposit claims (e2e)', () => {
         .expect(403);
     });
 
+    it('rejects a release before checkout', async () => {
+      const host = await registerHostUser(app);
+      const guest = await registerUser(app, { email: uniqueEmail('guest') });
+      const { bookingId } = await createDepositBooking(app, host, guest, {
+        checkOutOffsetDays: 2,
+      });
+      await request(app.getHttpServer())
+        .post(`/api/v1/bookings/${bookingId}/deposit-release`)
+        .set(authHeader(host.accessToken))
+        .expect(400);
+    });
+
     it('rejects when no deposit hold exists', async () => {
       const host = await registerHostUser(app);
       const guest = await registerUser(app, { email: uniqueEmail('guest') });

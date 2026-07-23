@@ -141,6 +141,31 @@ function buildSeedAddressLabels(
   };
 }
 
+async function upsertSimpleStayFees(
+  propertyId: string,
+  cleaningFee: number,
+  securityDeposit: number,
+): Promise<void> {
+  await prisma.propertyStayFeeRule.deleteMany({ where: { propertyId } });
+  await prisma.propertyStayFeeRule.create({
+    data: {
+      propertyId,
+      dateFrom: null,
+      dateTo: null,
+      minNights: 1,
+      maxNights: null,
+      cleaningFee,
+      depositType: 'FIXED',
+      depositValue: securityDeposit,
+      sortOrder: 0,
+    },
+  });
+  await prisma.property.update({
+    where: { id: propertyId },
+    data: { stayFeeRulesMode: 'SIMPLE' },
+  });
+}
+
 async function main(): Promise<void> {
   console.log('🌱 Seeding RentStar demo data...');
   await uploadSeedImages();
@@ -426,6 +451,15 @@ async function main(): Promise<void> {
   });
 
   // ── Properties ───────────────────────────────────────────────────────────
+  const propertyFees = {
+    p1: { cleaningFee: 15, securityDeposit: 50 },
+    p2: { cleaningFee: 10, securityDeposit: 25 },
+    p3: { cleaningFee: 20, securityDeposit: 75 },
+    p4: { cleaningFee: 15, securityDeposit: 65 },
+    p5: { cleaningFee: 30, securityDeposit: 130 },
+    p6: { cleaningFee: 25, securityDeposit: 100 },
+    p7: { cleaningFee: 10, securityDeposit: 0 },
+  };
   const p1Address = parseSeedAddress('10 Tamanyan Street');
   const p1Labels = buildSeedAddressLabels(
     'Yerevan',
@@ -451,8 +485,6 @@ async function main(): Promise<void> {
       featured: true,
       currency: 'USD',
       pricePerNight: 75,
-      cleaningFee: 15,
-      securityDeposit: 50,
       maxAdults: 2,
       maxChildren: 2,
       maxInfants: 1,
@@ -502,8 +534,6 @@ async function main(): Promise<void> {
       bathrooms: new Decimal('1.0'),
       currency: 'USD',
       pricePerNight: 75,
-      cleaningFee: 15,
-      securityDeposit: 50,
       minNights: 2,
       maxNights: 30,
       checkInTime: '14:00',
@@ -516,6 +546,7 @@ async function main(): Promise<void> {
         '<p>Enter through the main gate and use the intercom code <strong>4521</strong>.</p><p>The lockbox is on the door handle — code: <strong>8824</strong>.</p><p>Wi-Fi network: <strong>CascadeGuest</strong>, password: <strong>welcome2024</strong>.</p>',
     },
   });
+  await upsertSimpleStayFees(p1.id, propertyFees.p1.cleaningFee, propertyFees.p1.securityDeposit);
 
   const p2Address = parseSeedAddress('23 Northern Avenue');
   const p2Labels = buildSeedAddressLabels(
@@ -541,8 +572,6 @@ async function main(): Promise<void> {
     update: {
       currency: 'USD',
       pricePerNight: 45,
-      cleaningFee: 10,
-      securityDeposit: 25,
       maxAdults: 2,
       maxChildren: 0,
       maxInfants: 1,
@@ -591,8 +620,6 @@ async function main(): Promise<void> {
       bathrooms: new Decimal('1.0'),
       currency: 'USD',
       pricePerNight: 45,
-      cleaningFee: 10,
-      securityDeposit: 25,
       minNights: 1,
       maxNights: 14,
       checkInTime: '13:00',
@@ -601,6 +628,7 @@ async function main(): Promise<void> {
       petsAllowed: false,
     },
   });
+  await upsertSimpleStayFees(p2.id, propertyFees.p2.cleaningFee, propertyFees.p2.securityDeposit);
 
   const p3Address = parseSeedAddress('5 Moskovyan Street');
   const p3Labels = buildSeedAddressLabels(
@@ -627,8 +655,6 @@ async function main(): Promise<void> {
       featured: true,
       currency: 'USD',
       pricePerNight: 120,
-      cleaningFee: 20,
-      securityDeposit: 75,
       maxAdults: 4,
       maxChildren: 2,
       maxInfants: 1,
@@ -678,8 +704,6 @@ async function main(): Promise<void> {
       bathrooms: new Decimal('2.0'),
       currency: 'USD',
       pricePerNight: 120,
-      cleaningFee: 20,
-      securityDeposit: 75,
       minNights: 3,
       maxNights: 21,
       checkInTime: '15:00',
@@ -690,6 +714,7 @@ async function main(): Promise<void> {
       quietHoursEnd: '07:00',
     },
   });
+  await upsertSimpleStayFees(p3.id, propertyFees.p3.cleaningFee, propertyFees.p3.securityDeposit);
 
   const p4Address = parseSeedAddress('88 Abovyan Street');
   const p4Labels = buildSeedAddressLabels(
@@ -716,8 +741,6 @@ async function main(): Promise<void> {
       featured: true,
       currency: 'USD',
       pricePerNight: 90,
-      cleaningFee: 15,
-      securityDeposit: 65,
       maxAdults: 3,
       maxChildren: 2,
       maxInfants: 1,
@@ -767,8 +790,6 @@ async function main(): Promise<void> {
       bathrooms: new Decimal('1.5'),
       currency: 'USD',
       pricePerNight: 90,
-      cleaningFee: 15,
-      securityDeposit: 65,
       minNights: 2,
       maxNights: 14,
       checkInTime: '14:00',
@@ -777,6 +798,7 @@ async function main(): Promise<void> {
       petsAllowed: false,
     },
   });
+  await upsertSimpleStayFees(p4.id, propertyFees.p4.cleaningFee, propertyFees.p4.securityDeposit);
 
   const p5Address = parseSeedAddress('1 Grigor Lusavorich Street');
   const p5Labels = buildSeedAddressLabels(
@@ -803,8 +825,6 @@ async function main(): Promise<void> {
       featured: true,
       currency: 'USD',
       pricePerNight: 220,
-      cleaningFee: 30,
-      securityDeposit: 130,
       cancellationPolicy: 'NON_REFUNDABLE',
       cancellationFeeType: 'PERCENT',
       cancellationFeeValue: 100,
@@ -859,8 +879,6 @@ async function main(): Promise<void> {
       bathrooms: new Decimal('2.0'),
       currency: 'USD',
       pricePerNight: 220,
-      cleaningFee: 30,
-      securityDeposit: 130,
       minNights: 2,
       maxNights: 30,
       checkInTime: '15:00',
@@ -869,6 +887,7 @@ async function main(): Promise<void> {
       petsAllowed: false,
     },
   });
+  await upsertSimpleStayFees(p5.id, propertyFees.p5.cleaningFee, propertyFees.p5.securityDeposit);
 
   const p6Address = parseSeedAddress('28 Forest Lane');
   const p6Labels = buildSeedAddressLabels(
@@ -895,8 +914,6 @@ async function main(): Promise<void> {
       featured: true,
       currency: 'USD',
       pricePerNight: 170,
-      cleaningFee: 25,
-      securityDeposit: 100,
       maxAdults: 4,
       maxChildren: 3,
       maxInfants: 2,
@@ -946,8 +963,6 @@ async function main(): Promise<void> {
       bathrooms: new Decimal('2.5'),
       currency: 'USD',
       pricePerNight: 170,
-      cleaningFee: 25,
-      securityDeposit: 100,
       minNights: 3,
       maxNights: 28,
       checkInTime: '15:00',
@@ -956,6 +971,7 @@ async function main(): Promise<void> {
       petsAllowed: true,
     },
   });
+  await upsertSimpleStayFees(p6.id, propertyFees.p6.cleaningFee, propertyFees.p6.securityDeposit);
 
   const p7Address = parseSeedAddress('17 Varshavyan Street');
   const p7Labels = buildSeedAddressLabels(
@@ -981,7 +997,6 @@ async function main(): Promise<void> {
     update: {
       currency: 'USD',
       pricePerNight: 55,
-      cleaningFee: 10,
       maxAdults: 2,
       maxChildren: 1,
       maxInfants: 0,
@@ -1030,10 +1045,10 @@ async function main(): Promise<void> {
       bathrooms: new Decimal('1.0'),
       currency: 'USD',
       pricePerNight: 55,
-      cleaningFee: 10,
       minNights: 1,
     },
   });
+  await upsertSimpleStayFees(p7.id, propertyFees.p7.cleaningFee, propertyFees.p7.securityDeposit);
 
   const allActive = [p1, p2, p3, p4, p5, p6];
 
@@ -1286,7 +1301,8 @@ async function main(): Promise<void> {
   // ── Bookings ─────────────────────────────────────────────────────────────
 
   // COMPLETED: guest1 stayed at p1 (needed for reviews)
-  const completedBooking1TotalAmount = p1.pricePerNight * 3 + p1.cleaningFee + p1.securityDeposit;
+  const completedBooking1TotalAmount =
+    p1.pricePerNight * 3 + propertyFees.p1.cleaningFee + propertyFees.p1.securityDeposit;
   const completedBooking1CheckIn = utcDate(-20);
   const completedBooking1Breakdown = seedNightlyBreakdown(
     completedBooking1CheckIn,
@@ -1301,7 +1317,7 @@ async function main(): Promise<void> {
         'seed-booking-completed',
         completedBooking1CheckIn,
         completedBooking1TotalAmount,
-        p1.securityDeposit,
+        propertyFees.p1.securityDeposit,
       ),
     },
     create: {
@@ -1316,15 +1332,15 @@ async function main(): Promise<void> {
       nightlyRate: p1.pricePerNight,
       nightsCount: 3,
       nightlyBreakdown: completedBooking1Breakdown,
-      cleaningFee: p1.cleaningFee,
-      securityDeposit: p1.securityDeposit,
+      cleaningFee: propertyFees.p1.cleaningFee,
+      securityDeposit: propertyFees.p1.securityDeposit,
       totalAmount: completedBooking1TotalAmount,
       externalPaymentRef: 'BANK-TRX-001',
       ...completedStripeFields(
         'seed-booking-completed',
         completedBooking1CheckIn,
         completedBooking1TotalAmount,
-        p1.securityDeposit,
+        propertyFees.p1.securityDeposit,
       ),
     },
   });
@@ -1348,9 +1364,10 @@ async function main(): Promise<void> {
       nightlyRate: p2.pricePerNight,
       nightsCount: 2,
       nightlyBreakdown: seedNightlyBreakdown(confirmedBooking1CheckIn, 2, p2.pricePerNight),
-      cleaningFee: p2.cleaningFee,
-      securityDeposit: p2.securityDeposit,
-      totalAmount: p2.pricePerNight * 2 + p2.cleaningFee + p2.securityDeposit,
+      cleaningFee: propertyFees.p2.cleaningFee,
+      securityDeposit: propertyFees.p2.securityDeposit,
+      totalAmount:
+        p2.pricePerNight * 2 + propertyFees.p2.cleaningFee + propertyFees.p2.securityDeposit,
     },
   });
 
@@ -1373,9 +1390,10 @@ async function main(): Promise<void> {
       nightlyRate: p3.pricePerNight,
       nightsCount: 4,
       nightlyBreakdown: seedNightlyBreakdown(confirmedBooking2CheckIn, 4, p3.pricePerNight),
-      cleaningFee: p3.cleaningFee,
-      securityDeposit: p3.securityDeposit,
-      totalAmount: p3.pricePerNight * 4 + p3.cleaningFee + p3.securityDeposit,
+      cleaningFee: propertyFees.p3.cleaningFee,
+      securityDeposit: propertyFees.p3.securityDeposit,
+      totalAmount:
+        p3.pricePerNight * 4 + propertyFees.p3.cleaningFee + propertyFees.p3.securityDeposit,
     },
   });
 
@@ -1399,14 +1417,16 @@ async function main(): Promise<void> {
       nightlyRate: p4.pricePerNight,
       nightsCount: 3,
       nightlyBreakdown: seedNightlyBreakdown(pendingBookingCheckIn, 3, p4.pricePerNight),
-      cleaningFee: p4.cleaningFee,
-      securityDeposit: p4.securityDeposit,
-      totalAmount: p4.pricePerNight * 3 + p4.cleaningFee + p4.securityDeposit,
+      cleaningFee: propertyFees.p4.cleaningFee,
+      securityDeposit: propertyFees.p4.securityDeposit,
+      totalAmount:
+        p4.pricePerNight * 3 + propertyFees.p4.cleaningFee + propertyFees.p4.securityDeposit,
     },
   });
 
   // COMPLETED: guest3 stayed at p1 (Cascade View)
-  const completedBooking2TotalAmount = p1.pricePerNight * 3 + p1.cleaningFee + p1.securityDeposit;
+  const completedBooking2TotalAmount =
+    p1.pricePerNight * 3 + propertyFees.p1.cleaningFee + propertyFees.p1.securityDeposit;
   const completedBooking2CheckIn = utcDate(-45);
   const completedBooking2 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-2' },
@@ -1415,7 +1435,7 @@ async function main(): Promise<void> {
         'seed-booking-completed-2',
         completedBooking2CheckIn,
         completedBooking2TotalAmount,
-        p1.securityDeposit,
+        propertyFees.p1.securityDeposit,
       ),
     },
     create: {
@@ -1429,20 +1449,21 @@ async function main(): Promise<void> {
       currency: 'USD',
       nightlyRate: p1.pricePerNight,
       nightsCount: 3,
-      cleaningFee: p1.cleaningFee,
-      securityDeposit: p1.securityDeposit,
+      cleaningFee: propertyFees.p1.cleaningFee,
+      securityDeposit: propertyFees.p1.securityDeposit,
       totalAmount: completedBooking2TotalAmount,
       ...completedStripeFields(
         'seed-booking-completed-2',
         completedBooking2CheckIn,
         completedBooking2TotalAmount,
-        p1.securityDeposit,
+        propertyFees.p1.securityDeposit,
       ),
     },
   });
 
   // COMPLETED: guest2 stayed at p2 (Northern Avenue Studio)
-  const completedBooking3TotalAmount = p2.pricePerNight * 2 + p2.cleaningFee + p2.securityDeposit;
+  const completedBooking3TotalAmount =
+    p2.pricePerNight * 2 + propertyFees.p2.cleaningFee + propertyFees.p2.securityDeposit;
   const completedBooking3CheckIn = utcDate(-30);
   const completedBooking3 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-3' },
@@ -1451,7 +1472,7 @@ async function main(): Promise<void> {
         'seed-booking-completed-3',
         completedBooking3CheckIn,
         completedBooking3TotalAmount,
-        p2.securityDeposit,
+        propertyFees.p2.securityDeposit,
       ),
     },
     create: {
@@ -1465,20 +1486,21 @@ async function main(): Promise<void> {
       currency: 'USD',
       nightlyRate: p2.pricePerNight,
       nightsCount: 2,
-      cleaningFee: p2.cleaningFee,
-      securityDeposit: p2.securityDeposit,
+      cleaningFee: propertyFees.p2.cleaningFee,
+      securityDeposit: propertyFees.p2.securityDeposit,
       totalAmount: completedBooking3TotalAmount,
       ...completedStripeFields(
         'seed-booking-completed-3',
         completedBooking3CheckIn,
         completedBooking3TotalAmount,
-        p2.securityDeposit,
+        propertyFees.p2.securityDeposit,
       ),
     },
   });
 
   // COMPLETED: guest4 stayed at p3 (Kentron Heritage House)
-  const completedBooking4TotalAmount = p3.pricePerNight * 4 + p3.cleaningFee + p3.securityDeposit;
+  const completedBooking4TotalAmount =
+    p3.pricePerNight * 4 + propertyFees.p3.cleaningFee + propertyFees.p3.securityDeposit;
   const completedBooking4CheckIn = utcDate(-60);
   const completedBooking4 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-4' },
@@ -1487,7 +1509,7 @@ async function main(): Promise<void> {
         'seed-booking-completed-4',
         completedBooking4CheckIn,
         completedBooking4TotalAmount,
-        p3.securityDeposit,
+        propertyFees.p3.securityDeposit,
       ),
     },
     create: {
@@ -1501,20 +1523,21 @@ async function main(): Promise<void> {
       currency: 'USD',
       nightlyRate: p3.pricePerNight,
       nightsCount: 4,
-      cleaningFee: p3.cleaningFee,
-      securityDeposit: p3.securityDeposit,
+      cleaningFee: propertyFees.p3.cleaningFee,
+      securityDeposit: propertyFees.p3.securityDeposit,
       totalAmount: completedBooking4TotalAmount,
       ...completedStripeFields(
         'seed-booking-completed-4',
         completedBooking4CheckIn,
         completedBooking4TotalAmount,
-        p3.securityDeposit,
+        propertyFees.p3.securityDeposit,
       ),
     },
   });
 
   // COMPLETED: guest3 stayed at p3 (Kentron Heritage House)
-  const completedBooking5TotalAmount = p3.pricePerNight * 4 + p3.cleaningFee + p3.securityDeposit;
+  const completedBooking5TotalAmount =
+    p3.pricePerNight * 4 + propertyFees.p3.cleaningFee + propertyFees.p3.securityDeposit;
   const completedBooking5CheckIn = utcDate(-90);
   const completedBooking5 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-5' },
@@ -1523,7 +1546,7 @@ async function main(): Promise<void> {
         'seed-booking-completed-5',
         completedBooking5CheckIn,
         completedBooking5TotalAmount,
-        p3.securityDeposit,
+        propertyFees.p3.securityDeposit,
       ),
     },
     create: {
@@ -1537,20 +1560,21 @@ async function main(): Promise<void> {
       currency: 'USD',
       nightlyRate: p3.pricePerNight,
       nightsCount: 4,
-      cleaningFee: p3.cleaningFee,
-      securityDeposit: p3.securityDeposit,
+      cleaningFee: propertyFees.p3.cleaningFee,
+      securityDeposit: propertyFees.p3.securityDeposit,
       totalAmount: completedBooking5TotalAmount,
       ...completedStripeFields(
         'seed-booking-completed-5',
         completedBooking5CheckIn,
         completedBooking5TotalAmount,
-        p3.securityDeposit,
+        propertyFees.p3.securityDeposit,
       ),
     },
   });
 
   // COMPLETED: guest4 stayed at p4 (Ararat Mountain Guesthouse)
-  const completedBooking6TotalAmount = p4.pricePerNight * 3 + p4.cleaningFee + p4.securityDeposit;
+  const completedBooking6TotalAmount =
+    p4.pricePerNight * 3 + propertyFees.p4.cleaningFee + propertyFees.p4.securityDeposit;
   const completedBooking6CheckIn = utcDate(-50);
   const completedBooking6 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-6' },
@@ -1559,7 +1583,7 @@ async function main(): Promise<void> {
         'seed-booking-completed-6',
         completedBooking6CheckIn,
         completedBooking6TotalAmount,
-        p4.securityDeposit,
+        propertyFees.p4.securityDeposit,
       ),
     },
     create: {
@@ -1573,20 +1597,21 @@ async function main(): Promise<void> {
       currency: 'USD',
       nightlyRate: p4.pricePerNight,
       nightsCount: 3,
-      cleaningFee: p4.cleaningFee,
-      securityDeposit: p4.securityDeposit,
+      cleaningFee: propertyFees.p4.cleaningFee,
+      securityDeposit: propertyFees.p4.securityDeposit,
       totalAmount: completedBooking6TotalAmount,
       ...completedStripeFields(
         'seed-booking-completed-6',
         completedBooking6CheckIn,
         completedBooking6TotalAmount,
-        p4.securityDeposit,
+        propertyFees.p4.securityDeposit,
       ),
     },
   });
 
   // COMPLETED: guest3 stayed at p5 (Silk Road Penthouse)
-  const completedBooking7TotalAmount = p5.pricePerNight * 3 + p5.cleaningFee + p5.securityDeposit;
+  const completedBooking7TotalAmount =
+    p5.pricePerNight * 3 + propertyFees.p5.cleaningFee + propertyFees.p5.securityDeposit;
   const completedBooking7CheckIn = utcDate(-15);
   const completedBooking7 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-7' },
@@ -1595,7 +1620,7 @@ async function main(): Promise<void> {
         'seed-booking-completed-7',
         completedBooking7CheckIn,
         completedBooking7TotalAmount,
-        p5.securityDeposit,
+        propertyFees.p5.securityDeposit,
       ),
     },
     create: {
@@ -1609,20 +1634,21 @@ async function main(): Promise<void> {
       currency: 'USD',
       nightlyRate: p5.pricePerNight,
       nightsCount: 3,
-      cleaningFee: p5.cleaningFee,
-      securityDeposit: p5.securityDeposit,
+      cleaningFee: propertyFees.p5.cleaningFee,
+      securityDeposit: propertyFees.p5.securityDeposit,
       totalAmount: completedBooking7TotalAmount,
       ...completedStripeFields(
         'seed-booking-completed-7',
         completedBooking7CheckIn,
         completedBooking7TotalAmount,
-        p5.securityDeposit,
+        propertyFees.p5.securityDeposit,
       ),
     },
   });
 
   // COMPLETED: guest4 stayed at p5 (Silk Road Penthouse)
-  const completedBooking8TotalAmount = p5.pricePerNight * 3 + p5.cleaningFee + p5.securityDeposit;
+  const completedBooking8TotalAmount =
+    p5.pricePerNight * 3 + propertyFees.p5.cleaningFee + propertyFees.p5.securityDeposit;
   const completedBooking8CheckIn = utcDate(-25);
   const completedBooking8 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-8' },
@@ -1631,7 +1657,7 @@ async function main(): Promise<void> {
         'seed-booking-completed-8',
         completedBooking8CheckIn,
         completedBooking8TotalAmount,
-        p5.securityDeposit,
+        propertyFees.p5.securityDeposit,
       ),
     },
     create: {
@@ -1645,20 +1671,21 @@ async function main(): Promise<void> {
       currency: 'USD',
       nightlyRate: p5.pricePerNight,
       nightsCount: 3,
-      cleaningFee: p5.cleaningFee,
-      securityDeposit: p5.securityDeposit,
+      cleaningFee: propertyFees.p5.cleaningFee,
+      securityDeposit: propertyFees.p5.securityDeposit,
       totalAmount: completedBooking8TotalAmount,
       ...completedStripeFields(
         'seed-booking-completed-8',
         completedBooking8CheckIn,
         completedBooking8TotalAmount,
-        p5.securityDeposit,
+        propertyFees.p5.securityDeposit,
       ),
     },
   });
 
   // COMPLETED: guest1 stayed at p6 (Dilijan Forest Villa)
-  const completedBooking9TotalAmount = p6.pricePerNight * 4 + p6.cleaningFee + p6.securityDeposit;
+  const completedBooking9TotalAmount =
+    p6.pricePerNight * 4 + propertyFees.p6.cleaningFee + propertyFees.p6.securityDeposit;
   const completedBooking9CheckIn = utcDate(-40);
   const completedBooking9 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-9' },
@@ -1667,7 +1694,7 @@ async function main(): Promise<void> {
         'seed-booking-completed-9',
         completedBooking9CheckIn,
         completedBooking9TotalAmount,
-        p6.securityDeposit,
+        propertyFees.p6.securityDeposit,
       ),
     },
     create: {
@@ -1681,20 +1708,21 @@ async function main(): Promise<void> {
       currency: 'USD',
       nightlyRate: p6.pricePerNight,
       nightsCount: 4,
-      cleaningFee: p6.cleaningFee,
-      securityDeposit: p6.securityDeposit,
+      cleaningFee: propertyFees.p6.cleaningFee,
+      securityDeposit: propertyFees.p6.securityDeposit,
       totalAmount: completedBooking9TotalAmount,
       ...completedStripeFields(
         'seed-booking-completed-9',
         completedBooking9CheckIn,
         completedBooking9TotalAmount,
-        p6.securityDeposit,
+        propertyFees.p6.securityDeposit,
       ),
     },
   });
 
   // COMPLETED: guest2 stayed at p6 (Dilijan Forest Villa)
-  const completedBooking10TotalAmount = p6.pricePerNight * 5 + p6.cleaningFee + p6.securityDeposit;
+  const completedBooking10TotalAmount =
+    p6.pricePerNight * 5 + propertyFees.p6.cleaningFee + propertyFees.p6.securityDeposit;
   const completedBooking10CheckIn = utcDate(-70);
   const completedBooking10 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-10' },
@@ -1703,7 +1731,7 @@ async function main(): Promise<void> {
         'seed-booking-completed-10',
         completedBooking10CheckIn,
         completedBooking10TotalAmount,
-        p6.securityDeposit,
+        propertyFees.p6.securityDeposit,
       ),
     },
     create: {
@@ -1717,14 +1745,14 @@ async function main(): Promise<void> {
       currency: 'USD',
       nightlyRate: p6.pricePerNight,
       nightsCount: 5,
-      cleaningFee: p6.cleaningFee,
-      securityDeposit: p6.securityDeposit,
+      cleaningFee: propertyFees.p6.cleaningFee,
+      securityDeposit: propertyFees.p6.securityDeposit,
       totalAmount: completedBooking10TotalAmount,
       ...completedStripeFields(
         'seed-booking-completed-10',
         completedBooking10CheckIn,
         completedBooking10TotalAmount,
-        p6.securityDeposit,
+        propertyFees.p6.securityDeposit,
       ),
     },
   });

@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import type { Booking, BookingStatus, Property } from '@repo/database/client';
 import { Prisma } from '@repo/database/client';
 import type { BookingQuoteResult, PaginatedResponse } from '@repo/shared';
-import { isGuestCancellationAllowed } from '@repo/shared';
+import { isGuestCancellationAllowed, resolveStayFees, type StayFeeRulesMode } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 
 import { AvailabilityService } from '../availability/availability.service';
@@ -86,6 +86,7 @@ export class BookingsService {
   async getQuote(dto: BookingQuoteDto): Promise<BookingQuoteResult> {
     const property = await this.prisma.property.findUnique({
       where: { id: dto.propertyId },
+      include: { stayFeeRules: true },
     });
     if (!property) {
       throw new NotFoundException('Property not found');
@@ -111,7 +112,7 @@ export class BookingsService {
   async create(guestId: string, dto: CreateBookingDto): Promise<BookingDetail> {
     const property = await this.prisma.property.findUnique({
       where: { id: dto.propertyId },
-      include: { host: true },
+      include: { host: true, stayFeeRules: true },
     });
     if (!property) {
       throw new NotFoundException('Property not found');
@@ -488,7 +489,19 @@ export class BookingsService {
   }
 
   private async buildStayQuote(
-    property: Property,
+    property: Property & {
+      stayFeeRules?: Array<{
+        dateFrom: Date | null;
+        dateTo: Date | null;
+        minNights: number;
+        maxNights: number | null;
+        cleaningFee: number;
+        depositType: 'FIXED' | 'PERCENT';
+        depositValue: number;
+        sortOrder: number;
+      }>;
+      stayFeeRulesMode: StayFeeRulesMode;
+    },
     checkIn: Date,
     checkOut: Date,
     promoCode?: string,
@@ -520,8 +533,27 @@ export class BookingsService {
     });
     const discountAmount = resolved.discountAmount;
     const discountedAccommodation = accommodationSubtotal - discountAmount;
-    const cleaningFee = property.cleaningFee;
-    const securityDeposit = property.securityDeposit;
+    const stayFeeRules =
+      property.stayFeeRules ??
+      (await this.prisma.propertyStayFeeRule.findMany({ where: { propertyId: property.id } }));
+    const fees = resolveStayFees({
+      mode: property.stayFeeRulesMode,
+      rules: stayFeeRules.map((rule) => ({
+        dateFrom: rule.dateFrom ? formatIsoDate(rule.dateFrom) : null,
+        dateTo: rule.dateTo ? formatIsoDate(rule.dateTo) : null,
+        minNights: rule.minNights,
+        maxNights: rule.maxNights,
+        cleaningFee: rule.cleaningFee,
+        depositType: rule.depositType,
+        depositValue: rule.depositValue,
+        sortOrder: rule.sortOrder,
+      })),
+      checkIn,
+      nights: nightsCount,
+      accommodationAfterPromo: discountedAccommodation,
+    });
+    const cleaningFee = fees.cleaningFee;
+    const securityDeposit = fees.securityDeposit;
     const totalAmount = discountedAccommodation + cleaningFee + securityDeposit;
     return {
       propertyId: property.id,

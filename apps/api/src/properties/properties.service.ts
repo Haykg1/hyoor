@@ -27,11 +27,15 @@ import type {
   PropertySortValue,
   PropertySummary,
   PropertyTitleLabels,
+  StayFeeRuleView,
+  StayFeeRulesMode,
 } from '@repo/shared';
 import {
   AddressLocales,
   MAX_CANCELLATION_FEE_PERCENT,
   MAX_FEATURED_POIS,
+  StayFeeRulesValidationCodes,
+  findCatchAllRule,
   normalizePropertySortBy,
   sanitizeSearchDateFields,
   todayIsoUtc,
@@ -78,6 +82,13 @@ import {
   MAX_FLEXIBLE_WINDOW_DAYS,
   utcDateFromString,
 } from './flexible-availability';
+import {
+  derivedPropertyFees,
+  normalizeStayFeeRulesFromDto,
+  persistStayFeeRules,
+  toStayFeeRuleInput,
+  toStayFeeRuleView,
+} from './stay-fee-rules.persist';
 
 const ALLOWED_PHOTO_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const BLOCKING_BOOKING_STATUSES = ['PENDING', 'CONFIRMED'] as const;
@@ -111,6 +122,9 @@ export interface PropertyDetail extends Omit<Property, 'addressLabels' | 'titleL
   titleLabels: PropertyTitleLabels | null;
   featuredPois: PropertyFeaturedPoiView[];
   displayPrice: DisplayPrice | null;
+  cleaningFee: number | null;
+  securityDeposit: number | null;
+  stayFeeRules: StayFeeRuleView[];
 }
 
 @Injectable()
@@ -182,59 +196,73 @@ export class PropertiesService {
     await this.assertNotDuplicateAddress(hostProfile.id, dto);
     const slug = await this.generateUniqueSlug(dto.title);
     const addressLabels = await this.geocoding.resolveAddressLabels(dto.latitude!, dto.longitude!);
-    return this.prisma.property.create({
-      data: {
-        hostId: hostProfile.id,
-        status: options.status,
-        title: dto.title,
-        slug,
-        description: dto.description,
-        propertyType: dto.propertyType,
-        city: dto.city,
-        maxGuests: dto.maxGuests,
-        maxAdults: dto.maxAdults ?? 0,
-        maxChildren: dto.maxChildren ?? 0,
-        maxInfants: dto.maxInfants ?? 0,
-        bedrooms: dto.bedrooms,
-        beds: dto.beds,
-        bathrooms: new Prisma.Decimal(dto.bathrooms),
-        pricePerNight: dto.pricePerNight,
-        cancellationPolicy: dto.cancellationPolicy,
-        ...resolveCancellationFeeFields({
-          cancellationPolicy: dto.cancellationPolicy,
-          cancellationFeeType: dto.cancellationFeeType,
-          cancellationFeeValue: dto.cancellationFeeValue,
+    const { mode, rules } = normalizeStayFeeRulesFromDto({
+      mode: dto.stayFeeRulesMode,
+      rules: dto.stayFeeRules,
+      cleaningFee: dto.cleaningFee,
+      securityDeposit: dto.securityDeposit,
+      propertyMinNights: dto.minNights,
+      propertyMaxNights: dto.maxNights,
+      isCreate: true,
+    });
+    return this.prisma.$transaction(async (tx) => {
+      const property = await tx.property.create({
+        data: {
+          hostId: hostProfile.id,
+          status: options.status,
+          title: dto.title,
+          slug,
+          description: dto.description,
+          propertyType: dto.propertyType,
+          city: dto.city,
+          maxGuests: dto.maxGuests,
+          maxAdults: dto.maxAdults ?? 0,
+          maxChildren: dto.maxChildren ?? 0,
+          maxInfants: dto.maxInfants ?? 0,
+          bedrooms: dto.bedrooms,
+          beds: dto.beds,
+          bathrooms: new Prisma.Decimal(dto.bathrooms),
           pricePerNight: dto.pricePerNight,
-        }),
-        country: dto.country,
-        region: dto.region,
-        street: dto.street,
-        buildingNumber: dto.buildingNumber,
-        formattedAddress: dto.formattedAddress,
-        placeKind: dto.placeKind,
-        addressLabels: addressLabels as unknown as Prisma.InputJsonValue,
-        titleLabels: this.sanitizeTitleLabels(dto.titleLabels) as unknown as Prisma.InputJsonValue,
-        apartmentNumber: dto.apartmentNumber,
-        addressLine: dto.addressLine,
-        latitude: dto.latitude !== undefined ? new Prisma.Decimal(dto.latitude) : undefined,
-        longitude: dto.longitude !== undefined ? new Prisma.Decimal(dto.longitude) : undefined,
-        currency: dto.currency,
-        cleaningFee: dto.cleaningFee,
-        securityDeposit: dto.securityDeposit,
-        minNights: dto.minNights,
-        maxNights: dto.maxNights,
-        checkInTime: dto.checkInTime,
-        checkOutTime: dto.checkOutTime,
-        smokingAllowed: dto.smokingAllowed,
-        petsAllowed: dto.petsAllowed,
-        partiesAllowed: dto.partiesAllowed,
-        quietHoursStart: dto.quietHoursStart,
-        quietHoursEnd: dto.quietHoursEnd,
-        additionalRules: dto.additionalRules,
-        guestInstructions: sanitizeGuestInstructionsHtml(dto.guestInstructions),
-        externalBookingUrl: dto.externalBookingUrl,
-        featuredPoiIds: dto.featuredPoiIds ?? [],
-      },
+          cancellationPolicy: dto.cancellationPolicy,
+          ...resolveCancellationFeeFields({
+            cancellationPolicy: dto.cancellationPolicy,
+            cancellationFeeType: dto.cancellationFeeType,
+            cancellationFeeValue: dto.cancellationFeeValue,
+            pricePerNight: dto.pricePerNight,
+          }),
+          country: dto.country,
+          region: dto.region,
+          street: dto.street,
+          buildingNumber: dto.buildingNumber,
+          formattedAddress: dto.formattedAddress,
+          placeKind: dto.placeKind,
+          addressLabels: addressLabels as unknown as Prisma.InputJsonValue,
+          titleLabels: this.sanitizeTitleLabels(
+            dto.titleLabels,
+          ) as unknown as Prisma.InputJsonValue,
+          apartmentNumber: dto.apartmentNumber,
+          addressLine: dto.addressLine,
+          latitude: dto.latitude !== undefined ? new Prisma.Decimal(dto.latitude) : undefined,
+          longitude: dto.longitude !== undefined ? new Prisma.Decimal(dto.longitude) : undefined,
+          currency: dto.currency,
+          stayFeeRulesMode: mode,
+          minNights: dto.minNights,
+          maxNights: dto.maxNights,
+          checkInTime: dto.checkInTime,
+          checkOutTime: dto.checkOutTime,
+          smokingAllowed: dto.smokingAllowed,
+          petsAllowed: dto.petsAllowed,
+          partiesAllowed: dto.partiesAllowed,
+          quietHoursStart: dto.quietHoursStart,
+          quietHoursEnd: dto.quietHoursEnd,
+          additionalRules: dto.additionalRules,
+          guestInstructions: sanitizeGuestInstructionsHtml(dto.guestInstructions),
+          externalBookingUrl: dto.externalBookingUrl,
+          featuredPoiIds: dto.featuredPoiIds ?? [],
+        },
+      });
+      await persistStayFeeRules(tx, property.id, mode, rules);
+      return property;
     });
   }
 
@@ -579,21 +607,32 @@ export class PropertiesService {
     };
   }
 
+  /** Matches SIMPLE catch-all rules and RULES year-round fallback bands (fixed deposit only). */
   private buildFeesWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
-    const where: Prisma.PropertyWhereInput = {};
+    const feeFilter: Prisma.PropertyStayFeeRuleWhereInput = {
+      dateFrom: null,
+      dateTo: null,
+      minNights: 1,
+      maxNights: null,
+      depositType: 'FIXED',
+    };
+    let hasFeeFilter = false;
     if (dto.minCleaningFee !== undefined || dto.maxCleaningFee !== undefined) {
-      where.cleaningFee = {
+      hasFeeFilter = true;
+      feeFilter.cleaningFee = {
         ...(dto.minCleaningFee !== undefined ? { gte: dto.minCleaningFee } : {}),
         ...(dto.maxCleaningFee !== undefined ? { lte: dto.maxCleaningFee } : {}),
       };
     }
     if (dto.minSecurityDeposit !== undefined || dto.maxSecurityDeposit !== undefined) {
-      where.securityDeposit = {
+      hasFeeFilter = true;
+      feeFilter.depositValue = {
         ...(dto.minSecurityDeposit !== undefined ? { gte: dto.minSecurityDeposit } : {}),
         ...(dto.maxSecurityDeposit !== undefined ? { lte: dto.maxSecurityDeposit } : {}),
       };
     }
-    return where;
+    if (!hasFeeFilter) return {};
+    return { stayFeeRules: { some: feeFilter } };
   }
 
   private buildCapacityWhere(dto: SearchPropertiesDto): Prisma.PropertyWhereInput {
@@ -1106,6 +1145,7 @@ export class PropertiesService {
         photos: { orderBy: { sortOrder: 'asc' } },
         amenities: { orderBy: { name: 'asc' } },
         host: true,
+        stayFeeRules: { orderBy: [{ sortOrder: 'asc' }, { minNights: 'asc' }] },
         reviews: { where: { isPublished: true, target: 'PROPERTY' }, select: { rating: true } },
       },
     });
@@ -1131,13 +1171,20 @@ export class PropertiesService {
     const {
       addressLabels: rawAddressLabels,
       titleLabels: rawTitleLabels,
+      stayFeeRules,
+      reviews,
       ...propertyRest
     } = property;
+    void reviews;
+    const fees = derivedPropertyFees(property.stayFeeRulesMode, stayFeeRules);
     const latitude = property.latitude !== null ? Number(property.latitude) : null;
     const longitude = property.longitude !== null ? Number(property.longitude) : null;
     const rates = displayCurrency ? await this.currencyService.getRates() : null;
     return {
       ...propertyRest,
+      cleaningFee: fees.cleaningFee,
+      securityDeposit: fees.securityDeposit,
+      stayFeeRules: stayFeeRules.map(toStayFeeRuleView),
       photos,
       host,
       avgRating,
@@ -1297,8 +1344,9 @@ export class PropertiesService {
       hasAddressUpdate && latitude !== undefined && longitude !== undefined
         ? await this.geocoding.resolveAddressLabels(latitude, longitude)
         : undefined;
+    const { cleaningFee, securityDeposit, stayFeeRules, stayFeeRulesMode, ...propertyFields } = dto;
     const data: Prisma.PropertyUpdateInput = {
-      ...dto,
+      ...propertyFields,
       bathrooms: dto.bathrooms !== undefined ? new Prisma.Decimal(dto.bathrooms) : undefined,
       latitude: dto.latitude !== undefined ? new Prisma.Decimal(dto.latitude) : undefined,
       longitude: dto.longitude !== undefined ? new Prisma.Decimal(dto.longitude) : undefined,
@@ -1332,9 +1380,49 @@ export class PropertiesService {
       data.cancellationFeeType = resolved.cancellationFeeType;
       data.cancellationFeeValue = resolved.cancellationFeeValue;
     }
-    return this.prisma.property.update({
-      where: { id: property.id },
-      data,
+    const nextStayMode = (stayFeeRulesMode ?? property.stayFeeRulesMode) as StayFeeRulesMode;
+    const feePayloadTouched =
+      stayFeeRules !== undefined || cleaningFee !== undefined || securityDeposit !== undefined;
+    const modeOnlyChange = stayFeeRulesMode !== undefined && !feePayloadTouched;
+    return this.prisma.$transaction(async (tx) => {
+      if (modeOnlyChange) {
+        if (nextStayMode === 'SIMPLE') {
+          const existingDbRules = await tx.propertyStayFeeRule.findMany({
+            where: { propertyId: property.id },
+            orderBy: [{ sortOrder: 'asc' }, { minNights: 'asc' }],
+          });
+          const existingRules = existingDbRules.map(toStayFeeRuleView);
+          const catchAll = findCatchAllRule(existingRules);
+          if (!catchAll) {
+            throw new BadRequestException(
+              StayFeeRulesValidationCodes.MODE_SWITCH_SIMPLE_REQUIRES_CATCH_ALL,
+            );
+          }
+          await persistStayFeeRules(tx, property.id, 'SIMPLE', [toStayFeeRuleInput(catchAll)]);
+        }
+        data.stayFeeRulesMode = nextStayMode;
+      } else if (feePayloadTouched) {
+        const existingDbRules = await tx.propertyStayFeeRule.findMany({
+          where: { propertyId: property.id },
+          orderBy: [{ sortOrder: 'asc' }, { minNights: 'asc' }],
+        });
+        const existingRules = existingDbRules.map(toStayFeeRuleView);
+        const { mode, rules } = normalizeStayFeeRulesFromDto({
+          mode: nextStayMode,
+          rules: stayFeeRules,
+          cleaningFee,
+          securityDeposit,
+          existingRules,
+          propertyMinNights: dto.minNights ?? property.minNights,
+          propertyMaxNights: dto.maxNights !== undefined ? dto.maxNights : property.maxNights,
+        });
+        data.stayFeeRulesMode = mode;
+        await persistStayFeeRules(tx, property.id, mode, rules);
+      }
+      return tx.property.update({
+        where: { id: property.id },
+        data,
+      });
     });
   }
 
