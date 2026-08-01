@@ -17,6 +17,7 @@ import {
   normalizeStepDetailsValues,
   toCreatePropertyInput,
 } from '@/lib/listing/schema';
+import { hydrateSimpleFeeAmounts } from '@/lib/stay-fee-rules-hydration';
 
 export type ListingWizardMode = 'create' | 'edit';
 export type PhotoUploadStatus = 'pending' | 'uploading' | 'uploaded' | 'error';
@@ -161,11 +162,34 @@ export const useListingFormStore = create<ListingFormState & ListingFormActions>
               maxInfants: property.maxInfants,
               amenities,
               pricePerNight: property.pricePerNight,
-              cleaningFee: property.cleaningFee ?? 0,
-              securityDeposit: property.securityDeposit ?? 0,
+              stayFeeRulesMode: property.stayFeeRulesMode ?? 'SIMPLE',
+              ...(() => {
+                const stayFeeRules = (property.stayFeeRules ?? []).map((rule) => ({
+                  id: rule.id,
+                  dateFrom: rule.dateFrom,
+                  dateTo: rule.dateTo,
+                  minNights: rule.minNights,
+                  maxNights: rule.maxNights,
+                  cleaningFee: rule.cleaningFee,
+                  depositType: rule.depositType,
+                  depositValue: rule.depositValue,
+                  sortOrder: rule.sortOrder,
+                }));
+                const fees = hydrateSimpleFeeAmounts({
+                  cleaningFee: property.cleaningFee,
+                  securityDeposit: property.securityDeposit,
+                  stayFeeRules,
+                });
+                return {
+                  cleaningFee: fees.cleaningFee,
+                  securityDeposit: fees.securityDeposit,
+                  stayFeeRules,
+                };
+              })(),
               cancellationPolicy: parseCancellationPolicy(property.cancellationPolicy),
               cancellationFeeType: property.cancellationFeeType ?? 'PERCENT',
               cancellationFeeValue: property.cancellationFeeValue ?? 0,
+              cancellationDeadlineDays: property.cancellationDeadlineDays ?? 0,
               minNights: property.minNights,
               maxNights: property.maxNights ?? undefined,
               checkInTime: normalizeTimeForInput(property.checkInTime, '15:00'),

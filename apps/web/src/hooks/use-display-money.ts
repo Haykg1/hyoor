@@ -4,7 +4,7 @@ import type { CurrencyRatesPayload, SearchDisplayCurrency } from '@repo/shared';
 import { useEffect } from 'react';
 
 import { convertCurrencyAmount } from '@/lib/currency/convert';
-import { formatCurrencyAmount } from '@/lib/format/price';
+import { formatMajorMoney, formatStoredMoney, minorToMajor, roundMajor } from '@/lib/format/money';
 import { useDisplayCurrencyStore } from '@/store/display-currency.store';
 
 interface UseDisplayMoneyResult {
@@ -12,10 +12,10 @@ interface UseDisplayMoneyResult {
   setDisplayCurrency: (currency: SearchDisplayCurrency) => void;
   rates: CurrencyRatesPayload | null;
   ratesReady: boolean;
-  /** Convert `amount` from `fromCurrency` into the active display currency (or null if FX unavailable). */
-  convert: (amount: number, fromCurrency: string) => number | null;
-  /** Format money in the active display currency; falls back to source currency if conversion fails. */
-  formatMoney: (amount: number, fromCurrency?: string) => string;
+  /** Convert a stored minor-unit amount into major units of the active display currency (null if FX unavailable). */
+  convert: (minorAmount: number, fromCurrency: string) => number | null;
+  /** Format a stored minor-unit amount in the active display currency; falls back to source currency if conversion fails. */
+  formatMoney: (minorAmount: number, fromCurrency?: string) => string;
 }
 
 const DEFAULT_FROM = 'USD';
@@ -29,17 +29,22 @@ export function useDisplayMoney(): UseDisplayMoneyResult {
   useEffect(() => {
     void ensureRates();
   }, [ensureRates]);
-  function convert(amount: number, fromCurrency: string): number | null {
-    const converted = convertCurrencyAmount(amount, fromCurrency, displayCurrency, rates);
+  function convert(minorAmount: number, fromCurrency: string): number | null {
+    const converted = convertCurrencyAmount(
+      minorToMajor(minorAmount, fromCurrency),
+      fromCurrency,
+      displayCurrency,
+      rates,
+    );
     if (converted === null) return null;
-    return Math.round(converted);
+    return roundMajor(converted, displayCurrency);
   }
-  function formatMoney(amount: number, fromCurrency: string = DEFAULT_FROM): string {
-    const converted = convert(amount, fromCurrency);
+  function formatMoney(minorAmount: number, fromCurrency: string = DEFAULT_FROM): string {
+    const converted = convert(minorAmount, fromCurrency);
     if (converted === null) {
-      return formatCurrencyAmount(Math.round(amount), fromCurrency);
+      return formatStoredMoney(minorAmount, fromCurrency);
     }
-    return formatCurrencyAmount(converted, displayCurrency);
+    return formatMajorMoney(converted, displayCurrency);
   }
   return {
     displayCurrency,

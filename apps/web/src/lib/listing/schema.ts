@@ -1,10 +1,17 @@
 import {
   CancellationFeeTypes,
   CancellationPolicies,
+  MAX_CANCELLATION_DEADLINE_DAYS,
   MAX_CANCELLATION_FEE_PERCENT,
   MAX_FEATURED_POIS,
+  MIN_CANCELLATION_DEADLINE_DAYS,
   PropertyTypes,
+  StayFeeDepositTypes,
+  StayFeeRulesModes,
+  buildSimpleCatchAllRule,
+  validateStayFeeRules,
   type CreatePropertyInput,
+  type StayFeeRuleInput,
 } from '@repo/shared';
 import { z } from 'zod';
 
@@ -71,14 +78,34 @@ export const stepMediaSchema = z.object({
   ),
 });
 
+const stayFeeRuleSchema = z.object({
+  id: z.string().optional(),
+  dateFrom: z.string().nullable().optional(),
+  dateTo: z.string().nullable().optional(),
+  minNights: z.number().int().min(1),
+  maxNights: z.number().int().min(1).nullable().optional(),
+  cleaningFee: z.number().int().min(0),
+  depositType: z.enum(StayFeeDepositTypes),
+  depositValue: z.number().int().min(0),
+  sortOrder: z.number().int().optional(),
+});
+
 export const stepPricingRulesSchema = z
   .object({
     pricePerNight: z.number().int().min(0),
+    stayFeeRulesMode: z.enum(StayFeeRulesModes),
     cleaningFee: z.number().int().min(0).optional(),
     securityDeposit: z.number().int().min(0).optional(),
+    stayFeeRules: z.array(stayFeeRuleSchema).optional(),
     cancellationPolicy: z.enum(CancellationPolicies),
     cancellationFeeType: z.enum(CancellationFeeTypes).optional(),
     cancellationFeeValue: z.number().int().min(0).optional(),
+    cancellationDeadlineDays: z
+      .number()
+      .int()
+      .min(MIN_CANCELLATION_DEADLINE_DAYS)
+      .max(MAX_CANCELLATION_DEADLINE_DAYS)
+      .optional(),
     minNights: z.number().int().min(1).optional(),
     maxNights: z.number().int().min(1).optional(),
     checkInTime: z.string().max(5).optional().or(z.literal('')),
@@ -92,23 +119,39 @@ export const stepPricingRulesSchema = z
     guestInstructions: z.string().max(10000).optional().or(z.literal('')),
   })
   .superRefine((data, ctx) => {
-    if (data.cancellationPolicy === 'NON_REFUNDABLE') {
-      return;
+    if (data.cancellationPolicy !== 'NON_REFUNDABLE') {
+      const feeType = data.cancellationFeeType ?? 'PERCENT';
+      const feeValue = data.cancellationFeeValue ?? 0;
+      if (feeType === 'PERCENT' && feeValue > MAX_CANCELLATION_FEE_PERCENT) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cancellationFeeValue'],
+          message: `Percent fee must be at most ${MAX_CANCELLATION_FEE_PERCENT}`,
+        });
+      }
+      if (feeType === 'FIXED' && feeValue > data.pricePerNight) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cancellationFeeValue'],
+          message: 'Fixed fee must not exceed the nightly price',
+        });
+      }
     }
-    const feeType = data.cancellationFeeType ?? 'PERCENT';
-    const feeValue = data.cancellationFeeValue ?? 0;
-    if (feeType === 'PERCENT' && feeValue > MAX_CANCELLATION_FEE_PERCENT) {
+    const rules: StayFeeRuleInput[] =
+      data.stayFeeRulesMode === 'SIMPLE'
+        ? [buildSimpleCatchAllRule(data.cleaningFee ?? 0, data.securityDeposit ?? 0)]
+        : ((data.stayFeeRules ?? []) as StayFeeRuleInput[]);
+    const feeError = validateStayFeeRules({
+      mode: data.stayFeeRulesMode,
+      rules,
+      propertyMinNights: data.minNights ?? 1,
+      propertyMaxNights: data.maxNights ?? null,
+    });
+    if (feeError) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['cancellationFeeValue'],
-        message: `Percent fee must be at most ${MAX_CANCELLATION_FEE_PERCENT}`,
-      });
-    }
-    if (feeType === 'FIXED' && feeValue > data.pricePerNight) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['cancellationFeeValue'],
-        message: 'Fixed fee must not exceed the nightly price',
+        path: ['stayFeeRules'],
+        message: feeError,
       });
     }
   });
@@ -169,11 +212,14 @@ export const DEFAULT_LISTING_VALUES: ListingFormValues = {
   maxInfants: 0,
   amenities: [],
   pricePerNight: 0,
+  stayFeeRulesMode: 'SIMPLE',
   cleaningFee: 0,
   securityDeposit: 0,
+  stayFeeRules: [],
   cancellationPolicy: 'MODERATE',
   cancellationFeeType: 'PERCENT',
   cancellationFeeValue: 0,
+  cancellationDeadlineDays: 0,
   minNights: 1,
   checkInTime: '15:00',
   checkOutTime: '11:00',
@@ -233,8 +279,15 @@ export function toCreatePropertyInput(values: ListingFormValues): CreateProperty
     bathrooms: values.bathrooms,
     pricePerNight: values.pricePerNight,
     currency: 'USD',
-    cleaningFee: values.cleaningFee ?? 0,
-    securityDeposit: values.securityDeposit ?? 0,
+    stayFeeRulesMode: values.stayFeeRulesMode,
+    ...(values.stayFeeRulesMode === 'SIMPLE'
+      ? {
+          cleaningFee: values.cleaningFee ?? 0,
+          securityDeposit: values.securityDeposit ?? 0,
+        }
+      : {
+          stayFeeRules: (values.stayFeeRules ?? []) as StayFeeRuleInput[],
+        }),
     cancellationPolicy: values.cancellationPolicy,
     cancellationFeeType:
       values.cancellationPolicy === 'NON_REFUNDABLE'
@@ -242,6 +295,7 @@ export function toCreatePropertyInput(values: ListingFormValues): CreateProperty
         : (values.cancellationFeeType ?? 'PERCENT'),
     cancellationFeeValue:
       values.cancellationPolicy === 'NON_REFUNDABLE' ? 100 : (values.cancellationFeeValue ?? 0),
+    cancellationDeadlineDays: values.cancellationDeadlineDays ?? 0,
     minNights: values.minNights ?? 1,
     maxNights: values.maxNights,
     checkInTime: optionalTime(values.checkInTime),

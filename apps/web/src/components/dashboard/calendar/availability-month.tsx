@@ -4,6 +4,7 @@ import { todayIsoLocal, type AvailabilityDayView } from '@repo/shared';
 
 import { useDisplayMoney } from '@/hooks/use-display-money';
 import { isLocalIsoEditable } from '@/lib/calendar/editable-window';
+import { minorToMajor } from '@/lib/format/money';
 import { formatCurrencySymbolAmount } from '@/lib/format/price';
 import { cn } from '@/lib/utils';
 
@@ -132,7 +133,7 @@ function DayCell({
   const dayNumber = Number(iso.slice(-2));
   const converted = convert(price, settlementCurrency);
   const priceLabel = formatCurrencySymbolAmount(
-    converted ?? price,
+    converted ?? minorToMajor(price, settlementCurrency),
     converted === null ? settlementCurrency : displayCurrency,
   );
   return (

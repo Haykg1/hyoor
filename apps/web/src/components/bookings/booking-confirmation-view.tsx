@@ -2,11 +2,13 @@
 
 import type { BookingDetail } from '@repo/shared';
 import { getLocalizedTitle } from '@repo/shared';
-import { ArrowLeft, CheckCircle2, UserRound } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, UserRound, XCircle } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { CancelBookingDialog } from '@/components/bookings/cancel-booking-dialog';
+import { CancellationPolicyNotice } from '@/components/bookings/cancellation-policy-notice';
+import { HostDepositPanel } from '@/components/bookings/host-deposit-panel';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -24,15 +26,27 @@ import {
   resolvePlatformFeeAmount,
 } from '@/lib/bookings/host-money';
 import { formatBookingDate } from '@/lib/format/booking-date';
-import { formatCurrencyAmount } from '@/lib/format/price';
+import { formatStoredMoney } from '@/lib/format/money';
 
 const PAYABLE_STATUS = 'AWAITING_PAYMENT';
+const CANCELLED_STATUSES = new Set(['CANCELLED_BY_GUEST', 'CANCELLED_BY_HOST']);
+
+/** Rent kept by the host on cancellation; only meaningful after a fee was captured. */
+function resolveCancellationFee(booking: BookingDetail): number {
+  if (!CANCELLED_STATUSES.has(booking.status)) return 0;
+  const feeWasCharged =
+    booking.paymentStatus === 'PARTIALLY_REFUNDED' || booking.refundedAmount > 0;
+  if (!feeWasCharged) return 0;
+  const rent = Math.max(0, booking.totalAmount - booking.securityDeposit);
+  return Math.max(0, rent - booking.refundedAmount);
+}
 
 interface BookingConfirmationViewProps {
   booking: BookingDetail;
   variant: 'guest' | 'host';
   onContinuePayment?: () => void;
   onCancelled?: () => void;
+  onDepositChanged?: () => void;
 }
 
 function MoneyRow({
@@ -61,15 +75,17 @@ export function BookingConfirmationView({
   variant,
   onContinuePayment,
   onCancelled,
+  onDepositChanged,
 }: BookingConfirmationViewProps): React.JSX.Element {
   const t = useTranslations('booking.confirmation');
   const tBooking = useTranslations('booking');
+  const tPolicy = useTranslations('booking.cancellation_policy');
   const locale = useLocale();
   const { formatMoney } = useDisplayMoney();
   const [cancelOpen, setCancelOpen] = useState(false);
   const isHost = variant === 'host';
   const money = (amount: number) =>
-    isHost ? formatMoney(amount, booking.currency) : formatCurrencyAmount(amount, booking.currency);
+    isHost ? formatMoney(amount, booking.currency) : formatStoredMoney(amount, booking.currency);
   const hostPayout = resolveHostPayoutAmount(booking);
   const platformFee = resolvePlatformFeeAmount(booking);
   const guestName = guestDisplayName(booking.guest) ?? t('guest_fallback');
@@ -80,6 +96,8 @@ export function BookingConfirmationView({
   );
   const cancelPreview = toCancelBookingPreview(booking);
   const showCancel = isHost ? isBookingCancellable(booking) : canGuestCancelBooking(cancelPreview);
+  const isCancelled = CANCELLED_STATUSES.has(booking.status);
+  const cancellationFee = resolveCancellationFee(booking);
   return (
     <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
       {isHost ? (
@@ -92,9 +110,30 @@ export function BookingConfirmationView({
         </Link>
       ) : null}
       <div className="mb-8 flex flex-col items-center gap-3 text-center">
-        <CheckCircle2 className="h-16 w-16 text-emerald-500" />
-        <h1 className="text-2xl font-bold">{isHost ? t('host_title') : t('title')}</h1>
-        <p className="text-muted-foreground">{isHost ? t('host_subtitle') : t('subtitle')}</p>
+        {isCancelled ? (
+          <XCircle className="h-16 w-16 text-destructive" />
+        ) : (
+          <CheckCircle2 className="h-16 w-16 text-emerald-500" />
+        )}
+        <h1 className="text-2xl font-bold">
+          {isCancelled ? t('cancelled_title') : isHost ? t('host_title') : t('title')}
+        </h1>
+        <p className="text-muted-foreground">
+          {isCancelled ? t('cancelled_subtitle') : isHost ? t('host_subtitle') : t('subtitle')}
+        </p>
+        {!isHost && isCancelled ? (
+          <p
+            className={`rounded-lg border px-3 py-2 text-sm ${
+              cancellationFee > 0
+                ? 'border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100'
+                : 'border-border bg-muted/40 text-muted-foreground'
+            }`}
+          >
+            {cancellationFee > 0
+              ? tPolicy('fee_charged', { amount: money(cancellationFee) })
+              : tPolicy('fee_none')}
+          </p>
+        ) : null}
       </div>
       <Card>
         <CardHeader>
@@ -168,6 +207,9 @@ export function BookingConfirmationView({
               <MoneyRow label={t('guest_paid')} value={money(booking.totalAmount)} />
               <MoneyRow label={t('platform_fee')} value={money(platformFee)} muted />
               <MoneyRow label={t('your_payout')} value={money(hostPayout)} emphasize />
+              {cancellationFee > 0 ? (
+                <MoneyRow label={t('cancellation_fee')} value={money(cancellationFee)} />
+              ) : null}
               {booking.refundedAmount > 0 ? (
                 <MoneyRow label={t('refunded')} value={money(booking.refundedAmount)} muted />
               ) : null}
@@ -185,10 +227,32 @@ export function BookingConfirmationView({
               </div>
             </>
           ) : (
-            <MoneyRow label={tBooking('total')} value={money(booking.totalAmount)} emphasize />
+            <>
+              <MoneyRow label={tBooking('total')} value={money(booking.totalAmount)} emphasize />
+              {cancellationFee > 0 ? (
+                <MoneyRow label={t('cancellation_fee')} value={money(cancellationFee)} />
+              ) : null}
+              {isCancelled && booking.refundedAmount > 0 ? (
+                <MoneyRow label={t('refunded')} value={money(booking.refundedAmount)} />
+              ) : null}
+            </>
           )}
+          {!isCancelled ? (
+            <CancellationPolicyNotice
+              cancellationPolicy={booking.property.cancellationPolicy}
+              cancellationFeeType={booking.property.cancellationFeeType}
+              cancellationFeeValue={booking.property.cancellationFeeValue}
+              cancellationDeadlineDays={booking.property.cancellationDeadlineDays}
+              currency={booking.currency}
+              checkIn={isHost ? undefined : booking.checkIn}
+              audience={isHost ? 'listing' : 'guest'}
+            />
+          ) : null}
         </CardContent>
       </Card>
+      {isHost ? (
+        <HostDepositPanel booking={booking} onDepositChanged={() => onDepositChanged?.()} />
+      ) : null}
       <div className="mt-6 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground">
         {t('booking_status')} <StatusBadge status={booking.status} namespace="booking" />
       </div>

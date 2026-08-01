@@ -269,6 +269,9 @@ importers:
       clsx:
         specifier: ^2.1.0
         version: 2.1.1
+      currency.js:
+        specifier: ^2.0.4
+        version: 2.0.4
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
@@ -5657,6 +5660,13 @@ packages:
       {
         integrity: sha512-CSssqPAK5us09FhMI9juM0jnqXUJP+rtWeIfivTYBLNH/8rnxkQlZvoRemF6MAyfNov9XU8mN2wwF/pP68sxTA==,
       }
+
+  currency.js@2.0.4:
+    resolution:
+      {
+        integrity: sha512-6/OplJYgJ0RUlli74d93HJ/OsKVBi8lB1+Z6eJYS1YZzBuIp4qKKHpJ7ad+GvTlWmLR/hLJOWTykN5Nm8NJ7+w==,
+      }
+    engines: { node: ">=4" }
 
   d3-array@3.2.4:
     resolution:
@@ -14265,6 +14275,8 @@ snapshots:
   csstype@3.2.3: {}
 
   csv-parse@7.0.0: {}
+
+  currency.js@2.0.4: {}
 
   d3-array@3.2.4:
     dependencies:

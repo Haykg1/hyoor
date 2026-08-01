@@ -6,6 +6,7 @@ import type {
   PaginatedResponse,
   PromotionSummary,
 } from '@repo/shared';
+import { cache } from 'react';
 
 import { api } from '@/lib/api';
 
@@ -34,7 +35,7 @@ export async function deletePromotion(promotionId: string): Promise<void> {
   await api.delete(`/promotions/${promotionId}`);
 }
 
-export async function listHotDeals(): Promise<HotDealProperty[]> {
+export const listHotDeals = cache(async (): Promise<HotDealProperty[]> => {
   try {
     const res = await fetch(`${BASE_URL}/promotions/hot-deals`, { next: { revalidate: 300 } });
     if (!res.ok) return [];
@@ -45,4 +46,4 @@ export async function listHotDeals(): Promise<HotDealProperty[]> {
   } catch {
     return [];
   }
-}
+});

@@ -1,10 +1,12 @@
 'use client';
 
-import type { BookingQuoteResult, PropertyTitleLabels } from '@repo/shared';
+import type { BookingQuoteResult, CancellationFeeType, PropertyTitleLabels } from '@repo/shared';
 import { getLocalizedTitle } from '@repo/shared';
 import { Loader2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
+import { CancellationPolicyNotice } from '@/components/bookings/cancellation-policy-notice';
+import { AnalyticsInfoHint } from '@/components/dashboard/analytics/analytics-info-hint';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,6 +17,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { formatBookingDate } from '@/lib/format/booking-date';
+import { formatStoredMoney as formatPrice } from '@/lib/format/money';
 
 interface BookingConfirmDialogProps {
   open: boolean;
@@ -26,24 +30,13 @@ interface BookingConfirmDialogProps {
   guests: number;
   nights: number;
   quote: BookingQuoteResult | null;
+  cancellationPolicy: string;
+  cancellationFeeType: CancellationFeeType;
+  cancellationFeeValue: number;
+  cancellationDeadlineDays: number;
+  currency: string;
   isSubmitting: boolean;
   onConfirm: () => void;
-}
-
-function formatPrice(amount: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
 }
 
 export function BookingConfirmDialog({
@@ -56,6 +49,11 @@ export function BookingConfirmDialog({
   guests,
   nights,
   quote,
+  cancellationPolicy,
+  cancellationFeeType,
+  cancellationFeeValue,
+  cancellationDeadlineDays,
+  currency,
   isSubmitting,
   onConfirm,
 }: BookingConfirmDialogProps): React.JSX.Element {
@@ -75,11 +73,15 @@ export function BookingConfirmDialog({
           <p className="font-medium">{title}</p>
           <div className="flex justify-between">
             <span className="text-muted-foreground">{tBooking('check_in')}</span>
-            <span>{formatDate(checkIn)}</span>
+            <span>
+              {formatBookingDate(checkIn, { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">{tBooking('check_out')}</span>
-            <span>{formatDate(checkOut)}</span>
+            <span>
+              {formatBookingDate(checkOut, { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">{tBooking('guests')}</span>
@@ -109,7 +111,13 @@ export function BookingConfirmDialog({
               )}
               {quote.securityDeposit > 0 && (
                 <div className="flex justify-between text-muted-foreground">
-                  <span>{tBooking('security_deposit')}</span>
+                  <span className="inline-flex items-center gap-1">
+                    {tBooking('security_deposit')}
+                    <AnalyticsInfoHint
+                      label={tBooking('security_deposit_info_label')}
+                      description={tBooking('security_deposit_info')}
+                    />
+                  </span>
                   <span>{formatPrice(quote.securityDeposit, quote.currency)}</span>
                 </div>
               )}
@@ -120,6 +128,15 @@ export function BookingConfirmDialog({
               </div>
             </>
           )}
+          <CancellationPolicyNotice
+            cancellationPolicy={cancellationPolicy}
+            cancellationFeeType={cancellationFeeType}
+            cancellationFeeValue={cancellationFeeValue}
+            cancellationDeadlineDays={cancellationDeadlineDays}
+            currency={quote?.currency ?? currency}
+            checkIn={checkIn}
+            audience="guest"
+          />
         </div>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>

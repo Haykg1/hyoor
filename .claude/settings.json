@@ -38,7 +38,21 @@
       "Bash(find / -maxdepth 6 -iname \"chromium-cli*\")",
       "Bash(npx --no-install chromium-cli --help)",
       "Bash(node -e \"require.resolve\\('playwright'\\)\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/en/messages)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/en/messages)",
+      "Bash(pnpm --filter web add next-view-transitions)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" --max-time 5 http://localhost:3000)",
+      "Bash(pnpm dev:web)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" --max-time 10 http://localhost:3000/)",
+      "Bash(curl -s --max-time 15 http://localhost:3000/)",
+      "Bash(pnpm dev:api)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" --max-time 5 http://localhost:3001/api/v1/health)",
+      "Bash(curl -s --max-time 5 http://localhost:3001/api/v1/properties?limit=1)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" --max-time 30 http://localhost:3000/property/cmqy2vdg800182miywbwp9jj3)",
+      "Bash(curl -s -o /dev/null -w \"home:%{http_code} \" --max-time 30 http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"detail:%{http_code}\\\\n\" --max-time 30 http://localhost:3000/property/cmqy2vdg800182miywbwp9jj3)",
+      "Bash(pnpm --filter web remove next-view-transitions)",
+      "Bash(curl -s -o /dev/null --max-time 3 http://localhost:3000/)",
+      "Bash(xargs kill)"
     ]
   }
 }

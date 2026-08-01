@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatCardGrid } from '@/components/ui/stat-card';
 import { useDisplayMoney } from '@/hooks/use-display-money';
-import { formatCurrencyAmount } from '@/lib/format/price';
+import { formatStoredMoney } from '@/lib/format/money';
 import { cn } from '@/lib/utils';
 
 interface AnalyticsKpiGridProps {
@@ -124,7 +124,7 @@ export function AnalyticsKpiGrid({
   };
   const formatSettlementHint = (value: number | null): string | null => {
     if (value === null || displayCurrency === settlementCurrency) return null;
-    return formatCurrencyAmount(Math.round(value), settlementCurrency);
+    return formatStoredMoney(Math.round(value), settlementCurrency);
   };
   if (isLoading || !kpis) {
     return (

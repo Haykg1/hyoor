@@ -53,6 +53,8 @@ const DEFAULT_STATS: HostDashboardStats = {
   totalEarnings: 0,
 };
 
+let hostListingsFetchInFlight: Promise<void> | null = null;
+
 export const useHostListingsStore = create<HostListingsState & HostListingsActions>()(
   devtools(
     (set, get) => ({
@@ -70,27 +72,35 @@ export const useHostListingsStore = create<HostListingsState & HostListingsActio
       error: null,
 
       fetchListings: async () => {
-        const { page, limit, tab, statusFilter, propertyTypeFilter, searchQuery } = get();
-        set({ isLoading: true, error: null });
-        try {
-          const res = await listMyProperties({
-            page,
-            limit,
-            tab,
-            status: tab === 'active' && statusFilter ? statusFilter : undefined,
-            propertyType: propertyTypeFilter ?? undefined,
-            search: searchQuery.trim() || undefined,
-          });
-          set({
-            listings: res.data,
-            stats: res.stats,
-            total: res.total,
-            totalPages: res.totalPages,
-            isLoading: false,
-          });
-        } catch {
-          set({ isLoading: false, error: 'Failed to load listings' });
+        if (hostListingsFetchInFlight) {
+          return hostListingsFetchInFlight;
         }
+        hostListingsFetchInFlight = (async () => {
+          const { page, limit, tab, statusFilter, propertyTypeFilter, searchQuery } = get();
+          set({ isLoading: true, error: null });
+          try {
+            const res = await listMyProperties({
+              page,
+              limit,
+              tab,
+              status: tab === 'active' && statusFilter ? statusFilter : undefined,
+              propertyType: propertyTypeFilter ?? undefined,
+              search: searchQuery.trim() || undefined,
+            });
+            set({
+              listings: res.data,
+              stats: res.stats,
+              total: res.total,
+              totalPages: res.totalPages,
+              isLoading: false,
+            });
+          } catch {
+            set({ isLoading: false, error: 'Failed to load listings' });
+          } finally {
+            hostListingsFetchInFlight = null;
+          }
+        })();
+        return hostListingsFetchInFlight;
       },
 
       setPage: (page) => set({ page }),

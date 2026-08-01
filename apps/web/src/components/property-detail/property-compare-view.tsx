@@ -7,7 +7,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import { PROPERTY_PLACEHOLDER_IMAGE } from '@/lib/constants/property-placeholder';
-import { formatAmd } from '@/lib/format/price';
+import { formatStoredMoney } from '@/lib/format/money';
 import { buildPropertyComparisonSummary } from '@/lib/property-comparison';
 
 import { CompareShareButton } from './compare-share-button';
@@ -70,7 +70,7 @@ function ComparePropertyColumn({
           <span>{locationLine}</span>
         </p>
         <p className="text-base font-semibold">
-          {formatAmd(property.pricePerNight)}
+          {formatStoredMoney(property.pricePerNight, property.currency)}
           <span className="text-sm font-normal text-muted-foreground">{labels.perNight}</span>
         </p>
         <ul className="space-y-1 text-sm text-muted-foreground">

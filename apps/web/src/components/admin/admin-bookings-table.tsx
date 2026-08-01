@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/table';
 import { Link } from '@/i18n/navigation';
 import { isBookingCancellable, type CancelBookingPreview } from '@/lib/bookings/cancellation';
-import { formatCurrencyAmount } from '@/lib/format/price';
+import { formatStoredMoney } from '@/lib/format/money';
 
 interface AdminBookingsTableProps {
   bookings: AdminBooking[];
@@ -46,6 +46,7 @@ function toAdminCancelPreview(booking: AdminBooking): CancelBookingPreview {
     cancellationPolicy: booking.cancellationPolicy,
     cancellationFeeType: booking.cancellationFeeType,
     cancellationFeeValue: booking.cancellationFeeValue,
+    cancellationDeadlineDays: booking.cancellationDeadlineDays ?? 0,
   };
 }
 
@@ -184,7 +185,7 @@ export function AdminBookingsTable({
                     {booking.payoutStatus}
                   </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
-                    {formatCurrencyAmount(booking.totalAmount, booking.currency)}
+                    {formatStoredMoney(booking.totalAmount, booking.currency)}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col items-start gap-1">
@@ -237,7 +238,7 @@ export function AdminBookingsTable({
                             >
                               <span>{formatDate(night.date)}</span>
                               <span className="font-medium tabular-nums">
-                                {formatCurrencyAmount(night.amount, booking.currency)}
+                                {formatStoredMoney(night.amount, booking.currency)}
                               </span>
                             </li>
                           ))}

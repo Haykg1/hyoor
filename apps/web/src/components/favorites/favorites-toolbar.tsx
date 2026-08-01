@@ -10,7 +10,10 @@ import { FilterMultiSelect } from '@/components/favorites/filter-multi-select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { MoneyInput } from '@/components/ui/money-input';
 import { cn } from '@/lib/utils';
+
+const FILTER_CURRENCY = 'USD';
 
 const SELECT_CLASS =
   'flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring';
@@ -152,23 +155,21 @@ export function FavoritesToolbar({
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">{t('min_price')}</label>
-              <Input
-                type="number"
-                min={0}
+              <MoneyInput
+                currency={FILTER_CURRENCY}
                 placeholder={t('min_price')}
-                value={draftFilters.minPrice}
-                onChange={(e) => onDraftChange({ minPrice: e.target.value })}
+                value={Number(draftFilters.minPrice) || 0}
+                onValueChange={(minor) => onDraftChange({ minPrice: minor ? String(minor) : '' })}
                 className="h-9"
               />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">{t('max_price')}</label>
-              <Input
-                type="number"
-                min={0}
+              <MoneyInput
+                currency={FILTER_CURRENCY}
                 placeholder={t('max_price')}
-                value={draftFilters.maxPrice}
-                onChange={(e) => onDraftChange({ maxPrice: e.target.value })}
+                value={Number(draftFilters.maxPrice) || 0}
+                onValueChange={(minor) => onDraftChange({ maxPrice: minor ? String(minor) : '' })}
                 className="h-9"
               />
             </div>

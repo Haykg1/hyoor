@@ -40,7 +40,13 @@ export function BookingDateFields({
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {t('check_in')} — {t('check_out')}
       </p>
-      <div className="rounded-xl border border-input bg-background px-3 py-2.5">
+      <div
+        className={
+          error
+            ? 'rounded-xl border border-destructive bg-background px-3 py-2.5'
+            : 'rounded-xl border border-input bg-background px-3 py-2.5'
+        }
+      >
         <DateRangePicker
           from={checkIn}
           to={checkOut}

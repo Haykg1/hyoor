@@ -1,12 +1,42 @@
 import type { PropertyTitleLabels } from './geocoding';
 import type { HostSettlementCurrency, PropertyType } from '../types/index';
 import type { CancellationFeeType } from '../utils/cancellation-fee';
-import { CancellationFeeTypes } from '../utils/cancellation-fee';
+import {
+  CancellationFeeTypes,
+  MAX_CANCELLATION_DEADLINE_DAYS,
+  MIN_CANCELLATION_DEADLINE_DAYS,
+} from '../utils/cancellation-fee';
+import type {
+  StayFeeDepositType,
+  StayFeeRuleInput,
+  StayFeeRulesMode,
+} from '../utils/stay-fee-rules';
+import { StayFeeDepositTypes, StayFeeRulesModes } from '../utils/stay-fee-rules';
 
 export const CancellationPolicies = ['FLEXIBLE', 'MODERATE', 'STRICT', 'NON_REFUNDABLE'] as const;
 export type CancellationPolicy = (typeof CancellationPolicies)[number];
-export { CancellationFeeTypes };
-export type { CancellationFeeType };
+export {
+  CancellationFeeTypes,
+  MAX_CANCELLATION_DEADLINE_DAYS,
+  MIN_CANCELLATION_DEADLINE_DAYS,
+  StayFeeDepositTypes,
+  StayFeeRulesModes,
+};
+export type { CancellationFeeType, StayFeeDepositType, StayFeeRulesMode };
+
+export type StayFeeRuleDto = StayFeeRuleInput;
+
+export interface StayFeeRuleView {
+  id: string;
+  dateFrom: string | null;
+  dateTo: string | null;
+  minNights: number;
+  maxNights: number | null;
+  cleaningFee: number;
+  depositType: StayFeeDepositType;
+  depositValue: number;
+  sortOrder: number;
+}
 
 export const PaymentProviders = ['STRIPE', 'ARCA', 'CASH', 'IDRAM'] as const;
 export type PaymentProvider = (typeof PaymentProviders)[number];
@@ -34,6 +64,11 @@ export interface CreatePropertyInput {
   cancellationFeeType?: CancellationFeeType;
   /** Percent points (0–50 when cancel allowed) or fixed amount in minor units. */
   cancellationFeeValue?: number;
+  /**
+   * Days before check-in when guest cancel closes.
+   * 0 = anytime before check-in; max 100.
+   */
+  cancellationDeadlineDays?: number;
   country?: string;
   region?: string;
   street?: string;
@@ -48,8 +83,12 @@ export interface CreatePropertyInput {
   maxChildren?: number;
   maxInfants?: number;
   currency: HostSettlementCurrency;
+  /** Simple-mode convenience; persisted as the year-round catch-all stay fee rule. */
   cleaningFee?: number;
+  /** Simple-mode convenience (fixed deposit); persisted on the catch-all rule. */
   securityDeposit?: number;
+  stayFeeRulesMode?: StayFeeRulesMode;
+  stayFeeRules?: StayFeeRuleDto[];
   minNights?: number;
   maxNights?: number;
   checkInTime?: string;

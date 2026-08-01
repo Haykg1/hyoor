@@ -1,20 +1,15 @@
 import type { AppliedPromotionSummary, BookingQuoteResult } from '@repo/shared';
 import { useTranslations } from 'next-intl';
 
+import { AnalyticsInfoHint } from '@/components/dashboard/analytics/analytics-info-hint';
 import { Separator } from '@/components/ui/separator';
+import { formatStoredMoney as formatPrice } from '@/lib/format/money';
 
 interface BookingSummaryProps {
   quote: BookingQuoteResult | null;
   isQuoteLoading: boolean;
   nights: number | null;
-}
-
-function formatPrice(amount: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
+  stayError?: string;
 }
 
 function promotionLabel(
@@ -34,13 +29,20 @@ export function BookingSummary({
   quote,
   isQuoteLoading,
   nights,
+  stayError,
 }: BookingSummaryProps): React.JSX.Element {
   const t = useTranslations('booking');
-  if (nights === null || !quote) {
+  if (nights === null) {
     return <p className="text-center text-sm text-muted-foreground">{t('select_dates_hint')}</p>;
+  }
+  if (stayError) {
+    return <p className="text-center text-sm text-destructive">{stayError}</p>;
   }
   if (isQuoteLoading) {
     return <p className="text-center text-sm text-muted-foreground">{t('loading_quote')}</p>;
+  }
+  if (!quote) {
+    return <p className="text-center text-sm text-muted-foreground">{t('select_dates_hint')}</p>;
   }
   return (
     <div className="space-y-2 text-sm">
@@ -64,7 +66,13 @@ export function BookingSummary({
       )}
       {quote.securityDeposit > 0 && (
         <div className="flex justify-between text-muted-foreground">
-          <span>{t('security_deposit')}</span>
+          <span className="inline-flex items-center gap-1">
+            {t('security_deposit')}
+            <AnalyticsInfoHint
+              label={t('security_deposit_info_label')}
+              description={t('security_deposit_info')}
+            />
+          </span>
           <span>{formatPrice(quote.securityDeposit, quote.currency)}</span>
         </div>
       )}

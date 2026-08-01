@@ -461,12 +461,17 @@ describe('Properties bulk import (e2e)', () => {
 
       const properties = await prisma.property.findMany({
         where: { host: { userId: host.userId } },
+        include: { stayFeeRules: true },
       });
       expect(properties.length).toBeGreaterThan(0);
       const created = properties[0]!;
       expect(created.status).toBe('DRAFT');
-      expect(Number(created.cleaningFee)).toBe(0);
-      expect(Number(created.securityDeposit)).toBe(0);
+      expect(created.stayFeeRulesMode).toBe('SIMPLE');
+      const catchAll = created.stayFeeRules.find(
+        (rule) => rule.dateFrom == null && rule.dateTo == null && rule.minNights === 1,
+      );
+      expect(catchAll?.cleaningFee).toBe(0);
+      expect(catchAll?.depositValue).toBe(0);
     });
   });
 

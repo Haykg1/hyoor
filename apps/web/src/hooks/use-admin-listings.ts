@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { useAdminListingsStore } from '@/store/admin-listings.store';
 
@@ -37,28 +37,27 @@ export function useAdminListings() {
     disableListing,
     enableListing,
   } = useAdminListingsStore();
-
+  const prevSearchQuery = useRef(searchQuery);
   useEffect(() => {
-    void fetchListings();
+    const searchChanged = prevSearchQuery.current !== searchQuery;
+    prevSearchQuery.current = searchQuery;
+    const delay = searchChanged && searchQuery.trim() !== '' ? SEARCH_DEBOUNCE_MS : 0;
+    const timer = window.setTimeout(() => {
+      void fetchListings();
+    }, delay);
+    return () => window.clearTimeout(timer);
   }, [
     page,
     limit,
     tab,
     statusFilter,
     propertyTypeFilter,
+    searchQuery,
     earningsPreset,
     earningsFrom,
     earningsTo,
     fetchListings,
   ]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void fetchListings();
-    }, SEARCH_DEBOUNCE_MS);
-    return () => window.clearTimeout(timer);
-  }, [searchQuery, fetchListings]);
-
   return {
     listings,
     stats,

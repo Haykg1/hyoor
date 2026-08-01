@@ -1,10 +1,18 @@
+'use client';
+
 import { ArrowRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { Link } from '@/i18n/navigation';
+import { useAuthStore } from '@/store/auth.store';
 
-export function BecomeHostCta(): React.JSX.Element {
+export function BecomeHostCta(): React.JSX.Element | null {
   const t = useTranslations('home.become_host');
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  if (isLoading || isAuthenticated) {
+    return null;
+  }
   return (
     <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
       <div className="flex flex-col items-center justify-between gap-6 rounded-3xl bg-gradient-to-br from-primary to-primary/80 p-8 text-primary-foreground sm:flex-row sm:p-12">

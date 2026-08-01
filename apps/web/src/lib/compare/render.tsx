@@ -6,7 +6,7 @@ import { PropertyCompareInvalid } from '@/components/property-detail/property-co
 import { PropertyCompareView } from '@/components/property-detail/property-compare-view';
 import { getPropertyDetail } from '@/lib/api/properties';
 import { PROPERTY_PLACEHOLDER_IMAGE } from '@/lib/constants/property-placeholder';
-import { formatAmd } from '@/lib/format/price';
+import { formatStoredMoney } from '@/lib/format/money';
 
 type CompareInvalidReason = 'missing' | 'same' | 'not_found';
 
@@ -48,8 +48,8 @@ export async function buildCompareMetadata(
   const description = t('meta_description', {
     left: leftTitle,
     right: rightTitle,
-    leftPrice: formatAmd(left.pricePerNight),
-    rightPrice: formatAmd(right.pricePerNight),
+    leftPrice: formatStoredMoney(left.pricePerNight, left.currency),
+    rightPrice: formatStoredMoney(right.pricePerNight, right.currency),
   });
   const images = [
     left.photos[0]?.url ?? PROPERTY_PLACEHOLDER_IMAGE,

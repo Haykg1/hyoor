@@ -9,20 +9,14 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import { CancellationPolicyNotice } from '@/components/bookings/cancellation-policy-notice';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ApiError } from '@/lib/api';
 import { confirmStripePayment, createStripeSetupIntent, getBookingById } from '@/lib/api/bookings';
+import { formatStoredMoney as formatPrice } from '@/lib/format/money';
 import { getStripe } from '@/lib/stripe';
-
-function formatPrice(amount: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 function useCountdown(deadline: string | null): number | null {
   const [remainingMs, setRemainingMs] = useState<number | null>(null);
@@ -232,6 +226,15 @@ export default function BookingPaymentPage(): React.JSX.Element {
             <span>{t('total_due')}</span>
             <span>{formatPrice(booking.totalAmount, booking.currency)}</span>
           </div>
+          <CancellationPolicyNotice
+            cancellationPolicy={booking.property.cancellationPolicy}
+            cancellationFeeType={booking.property.cancellationFeeType}
+            cancellationFeeValue={booking.property.cancellationFeeValue}
+            cancellationDeadlineDays={booking.property.cancellationDeadlineDays}
+            currency={booking.currency}
+            checkIn={booking.checkIn}
+            audience="guest"
+          />
         </CardContent>
       </Card>
 

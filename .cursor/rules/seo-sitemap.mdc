@@ -1,0 +1,38 @@
+---
+description: Keep robots/sitemap in sync when adding public indexable pages
+globs: apps/web/src/app/**/*.{ts,tsx},apps/web/src/lib/seo/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# SEO sitemap — public pages
+
+When adding or renaming a **public, indexable** page under `apps/web`, update the sitemap in the same change if it should be crawlable.
+
+## Source of truth
+
+- Static paths: `STATIC_PATHS` in `apps/web/src/app/sitemap.ts`
+- Locale URL helpers: `apps/web/src/lib/seo/site.ts` (`localizedPath`, `languageAlternates`)
+- Crawl policy: `apps/web/src/app/robots.ts` (`PRIVATE_PATH_PREFIXES`)
+
+## Include in sitemap when
+
+- Page is publicly reachable without auth
+- Content is useful to search engines (home, search, marketing, legal, property detail, etc.)
+- URL is stable (not a one-off token/share link)
+
+Property detail URLs are already generated from the ACTIVE properties API — do **not** hardcode individual listing IDs.
+
+## Do NOT add to sitemap
+
+- Auth-gated or private: `/admin`, `/dashboard`, `/account`, `/trips`, `/messages`, `/bookings`, `/favorites`, `/auth`, `/host`
+- Thin/duplicate/user-generated: `/compare`, `/compare/s/[token]`
+- Query-only variants (`/search?city=...`) — index the clean path only
+- Callbacks, payment return URLs, drafts
+
+If a new private area should stay out of Google, also add its path prefix to `PRIVATE_PATH_PREFIXES` in `robots.ts` (locale variants are generated automatically).
+
+## Checklist (same PR)
+
+1. Decide: indexable public page? → add path to `STATIC_PATHS` (or confirm dynamic coverage).
+2. Private surface? → add to `robots.ts` disallow list if missing.
+3. Prefer locale-agnostic paths (`/privacy`); sitemap expands `en` / `hy` / `ru` via helpers.

@@ -25,8 +25,14 @@ import {
   isLocalIsoEditable,
   startOfLocalToday,
 } from '@/lib/calendar/editable-window';
-import { parseRateInput, toSettlementAmount } from '@/lib/calendar/rate-display';
-import { formatCurrencyAmount } from '@/lib/format/price';
+import { toSettlementAmount } from '@/lib/calendar/rate-display';
+import {
+  formatMoneyInputDisplay,
+  formatStoredMoney,
+  minorToMajor,
+  parseMoneyInput,
+  sanitizeMoneyInputTyping,
+} from '@/lib/format/money';
 import { usePropertyCalendarStore } from '@/store';
 
 interface RangeRateDialogProps {
@@ -62,7 +68,7 @@ export function RangeRateDialog({ open, onOpenChange }: RangeRateDialogProps): R
   const { displayCurrency, convert, formatMoney, rates } = useDisplayMoney();
   const convertedBase = convert(basePricePerNight, currency);
   const inputCurrency = convertedBase === null ? currency : displayCurrency;
-  const displayBase = convertedBase ?? basePricePerNight;
+  const displayBase = convertedBase ?? minorToMajor(basePricePerNight, currency);
   const showUsdApprox = convertedBase !== null && displayCurrency !== currency;
 
   const [range, setRange] = useState<DateRange | undefined>();
@@ -85,7 +91,7 @@ export function RangeRateDialog({ open, onOpenChange }: RangeRateDialogProps): R
     (iso) => isLocalIsoEditable(iso) && !daysByDate[iso]?.isBlockedByBooking,
   );
   const locked = dates.length - editable.length;
-  const typedDisplay = parseRateInput(useBase ? String(displayBase) : priceText);
+  const typedDisplay = parseMoneyInput(useBase ? String(displayBase) : priceText, inputCurrency);
   const settlementPreview =
     typedDisplay === null ? null : toSettlementAmount(typedDisplay, inputCurrency, currency, rates);
 
@@ -96,7 +102,7 @@ export function RangeRateDialog({ open, onOpenChange }: RangeRateDialogProps): R
     }
     let priceSettlement: number | null = null;
     if (!useBase) {
-      const displayAmount = parseRateInput(priceText);
+      const displayAmount = parseMoneyInput(priceText, inputCurrency);
       if (displayAmount === null) {
         toast.error(t('invalid_price'));
         return;
@@ -161,10 +167,16 @@ export function RangeRateDialog({ open, onOpenChange }: RangeRateDialogProps): R
               <Input
                 id="range-rate-input"
                 type="text"
-                inputMode="numeric"
-                value={useBase ? String(displayBase) : priceText}
+                inputMode="decimal"
+                value={useBase ? formatMoneyInputDisplay(displayBase, inputCurrency) : priceText}
                 disabled={useBase}
-                onChange={(e) => setPriceText(e.target.value)}
+                onChange={(e) =>
+                  setPriceText(sanitizeMoneyInputTyping(e.target.value, inputCurrency))
+                }
+                onBlur={() => {
+                  const major = parseMoneyInput(priceText, inputCurrency);
+                  if (major !== null) setPriceText(formatMoneyInputDisplay(major, inputCurrency));
+                }}
                 className="w-40"
               />
               <span className="text-xs text-muted-foreground">
@@ -172,7 +184,7 @@ export function RangeRateDialog({ open, onOpenChange }: RangeRateDialogProps): R
               </span>
               {showUsdApprox && settlementPreview !== null ? (
                 <span className="text-xs text-muted-foreground">
-                  (~{formatCurrencyAmount(settlementPreview, currency)})
+                  (~{formatStoredMoney(settlementPreview, currency)})
                 </span>
               ) : null}
             </div>
@@ -187,9 +199,7 @@ export function RangeRateDialog({ open, onOpenChange }: RangeRateDialogProps): R
               <span>
                 {t('use_base_rate', { base: formatMoney(basePricePerNight, currency) })}
                 {showUsdApprox ? (
-                  <span className="ml-1">
-                    (~{formatCurrencyAmount(Math.round(basePricePerNight), currency)})
-                  </span>
+                  <span className="ml-1">(~{formatStoredMoney(basePricePerNight, currency)})</span>
                 ) : null}
               </span>
             </label>

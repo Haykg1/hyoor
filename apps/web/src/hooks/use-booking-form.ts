@@ -176,6 +176,14 @@ export function useBookingForm({
     return true;
   }, [values, nights, dateValidationErrors, isQuoteLoading, quote]);
 
+  const displayErrors = useMemo(
+    (): BookingFormErrors => ({
+      ...errors,
+      ...dateValidationErrors,
+    }),
+    [errors, dateValidationErrors],
+  );
+
   function validate(): BookingFormErrors {
     const errs: BookingFormErrors = {};
     if (!values.checkIn || !values.checkOut) {
@@ -246,7 +254,7 @@ export function useBookingForm({
 
   return {
     values,
-    errors,
+    errors: displayErrors,
     isSubmitting,
     isQuoteLoading,
     isConfirmOpen,

@@ -257,11 +257,16 @@ export interface PropertyDetail {
   currency: string;
   pricePerNight: number;
   displayPrice?: DisplayPrice | null;
+  /** Derived from stay-fee rules (SIMPLE catch-all or matched default). */
   cleaningFee: number | null;
+  /** Derived from stay-fee rules (SIMPLE catch-all fixed deposit). */
   securityDeposit: number | null;
+  stayFeeRulesMode: import('../utils/stay-fee-rules').StayFeeRulesMode;
+  stayFeeRules: import('../dto/property').StayFeeRuleView[];
   cancellationPolicy: string;
   cancellationFeeType: import('../utils/cancellation-fee').CancellationFeeType;
   cancellationFeeValue: number;
+  cancellationDeadlineDays: number;
   minNights: number;
   maxNights: number | null;
   checkInTime: string | null;
@@ -334,6 +339,7 @@ export interface BookingPropertySummary {
   cancellationPolicy: string;
   cancellationFeeType: import('../utils/cancellation-fee').CancellationFeeType;
   cancellationFeeValue: number;
+  cancellationDeadlineDays: number;
 }
 
 export interface BookingGuestProfile {
@@ -343,6 +349,57 @@ export interface BookingGuestProfile {
   avatarUrl: string | null;
   /** Present for viewers of the booking (guest/host/admin). */
   email?: string | null;
+}
+
+export const SecurityDepositClaimStatuses = ['PENDING', 'APPROVED', 'REJECTED'] as const;
+export type SecurityDepositClaimStatus = (typeof SecurityDepositClaimStatuses)[number];
+
+export interface SecurityDepositClaimView {
+  id: string;
+  bookingId: string;
+  amount: number;
+  reason: string;
+  status: SecurityDepositClaimStatus;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  evidenceUrls: string[];
+  createdAt: string;
+}
+
+export interface AdminDepositClaim extends SecurityDepositClaimView {
+  currency: string;
+  securityDeposit: number;
+  checkIn: string;
+  checkOut: string;
+  propertyId: string;
+  propertyTitle: string;
+  guestName: string;
+  hostName: string;
+}
+
+export const CancellationFeeClaimStatuses = ['PENDING', 'APPROVED', 'REJECTED'] as const;
+export type CancellationFeeClaimStatus = (typeof CancellationFeeClaimStatuses)[number];
+
+export interface CancellationFeeClaimView {
+  id: string;
+  bookingId: string;
+  amount: number;
+  reason: string | null;
+  status: CancellationFeeClaimStatus;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminCancellationFeeClaim extends CancellationFeeClaimView {
+  currency: string;
+  rentAmount: number;
+  checkIn: string;
+  checkOut: string;
+  propertyId: string;
+  propertyTitle: string;
+  guestName: string;
+  hostName: string;
 }
 
 export interface BookingDetail {
@@ -380,6 +437,7 @@ export interface BookingDetail {
   property: BookingPropertySummary;
   guest: BookingGuestProfile;
   promotionSummary?: import('../dto/booking-quote').BookingPromotionSummary | null;
+  securityDepositClaim?: SecurityDepositClaimView | null;
 }
 
 export const PropertyStatuses = [
@@ -610,6 +668,7 @@ export interface AdminBooking {
   cancellationPolicy: string;
   cancellationFeeType: import('../utils/cancellation-fee').CancellationFeeType;
   cancellationFeeValue: number;
+  cancellationDeadlineDays?: number;
   canRetryRentCapture: boolean;
   canRetryPayout: boolean;
   createdAt: string;

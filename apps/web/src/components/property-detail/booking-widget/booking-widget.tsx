@@ -31,6 +31,10 @@ interface BookingWidgetProps {
     | 'maxNights'
     | 'avgRating'
     | 'reviewCount'
+    | 'cancellationPolicy'
+    | 'cancellationFeeType'
+    | 'cancellationFeeValue'
+    | 'cancellationDeadlineDays'
   >;
 }
 
@@ -93,6 +97,7 @@ export function BookingWidget({ property }: BookingWidgetProps): React.JSX.Eleme
         quote={form.quote}
         isQuoteLoading={form.isQuoteLoading}
         nights={form.nights}
+        stayError={form.errors.checkOut ?? form.errors.checkIn}
       />
       {form.errors.submit && (
         <p className="text-center text-sm text-destructive">{form.errors.submit}</p>
@@ -113,6 +118,11 @@ export function BookingWidget({ property }: BookingWidgetProps): React.JSX.Eleme
         guests={form.values.guests}
         nights={form.nights ?? 0}
         quote={form.quote}
+        cancellationPolicy={property.cancellationPolicy}
+        cancellationFeeType={property.cancellationFeeType}
+        cancellationFeeValue={property.cancellationFeeValue}
+        cancellationDeadlineDays={property.cancellationDeadlineDays}
+        currency={property.currency}
         isSubmitting={form.isSubmitting}
         onConfirm={form.confirmBooking}
       />

@@ -16,6 +16,7 @@ import { StepPricing } from '@/components/listing-wizard/step-pricing';
 import { Button } from '@/components/ui/button';
 import { useRouter } from '@/i18n/navigation';
 import { Link } from '@/i18n/navigation';
+import { majorToMinor } from '@/lib/format/money';
 import {
   DEFAULT_LISTING_VALUES,
   listingSchema,
@@ -47,8 +48,10 @@ const STEP_FIELDS: Record<number, (keyof ListingFormValues)[]> = {
   3: ['amenities'],
   4: [
     'pricePerNight',
+    'stayFeeRulesMode',
     'cleaningFee',
     'securityDeposit',
+    'stayFeeRules',
     'cancellationPolicy',
     'minNights',
     'maxNights',
@@ -144,7 +147,7 @@ export function ListingWizard({ mode, initialProperty }: ListingWizardProps): Re
         await form.trigger(STEP_FIELDS[4]);
         return false;
       }
-      if (values.pricePerNight < 1) {
+      if (values.pricePerNight < majorToMinor(1, 'USD')) {
         form.setError('pricePerNight', { message: t('pricing_rules.price_required') });
         return false;
       }

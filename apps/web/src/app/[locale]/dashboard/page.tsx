@@ -1,17 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { AdminDashboardClient } from '@/components/dashboard/admin-dashboard-client';
 import { HostDashboardClient } from '@/components/dashboard/host-dashboard-client';
 import { useRouter } from '@/i18n/navigation';
-import { getMyProfile } from '@/lib/api/users';
 import { useAuthStore } from '@/store';
 
 export default function DashboardPage(): React.JSX.Element {
-  const { user, isLoading: authLoading } = useAuthStore();
+  const { user, displayName, isLoading: authLoading } = useAuthStore();
   const router = useRouter();
-  const [welcomeName, setWelcomeName] = useState('');
 
   useEffect(() => {
     if (authLoading) return;
@@ -21,24 +19,13 @@ export default function DashboardPage(): React.JSX.Element {
     }
     if (user.role !== 'HOST' && user.role !== 'ADMIN' && user.role !== 'STAFF') {
       router.replace('/trips');
-      return;
     }
-    getMyProfile()
-      .then((profile) => {
-        const first = profile.profile?.firstName ?? '';
-        const last = profile.profile?.lastName ?? '';
-        setWelcomeName(
-          ([first, last].filter(Boolean).join(' ') || profile.email.split('@')[0]) ?? '',
-        );
-      })
-      .catch(() => {
-        setWelcomeName(user.email.split('@')[0] ?? '');
-      });
   }, [user, authLoading, router]);
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'STAFF';
+  const welcomeName = displayName || user?.email.split('@')[0] || '';
 
-  if (authLoading || !welcomeName) {
+  if (authLoading || !user) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-10">
         <div className="space-y-4">

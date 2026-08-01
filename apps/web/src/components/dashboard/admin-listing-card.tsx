@@ -19,7 +19,7 @@ import {
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Link } from '@/i18n/navigation';
 import { PROPERTY_PLACEHOLDER_IMAGE } from '@/lib/constants/property-placeholder';
-import { formatAmd } from '@/lib/format/price';
+import { formatStoredMoney } from '@/lib/format/money';
 
 interface AdminListingCardProps {
   listing: HostListingSummary;
@@ -86,8 +86,8 @@ export function AdminListingCard({
             <StatusBadge status={listing.status} namespace="property" />
           </div>
           <p className="text-xs text-muted-foreground">
-            {location} · {formatAmd(listing.pricePerNight)}/{t('per_night')} ·{' '}
-            {tType(propertyTypeLabelKey(listing.propertyType))}
+            {location} · {formatStoredMoney(listing.pricePerNight, listing.currency)}/
+            {t('per_night')} · {tType(propertyTypeLabelKey(listing.propertyType))}
           </p>
         </div>
         <div className="flex items-center gap-2 self-end sm:self-auto">
