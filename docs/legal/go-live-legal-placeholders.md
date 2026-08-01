@@ -1,8 +1,11 @@
 # Legal documents — placeholder checklist
 
-Tracks every `[PLACEHOLDER]` in [terms-of-service.md](./terms-of-service.md) and
-[privacy-policy.md](./privacy-policy.md) that must be filled before publishing.
-Check items off as they are resolved. Line numbers current as of 2026-08-02.
+Tracks every `[PLACEHOLDER]` in
+[terms-of-service.md](../../apps/web/src/content/legal/terms-of-service.md) and
+[privacy-policy.md](../../apps/web/src/content/legal/privacy-policy.md) — the live copies
+the website renders at `/terms` and `/privacy` — that must be filled before publishing.
+Check items off as they are resolved. Line numbers are approximate (the web copies carry
+the draft banner as an HTML comment near the top).
 
 ## Company identity — fill once, used in both files
 

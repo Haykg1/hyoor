@@ -18,6 +18,8 @@ const STATIC_PATHS: ReadonlyArray<{
   { path: '/', changeFrequency: 'daily', priority: 1 },
   { path: '/search', changeFrequency: 'daily', priority: 0.9 },
   { path: '/ai-search', changeFrequency: 'weekly', priority: 0.7 },
+  { path: '/terms', changeFrequency: 'monthly', priority: 0.3 },
+  { path: '/privacy', changeFrequency: 'monthly', priority: 0.3 },
 ];
 
 const MAX_SITEMAP_PAGES = 500;

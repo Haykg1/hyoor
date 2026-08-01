@@ -16,6 +16,7 @@ export default async function LoginPage({
   setRequestLocale(locale);
   await redirectIfAuthenticated(locale);
   const t = await getTranslations('auth.login');
+  const tAuth = await getTranslations('auth');
 
   return (
     <div className="min-h-screen flex">
@@ -39,6 +40,24 @@ export default async function LoginPage({
           <AuthDivider />
 
           <LoginForm />
+
+          <p className="text-center text-xs text-muted-foreground mt-4">
+            {tAuth.rich('legal_notice', {
+              terms: (chunks) => (
+                <Link href="/terms" className="underline underline-offset-2 hover:text-foreground">
+                  {chunks}
+                </Link>
+              ),
+              privacy: (chunks) => (
+                <Link
+                  href="/privacy"
+                  className="underline underline-offset-2 hover:text-foreground"
+                >
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </p>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
             {t('no_account')}{' '}
