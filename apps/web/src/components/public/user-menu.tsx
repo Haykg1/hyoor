@@ -141,6 +141,14 @@ export function UserMenu({ variant = 'default' }: UserMenuProps = {}): React.JSX
             </Link>
           </DropdownMenuItem>
         ) : null}
+        {isAdminLike ? (
+          <DropdownMenuItem asChild>
+            <Link href="/admin/cancellation-claims" className="cursor-pointer">
+              <ShieldCheck className="mr-2 h-4 w-4" />
+              {t('admin_cancellation_claims')}
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuItem asChild>
           <Link href="/trips" className="cursor-pointer">
             <Plane className="mr-2 h-4 w-4" />

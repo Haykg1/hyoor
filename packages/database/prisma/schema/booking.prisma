@@ -51,6 +51,12 @@ enum SecurityDepositClaimStatus {
   REJECTED
 }
 
+enum CancellationFeeClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum PaymentFailureCategory {
   RENT_CAPTURE_FAILED
   DEPOSIT_RELEASE_FAILED
@@ -106,6 +112,7 @@ model Booking {
   promotion            PropertyPromotion?    @relation(fields: [promotionId], references: [id], onDelete: SetNull)
   reviews              Review[]
   securityDepositClaim SecurityDepositClaim?
+  cancellationFeeClaim CancellationFeeClaim?
   paymentFailures      PaymentFailure[]
 
   @@index([propertyId])
@@ -140,6 +147,24 @@ model SecurityDepositClaim {
 
   @@index([status])
   @@map("security_deposit_claims")
+}
+
+model CancellationFeeClaim {
+  id               String                     @id @default(cuid())
+  bookingId        String                     @unique
+  hostUserId       String
+  amount           Int
+  reason           String?                    @db.Text
+  status           CancellationFeeClaimStatus @default(PENDING)
+  reviewedByUserId String?
+  reviewNote       String?
+  createdAt        DateTime                   @default(now())
+  reviewedAt       DateTime?
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("cancellation_fee_claims")
 }
 
 model PaymentFailure {

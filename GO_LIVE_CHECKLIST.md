@@ -39,7 +39,7 @@ All "About / Support" footer links point to `/` (see `apps/web/src/components/pu
 
 ## 4. High — web platform basics (SEO, errors, PWA)
 
-- [ ] **No `robots.txt` and no `sitemap.xml`** — search engines can't index the site properly. Add `app/robots.ts` and `app/sitemap.ts` (include active property pages).
+- [x] **No `robots.txt` and no `sitemap.xml`** — added `app/robots.ts` + `app/sitemap.ts` (locale-aware; active property pages; private paths disallowed; localhost/staging noindex via `NEXT_PUBLIC_ALLOW_INDEXING`).
 - [ ] **No favicon, app icons, or OG image** — nothing in `apps/web/public/` except templates; browser tabs and social shares will look broken. Add `icon`, `apple-icon`, `opengraph-image`, and a web manifest.
 - [ ] **No per-page metadata** — only the compare pages implement `generateMetadata`. Property detail pages ship with the global "RentStar" title: bad for SEO and link sharing. Add `generateMetadata` at least to property, search, and auth pages.
 - [ ] **No structured data** — add schema.org `VacationRental`/`Product` JSON-LD on property pages for rich results.

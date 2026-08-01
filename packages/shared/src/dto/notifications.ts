@@ -9,6 +9,7 @@ export const NOTIFICATION_TYPES = [
   'DEPOSIT_CLAIM_SUBMITTED',
   'DEPOSIT_CLAIM_RESOLVED',
   'DEPOSIT_RELEASED',
+  'CANCELLATION_FEE_REVIEW',
 ] as const;
 export type NotificationTypeValue = (typeof NOTIFICATION_TYPES)[number];
 

@@ -83,7 +83,8 @@
     "favorites": "Ընտրյալներ",
     "menu": "Մենյու",
     "notifications": "Ծանուցումներ",
-    "admin_deposit_claims": "Գրավի պահանջներ"
+    "admin_deposit_claims": "Գրավի պահանջներ",
+    "admin_cancellation_claims": "Չեղարկման վճարներ"
   },
   "notifications": {
     "title": "Ծանուցումներ",
@@ -393,7 +394,11 @@
       "submitting": "Cancelling…",
       "success": "Booking cancelled",
       "error": "Could not cancel this booking",
-      "guest_not_allowed": "Guest cancellation is not available for this listing"
+      "guest_not_allowed": "Guest cancellation is not available for this listing",
+      "fee_review_note": "Չեղարկման վճարը կգանձվի միայն RentStar-ի դիտարկումից հետո։ Այն հաստատվում է միայն, երբ հյուրն է խնդրել չեղարկել, հակառակ դեպքում հյուրին ամբողջությամբ վերադարձվում է գումարը։",
+      "fee_reason_required": "Խնդրում ենք բացատրել, թե ինչու եք կիրառում չեղարկման վճարը",
+      "reason_label_required": "Պատճառ (պարտադիր)",
+      "fee_reason_placeholder": "Բացատրեք, թե ինչու է վճարը կիրառվում, օրինակ՝ հյուրը խնդրել է չեղարկել իր չեղարկման ժամկետից հետո…"
     },
     "special_requests": "Հատուկ պահանջներ",
     "check_in": "Ժամանում",
@@ -869,7 +874,8 @@
       "tabs": {
         "all_properties": "Բոլոր գույքերը"
       },
-      "deposit_claims_link": "Գրավի պահանջներ"
+      "deposit_claims_link": "Գրավի պահանջներ",
+      "cancellation_claims_link": "Չեղարկման վճարներ"
     },
     "calendar": {
       "title": "Օրացույց և գներ",
@@ -1655,6 +1661,42 @@
         "decline": "Մերժել և վերադարձնել",
         "declining": "Մերժվում է…",
         "approve": "Հաստատել և գանձել",
+        "approving": "Հաստատվում է…"
+      }
+    },
+    "cancellation_claims": {
+      "back_to_dashboard": "Վերադառնալ վահանակ",
+      "title": "Չեղարկման վճարի պահանջներ",
+      "subtitle": "Դիտարկեք հյուրընկալողների կողմից իրենց չեղարկումների վրա կիրառված վճարները",
+      "empty_state": "Սպասող պահանջներ չկան։",
+      "review_button": "Դիտարկել",
+      "approve_success": "Պահանջը հաստատվել է — վճարը գանձվել է",
+      "decline_success": "Պահանջը մերժվել է — հյուրին ամբողջությամբ վերադարձվել է",
+      "error": "Չհաջողվեց դիտարկել պահանջը",
+      "table": {
+        "created_at": "Ներկայացվել է",
+        "booking": "Ամրագրում",
+        "property": "Գույք",
+        "guest": "Հյուր",
+        "host": "Հյուրընկալող",
+        "rent": "Կացության գումար",
+        "fee": "Պահանջվող վճար"
+      },
+      "dialog": {
+        "title": "Դիտարկել չեղարկման վճարը",
+        "description": "Հյուրընկալողը չեղարկել է այս ամրագրումը և ցանկանում է պահել {amount}՝ {rent} կացության վճարից։",
+        "property": "Գույք",
+        "stay": "Կացություն",
+        "guest": "Հյուր",
+        "host": "Հյուրընկալող",
+        "reason": "Հյուրընկալողի պատճառը",
+        "no_reason": "Պատճառ նշված չէ։",
+        "review_hint": "Հաստատեք միայն, եթե հյուրն է խնդրել հյուրընկալողին չեղարկել (ստուգեք ամրագրման նամակագրությունը)։ Եթե հյուրընկալողը չեղարկել է իր նախաձեռնությամբ, մերժեք, որպեսզի հյուրին ամբողջությամբ վերադարձվի գումարը։",
+        "note_label": "Դիտարկման նշում (ըստ ցանկության)",
+        "note_placeholder": "Նշում որոշման մասին…",
+        "decline": "Մերժել և վերադարձնել հյուրին",
+        "declining": "Մերժվում է…",
+        "approve": "Հաստատել և գանձել վճարը",
         "approving": "Հաստատվում է…"
       }
     }

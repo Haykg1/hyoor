@@ -298,6 +298,12 @@ export class NotificationsService {
           body: 'The hold on your security deposit has been released.',
           refType: 'booking',
         };
+      case 'CANCELLATION_FEE_REVIEW':
+        return {
+          title: 'Cancellation fee under review',
+          body: 'A host cancellation fee is awaiting review.',
+          refType: 'booking',
+        };
       default:
         return { title: 'Notification' };
     }

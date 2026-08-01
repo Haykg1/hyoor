@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 
 import { AuthModule } from '../auth/auth.module';
+import { CancellationClaimsModule } from '../cancellation-claims/cancellation-claims.module';
 import { DepositClaimsModule } from '../deposit-claims/deposit-claims.module';
 import { PaymentFailuresModule } from '../payment-failures/payment-failures.module';
 import { PaymentsModule } from '../payments/payments.module';
@@ -14,6 +15,7 @@ import { AdminService } from './admin.service';
 @Module({
   imports: [
     forwardRef(() => AuthModule),
+    CancellationClaimsModule,
     DepositClaimsModule,
     StorageModule,
     SchedulingModule,

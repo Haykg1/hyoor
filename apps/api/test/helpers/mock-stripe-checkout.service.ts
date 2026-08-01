@@ -119,6 +119,28 @@ export class MockStripeCheckoutService {
     });
   }
 
+  async captureCancellationFee(booking: Booking, feeAmount: number): Promise<void> {
+    if (!booking.stripePaymentIntentId) {
+      throw new BadRequestException('Booking has no rent hold to capture the fee from');
+    }
+    const rentAmount = booking.totalAmount - booking.securityDeposit;
+    const platformFeeAmount = Math.round(feeAmount * 0.1);
+    await this.prisma.booking.update({
+      where: { id: booking.id },
+      data: {
+        paymentStatus: 'PARTIALLY_REFUNDED',
+        capturedAt: new Date(),
+        paymentCompletedAt: new Date(),
+        depositStatus: 'RELEASED',
+        refundedAmount: rentAmount - feeAmount,
+        platformFeeAmount,
+        hostPayoutAmount: feeAmount - platformFeeAmount,
+        payoutStatus: 'SCHEDULED',
+        payoutScheduledAt: new Date(),
+      },
+    });
+  }
+
   async expirePaymentLock(_booking: Booking): Promise<void> {}
 
   private async getPayableBookingOrThrow(bookingId: string, guestUserId: string): Promise<Booking> {

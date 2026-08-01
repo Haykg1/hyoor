@@ -83,7 +83,8 @@
     "favorites": "Favorites",
     "menu": "Menu",
     "notifications": "Notifications",
-    "admin_deposit_claims": "Deposit claims"
+    "admin_deposit_claims": "Deposit claims",
+    "admin_cancellation_claims": "Cancellation fees"
   },
   "notifications": {
     "title": "Notifications",
@@ -393,7 +394,11 @@
       "submitting": "Cancelling…",
       "success": "Booking cancelled",
       "error": "Could not cancel this booking",
-      "guest_not_allowed": "Guest cancellation is not available for this listing"
+      "guest_not_allowed": "Guest cancellation is not available for this listing",
+      "fee_review_note": "The cancellation fee will be held for RentStar review before it is charged. It is only approved when the guest asked you to cancel; otherwise the guest is refunded in full.",
+      "fee_reason_required": "Please explain why you are applying the cancellation fee",
+      "reason_label_required": "Reason (required)",
+      "fee_reason_placeholder": "Explain why the fee applies — e.g. the guest asked you to cancel after their cancellation window closed…"
     },
     "special_requests": "Special requests",
     "check_in": "Check-in",
@@ -869,7 +874,8 @@
       "tabs": {
         "all_properties": "All Properties"
       },
-      "deposit_claims_link": "Deposit claims"
+      "deposit_claims_link": "Deposit claims",
+      "cancellation_claims_link": "Cancellation fees"
     },
     "calendar": {
       "title": "Calendar & Rates",
@@ -1655,6 +1661,42 @@
         "decline": "Decline & release",
         "declining": "Declining…",
         "approve": "Approve & charge",
+        "approving": "Approving…"
+      }
+    },
+    "cancellation_claims": {
+      "back_to_dashboard": "Back to dashboard",
+      "title": "Cancellation fee claims",
+      "subtitle": "Review cancellation fees applied by hosts on their own cancellations",
+      "empty_state": "No pending claims.",
+      "review_button": "Review",
+      "approve_success": "Claim approved — fee charged",
+      "decline_success": "Claim declined — guest refunded in full",
+      "error": "Failed to review the claim",
+      "table": {
+        "created_at": "Filed",
+        "booking": "Booking",
+        "property": "Property",
+        "guest": "Guest",
+        "host": "Host",
+        "rent": "Stay total",
+        "fee": "Fee claimed"
+      },
+      "dialog": {
+        "title": "Review cancellation fee",
+        "description": "The host cancelled this booking and wants to keep {amount} of the {rent} stay payment.",
+        "property": "Property",
+        "stay": "Stay",
+        "guest": "Guest",
+        "host": "Host",
+        "reason": "Host’s reason",
+        "no_reason": "No reason provided.",
+        "review_hint": "Approve only if the guest asked the host to cancel (check the booking’s message thread). If the host cancelled on their own initiative, decline so the guest is refunded in full.",
+        "note_label": "Review note (optional)",
+        "note_placeholder": "Note about the decision…",
+        "decline": "Decline & refund guest",
+        "declining": "Declining…",
+        "approve": "Approve & charge fee",
         "approving": "Approving…"
       }
     }

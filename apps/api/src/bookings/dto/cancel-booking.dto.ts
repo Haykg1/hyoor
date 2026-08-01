@@ -9,7 +9,7 @@ export class CancelBookingDto {
 
   @ApiPropertyOptional({
     description:
-      'Host/admin only. When true, apply the property cancellation fee before refunding. Ignored for guest cancels (fee always applied). Defaults to false (waive).',
+      'Host/admin only. When true, apply the property cancellation fee before refunding. Ignored for guest cancels (fee always applied). Defaults to false (waive). Host-applied fees are held for admin review before capture and require a reason.',
     default: false,
   })
   @IsOptional()

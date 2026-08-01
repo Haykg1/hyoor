@@ -435,9 +435,12 @@ describe('Bookings (e2e)', () => {
     const cancel = await request(app.getHttpServer())
       .patch(`/api/v1/bookings/${bookingId}/cancel`)
       .set(authHeader(host.accessToken))
-      .send({ applyCancellationFee: true })
+      .send({ applyCancellationFee: true, reason: 'Guest asked me to cancel after deadline' })
       .expect(200);
     expect(cancel.body.data.status).toBe('CANCELLED_BY_HOST');
+    expect(cancel.body.data.paymentStatus).toBe('AUTHORIZED');
+    const claim = await prisma.cancellationFeeClaim.findUnique({ where: { bookingId } });
+    expect(claim?.status).toBe('PENDING');
   });
 
   it('applies fixed fee on guest cancel', async () => {
@@ -579,13 +582,106 @@ describe('Bookings (e2e)', () => {
       .set(authHeader(guest2.accessToken))
       .send({ paymentMethodId: 'pm_mock_test' })
       .expect(200);
-    const applyCancel = await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .patch(`/api/v1/bookings/${applyId}/cancel`)
       .set(authHeader(host.accessToken))
       .send({ applyCancellationFee: true })
+      .expect(400);
+    const applyCancel = await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${applyId}/cancel`)
+      .set(authHeader(host.accessToken))
+      .send({ applyCancellationFee: true, reason: 'Guest requested the cancellation' })
       .expect(200);
     expect(applyCancel.body.data.status).toBe('CANCELLED_BY_HOST');
-    expect(applyCancel.body.data.refundedAmount).toBe(applyRent - 10000);
+    expect(applyCancel.body.data.paymentStatus).toBe('AUTHORIZED');
+    expect(applyCancel.body.data.refundedAmount).toBe(0);
+    const prismaApply = app.get(PrismaService);
+    const pendingClaim = await prismaApply.cancellationFeeClaim.findUnique({
+      where: { bookingId: applyId },
+    });
+    expect(pendingClaim?.status).toBe('PENDING');
+    expect(pendingClaim?.amount).toBe(10000);
+    const admin = await registerUser(app, { email: uniqueEmail('admin') });
+    await prismaApply.user.update({ where: { id: admin.userId }, data: { role: 'ADMIN' } });
+    const adminLogin = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ email: admin.email, password: admin.password })
+      .expect(201);
+    const adminToken = adminLogin.body.data.accessToken as string;
+    const list = await request(app.getHttpServer())
+      .get('/api/v1/admin/cancellation-fee-claims')
+      .set(authHeader(adminToken))
+      .expect(200);
+    expect(list.body.data).toHaveLength(1);
+    expect(list.body.data[0].bookingId).toBe(applyId);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/admin/cancellation-fee-claims/${pendingClaim?.id}`)
+      .set(authHeader(adminToken))
+      .send({ status: 'APPROVED', reviewNote: 'Guest confirmed in messages' })
+      .expect(200);
+    const approvedBooking = await prismaApply.booking.findUniqueOrThrow({
+      where: { id: applyId },
+    });
+    expect(approvedBooking.paymentStatus).toBe('PARTIALLY_REFUNDED');
+    expect(approvedBooking.refundedAmount).toBe(applyRent - 10000);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/admin/cancellation-fee-claims/${pendingClaim?.id}`)
+      .set(authHeader(adminToken))
+      .send({ status: 'APPROVED' })
+      .expect(400);
+  });
+
+  it('refunds the guest in full when an admin rejects a host cancellation-fee claim', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    await prisma.property.update({
+      where: { id: property.id },
+      data: { cancellationFeeType: 'PERCENT', cancellationFeeValue: 25 },
+    });
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2027-11-01',
+        checkOut: '2027-11-04',
+        guestCount: 2,
+      })
+      .expect(201);
+    const bookingId = create.body.data.id as string;
+    const rentAmount =
+      (create.body.data.totalAmount as number) - (create.body.data.securityDeposit as number);
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${bookingId}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${bookingId}/cancel`)
+      .set(authHeader(host.accessToken))
+      .send({ applyCancellationFee: true, reason: 'Double booked the dates' })
+      .expect(200);
+    const claim = await prisma.cancellationFeeClaim.findUniqueOrThrow({ where: { bookingId } });
+    const admin = await registerUser(app, { email: uniqueEmail('admin') });
+    await prisma.user.update({ where: { id: admin.userId }, data: { role: 'ADMIN' } });
+    const adminLogin = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ email: admin.email, password: admin.password })
+      .expect(201);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/admin/cancellation-fee-claims/${claim.id}`)
+      .set(authHeader(adminLogin.body.data.accessToken))
+      .send({ status: 'REJECTED', reviewNote: 'Host cancelled on own initiative' })
+      .expect(200);
+    const rejectedBooking = await prisma.booking.findUniqueOrThrow({ where: { id: bookingId } });
+    expect(rejectedBooking.paymentStatus).toBe('CANCELLED');
+    expect(rejectedBooking.refundedAmount).toBe(rentAmount);
+    const rejectedClaim = await prisma.cancellationFeeClaim.findUniqueOrThrow({
+      where: { id: claim.id },
+    });
+    expect(rejectedClaim.status).toBe('REJECTED');
   });
 
   it('lets admin cancel with fee apply and marks CANCELLED_BY_HOST', async () => {

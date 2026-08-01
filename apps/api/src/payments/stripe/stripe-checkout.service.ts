@@ -382,9 +382,20 @@ export class StripeCheckoutService {
       return;
     }
 
+    await this.captureCancellationFee(booking, nonRefundableAmount);
+  }
+
+  /** Captures the cancellation fee from the rent hold (remainder auto-releases) and
+   * schedules the host payout split. Used on guest/admin cancels and on approved
+   * host cancellation-fee claims. */
+  async captureCancellationFee(booking: Booking, feeAmount: number): Promise<void> {
+    if (!booking.stripePaymentIntentId) {
+      throw new BadRequestException('Booking has no rent hold to capture the fee from');
+    }
+    const rentAmount = booking.totalAmount - booking.securityDeposit;
     try {
       const intent = await this.stripe.paymentIntents.capture(booking.stripePaymentIntentId, {
-        amount_to_capture: nonRefundableAmount,
+        amount_to_capture: feeAmount,
       });
       const amountCaptured = intent.amount_received;
       const { platformFeeAmount, hostPayoutAmount } = await this.computePayoutSplit(

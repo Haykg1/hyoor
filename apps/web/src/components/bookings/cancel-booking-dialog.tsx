@@ -49,10 +49,16 @@ export function CancelBookingDialog({
   const hasConfiguredFee = booking.cancellationFeeValue > 0;
   const preview = cancellationFeePreview(booking, isGuest ? true : applyFee);
   const money = (amount: number) => formatStoredMoney(amount, booking.currency);
+  const feeNeedsReview = role === 'host' && applyFee && preview.fee > 0;
+  const reasonMissing = feeNeedsReview && reason.trim().length === 0;
 
   async function handleConfirm(): Promise<void> {
     if (isGuest && !canGuestCancelBooking(booking)) {
       toast.error(t('guest_not_allowed'));
+      return;
+    }
+    if (reasonMissing) {
+      toast.error(t('fee_reason_required'));
       return;
     }
     setSubmitting(true);
@@ -128,13 +134,20 @@ export function CancelBookingDialog({
               />
             </div>
           ) : null}
+          {feeNeedsReview ? (
+            <p className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-blue-950 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-100">
+              {t('fee_review_note')}
+            </p>
+          ) : null}
           <div className="space-y-2">
-            <Label htmlFor="cancel-reason">{t('reason_label')}</Label>
+            <Label htmlFor="cancel-reason">
+              {feeNeedsReview ? t('reason_label_required') : t('reason_label')}
+            </Label>
             <Textarea
               id="cancel-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder={t('reason_placeholder')}
+              placeholder={feeNeedsReview ? t('fee_reason_placeholder') : t('reason_placeholder')}
               rows={3}
               disabled={submitting}
             />
@@ -153,7 +166,7 @@ export function CancelBookingDialog({
             type="button"
             variant="destructive"
             onClick={() => void handleConfirm()}
-            disabled={submitting}
+            disabled={submitting || reasonMissing}
           >
             {submitting ? t('submitting') : t('confirm')}
           </Button>

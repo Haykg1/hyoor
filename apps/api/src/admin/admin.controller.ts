@@ -1,8 +1,14 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { Property, SecurityDepositClaim, User } from '@repo/database/client';
+import type {
+  CancellationFeeClaim,
+  Property,
+  SecurityDepositClaim,
+  User,
+} from '@repo/database/client';
 import type {
   AdminBooking,
+  AdminCancellationFeeClaim,
   AdminDepositClaim,
   AdminHost,
   AdminPaymentFailure,
@@ -16,6 +22,8 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { CancellationClaimsService } from '../cancellation-claims/cancellation-claims.service';
+import { ReviewCancellationClaimDto } from '../cancellation-claims/dto/review-cancellation-claim.dto';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
 import { DepositClaimsService } from '../deposit-claims/deposit-claims.service';
 import { ReviewDepositClaimDto } from '../deposit-claims/dto/review-deposit-claim.dto';
@@ -54,6 +62,7 @@ import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
+    private readonly cancellationClaims: CancellationClaimsService,
     private readonly depositClaims: DepositClaimsService,
     private readonly depositReleaseCron: DepositReleaseCronService,
     private readonly guestInstructionsCron: GuestInstructionsCronService,
@@ -209,6 +218,28 @@ export class AdminController {
     @Body() dto: ReviewDepositClaimDto,
   ): Promise<SecurityDepositClaim> {
     return this.depositClaims.review(id, user.userId, dto);
+  }
+
+  @Get('cancellation-fee-claims')
+  @ApiOperation({ summary: 'List pending host cancellation-fee claims' })
+  @ApiOkResponse({ description: 'Pending claims awaiting review, oldest first' })
+  @ApiStandardErrors()
+  getPendingCancellationClaims(): Promise<AdminCancellationFeeClaim[]> {
+    return this.cancellationClaims.findPendingDetailed();
+  }
+
+  @Patch('cancellation-fee-claims/:id')
+  @ApiOperation({ summary: 'Approve or reject a host cancellation-fee claim' })
+  @ApiOkResponse({
+    description: 'Reviewed claim; approval captures the fee, rejection releases the full hold',
+  })
+  @ApiStandardErrors({ notFound: true })
+  reviewCancellationClaim(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+    @Body() dto: ReviewCancellationClaimDto,
+  ): Promise<CancellationFeeClaim> {
+    return this.cancellationClaims.review(id, user.userId, dto);
   }
 
   @Post('cron/release-expired-deposit-holds')

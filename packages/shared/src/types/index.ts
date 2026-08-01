@@ -377,6 +377,31 @@ export interface AdminDepositClaim extends SecurityDepositClaimView {
   hostName: string;
 }
 
+export const CancellationFeeClaimStatuses = ['PENDING', 'APPROVED', 'REJECTED'] as const;
+export type CancellationFeeClaimStatus = (typeof CancellationFeeClaimStatuses)[number];
+
+export interface CancellationFeeClaimView {
+  id: string;
+  bookingId: string;
+  amount: number;
+  reason: string | null;
+  status: CancellationFeeClaimStatus;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminCancellationFeeClaim extends CancellationFeeClaimView {
+  currency: string;
+  rentAmount: number;
+  checkIn: string;
+  checkOut: string;
+  propertyId: string;
+  propertyTitle: string;
+  guestName: string;
+  hostName: string;
+}
+
 export interface BookingDetail {
   id: string;
   propertyId: string;

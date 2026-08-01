@@ -9,7 +9,12 @@ import { ConfigService } from '@nestjs/config';
 import type { Booking, BookingStatus, Property } from '@repo/database/client';
 import { Prisma } from '@repo/database/client';
 import type { BookingQuoteResult, PaginatedResponse } from '@repo/shared';
-import { canGuestCancelStay, resolveStayFees, type StayFeeRulesMode } from '@repo/shared';
+import {
+  canGuestCancelStay,
+  computeCancellationFee,
+  resolveStayFees,
+  type StayFeeRulesMode,
+} from '@repo/shared';
 import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 
 import { AvailabilityService } from '../availability/availability.service';
@@ -297,8 +302,24 @@ export class BookingsService {
         );
       }
     }
+    const isPlatformStaff = role === 'ADMIN' || role === 'STAFF';
     const applyFee = access.asHost ? Boolean(dto.applyCancellationFee) : true;
     const wasPaymentBlocking = PAYMENT_BLOCKING_STATUSES.includes(booking.status);
+    const feeAmount = computeCancellationFee(
+      booking.totalAmount - booking.securityDeposit,
+      property.cancellationFeeType,
+      property.cancellationFeeValue,
+    );
+    const feeNeedsReview =
+      access.asHost &&
+      !isPlatformStaff &&
+      applyFee &&
+      wasPaymentBlocking &&
+      Boolean(booking.stripePaymentIntentId) &&
+      feeAmount > 0;
+    if (feeNeedsReview && !dto.reason?.trim()) {
+      throw new BadRequestException('A reason is required when applying the cancellation fee');
+    }
     const nextStatus: BookingStatus = access.asHost ? 'CANCELLED_BY_HOST' : 'CANCELLED_BY_GUEST';
     await this.prisma.$transaction(async (tx) => {
       await tx.booking.update({
@@ -312,9 +333,30 @@ export class BookingsService {
       if (wasPaymentBlocking && booking.promotionId) {
         await this.promotionsService.decrementAppliedCount(booking.promotionId, tx);
       }
+      if (feeNeedsReview) {
+        await tx.cancellationFeeClaim.create({
+          data: {
+            bookingId,
+            hostUserId: requestingUserId,
+            amount: feeAmount,
+            reason: dto.reason?.trim(),
+          },
+        });
+      }
     });
     if (wasPaymentBlocking) {
-      await this.stripeCheckout.cancelBookingPayment(booking, applyFee);
+      if (feeNeedsReview) {
+        if (booking.depositStatus === 'AUTHORIZED') {
+          await this.stripeCheckout.releaseDeposit(booking);
+          await this.prisma.booking.update({
+            where: { id: bookingId },
+            data: { depositStatus: 'RELEASED' },
+          });
+        }
+        await this.notifyAdminsOfFeeClaim(bookingId);
+      } else {
+        await this.stripeCheckout.cancelBookingPayment(booking, applyFee);
+      }
       await this.availabilityService.unblockDatesForBooking(
         booking.propertyId,
         booking.checkIn,
@@ -326,6 +368,18 @@ export class BookingsService {
       : await this.getHostUserId(booking.propertyId);
     await this.notificationsService.notify(recipientId, 'BOOKING_CANCELLED', bookingId, 'booking');
     return this.findById(bookingId, requestingUserId, role);
+  }
+
+  private async notifyAdminsOfFeeClaim(bookingId: string): Promise<void> {
+    const admins = await this.prisma.user.findMany({
+      where: { role: 'ADMIN' },
+      select: { id: true },
+    });
+    await Promise.all(
+      admins.map((admin) =>
+        this.notificationsService.notify(admin.id, 'CANCELLATION_FEE_REVIEW', bookingId, 'booking'),
+      ),
+    );
   }
 
   async complete(bookingId: string): Promise<BookingDetail> {
