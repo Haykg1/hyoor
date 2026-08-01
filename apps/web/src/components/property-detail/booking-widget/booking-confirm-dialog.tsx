@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { Link } from '@/i18n/navigation';
 import { formatBookingDate } from '@/lib/format/booking-date';
 import { formatStoredMoney as formatPrice } from '@/lib/format/money';
 
@@ -137,6 +138,19 @@ export function BookingConfirmDialog({
             checkIn={checkIn}
             audience="guest"
           />
+          <p className="text-xs text-muted-foreground">
+            {t.rich('terms_notice', {
+              terms: (chunks) => (
+                <Link
+                  href="/terms"
+                  target="_blank"
+                  className="underline underline-offset-2 hover:text-foreground"
+                >
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </p>
         </div>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>

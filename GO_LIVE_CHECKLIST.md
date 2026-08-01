@@ -10,8 +10,8 @@ The core product is in good shape: auth (email OTP verification, password reset,
 
 All "About / Support" footer links point to `/` (see `apps/web/src/components/public/footer/public-footer.tsx`) and none of these pages exist:
 
-- [ ] **Terms of Service** — required by law and by Stripe before accepting live payments.
-- [ ] **Privacy Policy** — you collect emails, phone numbers, payment data, and OAuth profiles; required by GDPR-style rules, Google OAuth app verification, and Apple Sign-In review.
+- [ ] **Terms of Service** — draft page live at `/terms` (rendered from `apps/web/src/content/legal/terms-of-service.md`, linked from footer, auth pages, and booking confirm). Remaining: fill `[PLACEHOLDERS]` (see `docs/legal/go-live-legal-placeholders.md`) + lawyer review.
+- [ ] **Privacy Policy** — draft page live at `/privacy` (same setup as terms). Remaining: fill `[PLACEHOLDERS]` + lawyer review.
 - [ ] **Cancellation / Refund policy page** — the logic exists in code (`apps/web/src/lib/bookings/cancellation.ts`), but there is no public page a guest can read; Stripe requires a public refund policy.
 - [ ] **Cookie consent banner** — auth cookies are fine as "strictly necessary", but the moment you add analytics you need consent (and a cookie policy page).
 - [ ] **Contact page** (footer link is dead) — a real support email/form; also required for Stripe/OAuth verification.

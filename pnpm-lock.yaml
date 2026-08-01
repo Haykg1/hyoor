@@ -278,6 +278,9 @@ importers:
       lucide-react:
         specifier: ^0.400.0
         version: 0.400.0(react@18.3.1)
+      marked:
+        specifier: ^18.0.7
+        version: 18.0.7
       next:
         specifier: ^14.0.0
         version: 14.2.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -8108,6 +8111,14 @@ packages:
       {
         integrity: sha512-JmqCvUhmt43madlpFzG4BQzG2Z3m6tvQDNKdClZnO3VbIudJYmxsT0FNJMeiB2+JTSlTQTSbU8QdesVmwJcmLg==,
       }
+
+  marked@18.0.7:
+    resolution:
+      {
+        integrity: sha512-iDVQ5ldaiKXn6b2JroX5kgRfmwgqolW7NpaEzTl1k/2Zh1njIEN9yniyLV/mOvWwtsE8OGgkjsCYvijuPk1dtA==,
+      }
+    engines: { node: ">= 20" }
+    hasBin: true
 
   math-intrinsics@1.1.0:
     resolution:
@@ -16130,6 +16141,8 @@ snapshots:
   makeerror@1.0.12:
     dependencies:
       tmpl: 1.0.5
+
+  marked@18.0.7: {}
 
   math-intrinsics@1.1.0: {}
 

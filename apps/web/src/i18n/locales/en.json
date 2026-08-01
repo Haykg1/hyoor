@@ -61,7 +61,8 @@
       "missing_tokens": "Missing authentication tokens.",
       "back_to_login": "Back to sign in"
     },
-    "divider": "or"
+    "divider": "or",
+    "legal_notice": "By continuing, you agree to our <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>."
   },
   "nav": {
     "home": "Home",
@@ -439,7 +440,8 @@
       "title": "Confirm your reservation",
       "description": "Review the details below before completing your booking.",
       "confirm": "Confirm reservation",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "terms_notice": "By confirming this booking you agree to the <terms>Terms of Service</terms> and the cancellation policy above."
     },
     "login_modal": {
       "title": "Sign in to book",
@@ -1777,5 +1779,16 @@
       "MODE_SWITCH_SIMPLE_REQUIRES_CATCH_ALL": "Switching to Simple mode requires a year-round default fee rule."
     },
     "coverage_warning": "Add a year-round default season (empty dates) so off-season check-ins still get fees. Without it, unmatched stays charge zero fees."
+  },
+  "legal": {
+    "english_only_note": "This document is currently available in English only. The English version is the binding version.",
+    "terms": {
+      "meta_title": "Terms of Service — RentStar",
+      "meta_description": "The terms that govern using RentStar to book stays or host guests: bookings, payments, deposits, cancellations, and host payouts."
+    },
+    "privacy": {
+      "meta_title": "Privacy Policy — RentStar",
+      "meta_description": "What personal data RentStar collects, why, who it is shared with, how long it is kept, and the rights you have over it."
+    }
   }
 }

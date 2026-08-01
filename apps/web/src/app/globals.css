@@ -128,3 +128,57 @@
     }
   }
 }
+
+@layer components {
+  /* Typography for server-rendered legal documents (/terms, /privacy). */
+  .legal-prose {
+    @apply text-sm leading-relaxed text-foreground;
+  }
+  .legal-prose h1 {
+    @apply mb-2 text-3xl font-bold tracking-tight;
+  }
+  .legal-prose h2 {
+    @apply mb-3 mt-10 border-b border-border pb-2 text-xl font-semibold;
+  }
+  .legal-prose h3 {
+    @apply mb-2 mt-6 text-base font-semibold;
+  }
+  .legal-prose p {
+    @apply mb-4;
+  }
+  .legal-prose em {
+    @apply text-muted-foreground;
+  }
+  .legal-prose ul,
+  .legal-prose ol {
+    @apply mb-4 space-y-2 pl-5;
+  }
+  .legal-prose ul {
+    @apply list-disc;
+  }
+  .legal-prose ol {
+    @apply list-decimal;
+  }
+  .legal-prose a {
+    @apply text-primary underline-offset-2 hover:underline;
+  }
+  .legal-prose blockquote {
+    @apply mb-4 border-l-4 border-border pl-4 text-muted-foreground;
+  }
+  .legal-prose hr {
+    @apply my-8 border-border;
+  }
+  .legal-prose code {
+    @apply rounded bg-muted px-1 py-0.5 font-mono text-xs;
+  }
+  .legal-prose table {
+    @apply mb-4 w-full border-collapse text-left;
+  }
+  .legal-prose th,
+  .legal-prose td {
+    @apply border border-border px-3 py-2 align-top;
+  }
+  .legal-prose th {
+    @apply bg-muted/50 font-semibold;
+  }
+}
