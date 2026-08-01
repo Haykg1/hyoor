@@ -92,7 +92,10 @@ export function CancelBookingDialog({
             cancellationPolicy={booking.cancellationPolicy}
             cancellationFeeType={booking.cancellationFeeType}
             cancellationFeeValue={booking.cancellationFeeValue}
+            cancellationDeadlineDays={booking.cancellationDeadlineDays}
             currency={booking.currency}
+            checkIn={isGuest ? booking.checkIn : undefined}
+            audience={isGuest ? 'guest' : 'listing'}
           />
           <div className="space-y-1.5 rounded-lg border border-border bg-muted/40 px-3 py-2">
             <div className="flex justify-between gap-3">

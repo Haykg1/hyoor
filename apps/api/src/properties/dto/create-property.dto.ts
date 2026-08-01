@@ -21,6 +21,7 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  Max,
   MaxLength,
   Min,
   ValidateNested,
@@ -162,6 +163,20 @@ export class CreatePropertyDto implements CreatePropertyInput {
   @Min(0)
   @Type(() => Number)
   cancellationFeeValue?: number;
+
+  @ApiPropertyOptional({
+    example: 0,
+    minimum: 0,
+    maximum: 100,
+    description:
+      'Days before check-in when guest cancel closes. 0 = anytime before check-in; max 100.',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  @Type(() => Number)
+  cancellationDeadlineDays?: number;
 
   @ApiPropertyOptional({ example: 'AM', maxLength: 2 })
   @IsOptional()

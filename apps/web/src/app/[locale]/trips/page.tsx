@@ -8,6 +8,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { CancelBookingDialog } from '@/components/bookings/cancel-booking-dialog';
+import { CancellationPolicyNotice } from '@/components/bookings/cancellation-policy-notice';
 import { Button } from '@/components/ui/button';
 import { Link, useRouter } from '@/i18n/navigation';
 import { ApiError } from '@/lib/api';
@@ -67,6 +68,7 @@ function BookingCard({
   );
   const cancelPreview = toCancelBookingPreview(booking);
   const showCancel = canGuestCancelBooking(cancelPreview);
+  const showPolicy = STATUS_UPCOMING.has(booking.status) && new Date(booking.checkIn) > new Date();
   return (
     <div className="rounded-2xl border border-border bg-card p-4 transition-shadow hover:shadow-md">
       <Link href={`/bookings/${booking.id}`} className="flex gap-4">
@@ -106,11 +108,24 @@ function BookingCard({
           </p>
         </div>
       </Link>
-      {showCancel ? (
-        <div className="mt-3 flex justify-end border-t border-border pt-3">
-          <Button type="button" size="sm" variant="outline" onClick={() => setCancelOpen(true)}>
-            {tBooking('cancel')}
-          </Button>
+      {showPolicy ? (
+        <div className="mt-3 space-y-3 border-t border-border pt-3">
+          <CancellationPolicyNotice
+            cancellationPolicy={booking.property.cancellationPolicy}
+            cancellationFeeType={booking.property.cancellationFeeType}
+            cancellationFeeValue={booking.property.cancellationFeeValue}
+            cancellationDeadlineDays={booking.property.cancellationDeadlineDays}
+            currency={booking.currency}
+            checkIn={booking.checkIn}
+            audience="guest"
+          />
+          {showCancel ? (
+            <div className="flex justify-end">
+              <Button type="button" size="sm" variant="outline" onClick={() => setCancelOpen(true)}>
+                {tBooking('cancel')}
+              </Button>
+            </div>
+          ) : null}
         </div>
       ) : null}
       <CancelBookingDialog

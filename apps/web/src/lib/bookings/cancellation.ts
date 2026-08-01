@@ -1,5 +1,5 @@
 import type { BookingDetail, CancellationFeeType } from '@repo/shared';
-import { computeCancellationFee, isGuestCancellationAllowed } from '@repo/shared';
+import { canGuestCancelStay, computeCancellationFee } from '@repo/shared';
 
 const CANCELLABLE_STATUSES = new Set(['AWAITING_PAYMENT', 'PENDING', 'CONFIRMED']);
 
@@ -13,6 +13,7 @@ export interface CancelBookingPreview {
   cancellationPolicy: string;
   cancellationFeeType: CancellationFeeType;
   cancellationFeeValue: number;
+  cancellationDeadlineDays: number;
 }
 
 export function rentAmountFromBooking(booking: {
@@ -30,7 +31,14 @@ export function isBookingCancellable(booking: { status: string; checkIn: string 
 }
 
 export function canGuestCancelBooking(booking: CancelBookingPreview): boolean {
-  return isBookingCancellable(booking) && isGuestCancellationAllowed(booking.cancellationPolicy);
+  return (
+    isBookingCancellable(booking) &&
+    canGuestCancelStay({
+      cancellationPolicy: booking.cancellationPolicy,
+      checkIn: booking.checkIn,
+      cancellationDeadlineDays: booking.cancellationDeadlineDays,
+    })
+  );
 }
 
 export function cancellationFeePreview(
@@ -55,5 +63,6 @@ export function toCancelBookingPreview(booking: BookingDetail): CancelBookingPre
     cancellationPolicy: booking.property.cancellationPolicy,
     cancellationFeeType: booking.property.cancellationFeeType,
     cancellationFeeValue: booking.property.cancellationFeeValue,
+    cancellationDeadlineDays: booking.property.cancellationDeadlineDays ?? 0,
   };
 }

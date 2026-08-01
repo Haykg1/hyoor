@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import type { Booking, BookingStatus, Property } from '@repo/database/client';
 import { Prisma } from '@repo/database/client';
 import type { BookingQuoteResult, PaginatedResponse } from '@repo/shared';
-import { isGuestCancellationAllowed, resolveStayFees, type StayFeeRulesMode } from '@repo/shared';
+import { canGuestCancelStay, resolveStayFees, type StayFeeRulesMode } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 
 import { AvailabilityService } from '../availability/availability.service';
@@ -49,6 +49,7 @@ export interface BookingPropertySummary {
   cancellationPolicy: string;
   cancellationFeeType: import('@repo/shared').CancellationFeeType;
   cancellationFeeValue: number;
+  cancellationDeadlineDays: number;
 }
 
 export interface BookingDetail extends Omit<
@@ -282,9 +283,17 @@ export class BookingsService {
       where: { id: booking.propertyId },
     });
     if (!access.asHost) {
-      if (!isGuestCancellationAllowed(property.cancellationPolicy)) {
+      if (
+        !canGuestCancelStay({
+          cancellationPolicy: property.cancellationPolicy,
+          checkIn: booking.checkIn,
+          cancellationDeadlineDays: property.cancellationDeadlineDays,
+        })
+      ) {
         throw new BadRequestException(
-          'Guest cancellation is not available for this property cancellation policy',
+          property.cancellationPolicy === 'NON_REFUNDABLE'
+            ? 'Guest cancellation is not available for non-refundable listings'
+            : 'Guest cancellation window has closed for this booking under the property cancellation deadline',
         );
       }
     }
@@ -622,6 +631,7 @@ export class BookingsService {
         cancellationPolicy: property.cancellationPolicy,
         cancellationFeeType: property.cancellationFeeType,
         cancellationFeeValue: property.cancellationFeeValue,
+        cancellationDeadlineDays: property.cancellationDeadlineDays,
       },
       guest: {
         id: guest.id,

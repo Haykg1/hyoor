@@ -32,8 +32,10 @@ import type {
 } from '@repo/shared';
 import {
   AddressLocales,
+  MAX_CANCELLATION_DEADLINE_DAYS,
   MAX_CANCELLATION_FEE_PERCENT,
   MAX_FEATURED_POIS,
+  MIN_CANCELLATION_DEADLINE_DAYS,
   StayFeeRulesValidationCodes,
   findCatchAllRule,
   normalizePropertySortBy,
@@ -203,6 +205,7 @@ export class PropertiesService {
       securityDeposit: dto.securityDeposit,
       propertyMinNights: dto.minNights,
       propertyMaxNights: dto.maxNights,
+      propertyPricePerNight: dto.pricePerNight,
       isCreate: true,
     });
     return this.prisma.$transaction(async (tx) => {
@@ -230,6 +233,7 @@ export class PropertiesService {
             cancellationFeeValue: dto.cancellationFeeValue,
             pricePerNight: dto.pricePerNight,
           }),
+          cancellationDeadlineDays: resolveCancellationDeadlineDays(dto.cancellationDeadlineDays),
           country: dto.country,
           region: dto.region,
           street: dto.street,
@@ -1380,6 +1384,9 @@ export class PropertiesService {
       data.cancellationFeeType = resolved.cancellationFeeType;
       data.cancellationFeeValue = resolved.cancellationFeeValue;
     }
+    if (dto.cancellationDeadlineDays !== undefined) {
+      data.cancellationDeadlineDays = resolveCancellationDeadlineDays(dto.cancellationDeadlineDays);
+    }
     const nextStayMode = (stayFeeRulesMode ?? property.stayFeeRulesMode) as StayFeeRulesMode;
     const feePayloadTouched =
       stayFeeRules !== undefined || cleaningFee !== undefined || securityDeposit !== undefined;
@@ -1415,6 +1422,8 @@ export class PropertiesService {
           existingRules,
           propertyMinNights: dto.minNights ?? property.minNights,
           propertyMaxNights: dto.maxNights !== undefined ? dto.maxNights : property.maxNights,
+          propertyPricePerNight:
+            dto.pricePerNight !== undefined ? dto.pricePerNight : property.pricePerNight,
         });
         data.stayFeeRulesMode = mode;
         await persistStayFeeRules(tx, property.id, mode, rules);
@@ -1881,6 +1890,22 @@ function resolveCancellationFeeFields(input: {
     );
   }
   return { cancellationFeeType: 'FIXED', cancellationFeeValue: feeValue };
+}
+
+function resolveCancellationDeadlineDays(value: number | null | undefined): number {
+  if (value == null) {
+    return 0;
+  }
+  if (
+    !Number.isInteger(value) ||
+    value < MIN_CANCELLATION_DEADLINE_DAYS ||
+    value > MAX_CANCELLATION_DEADLINE_DAYS
+  ) {
+    throw new BadRequestException(
+      `cancellationDeadlineDays must be an integer between ${MIN_CANCELLATION_DEADLINE_DAYS} and ${MAX_CANCELLATION_DEADLINE_DAYS}`,
+    );
+  }
+  return value;
 }
 
 function startOfTodayUtc(): Date {

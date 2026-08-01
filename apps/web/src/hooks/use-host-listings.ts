@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { useHostListingsStore } from '@/store/host-listings.store';
 
@@ -31,18 +31,16 @@ export function useHostListings() {
     softDeleteListing,
     reactivateListing,
   } = useHostListingsStore();
-
+  const prevSearchQuery = useRef(searchQuery);
   useEffect(() => {
-    void fetchListings();
-  }, [page, limit, tab, statusFilter, propertyTypeFilter, fetchListings]);
-
-  useEffect(() => {
+    const searchChanged = prevSearchQuery.current !== searchQuery;
+    prevSearchQuery.current = searchQuery;
+    const delay = searchChanged && searchQuery.trim() !== '' ? SEARCH_DEBOUNCE_MS : 0;
     const timer = window.setTimeout(() => {
       void fetchListings();
-    }, SEARCH_DEBOUNCE_MS);
+    }, delay);
     return () => window.clearTimeout(timer);
-  }, [searchQuery, fetchListings]);
-
+  }, [page, limit, tab, statusFilter, propertyTypeFilter, searchQuery, fetchListings]);
   return {
     listings,
     stats,

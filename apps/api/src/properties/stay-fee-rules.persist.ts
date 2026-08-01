@@ -52,6 +52,7 @@ export function normalizeStayFeeRulesFromDto(params: {
   securityDeposit?: number;
   propertyMinNights?: number;
   propertyMaxNights?: number | null;
+  propertyPricePerNight?: number | null;
   existingRules?: StayFeeRuleInput[];
   isCreate?: boolean;
 }): { mode: StayFeeRulesMode; rules: StayFeeRuleInput[] } {
@@ -105,6 +106,7 @@ export function normalizeStayFeeRulesFromDto(params: {
     rules,
     propertyMinNights: params.propertyMinNights,
     propertyMaxNights: params.propertyMaxNights,
+    propertyPricePerNight: params.propertyPricePerNight,
   });
   if (error) throw new BadRequestException(error);
   return { mode, rules };

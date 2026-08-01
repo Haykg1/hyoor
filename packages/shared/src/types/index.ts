@@ -266,6 +266,7 @@ export interface PropertyDetail {
   cancellationPolicy: string;
   cancellationFeeType: import('../utils/cancellation-fee').CancellationFeeType;
   cancellationFeeValue: number;
+  cancellationDeadlineDays: number;
   minNights: number;
   maxNights: number | null;
   checkInTime: string | null;
@@ -338,6 +339,7 @@ export interface BookingPropertySummary {
   cancellationPolicy: string;
   cancellationFeeType: import('../utils/cancellation-fee').CancellationFeeType;
   cancellationFeeValue: number;
+  cancellationDeadlineDays: number;
 }
 
 export interface BookingGuestProfile {
@@ -641,6 +643,7 @@ export interface AdminBooking {
   cancellationPolicy: string;
   cancellationFeeType: import('../utils/cancellation-fee').CancellationFeeType;
   cancellationFeeValue: number;
+  cancellationDeadlineDays?: number;
   canRetryRentCapture: boolean;
   canRetryPayout: boolean;
   createdAt: string;

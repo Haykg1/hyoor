@@ -46,6 +46,7 @@ function toAdminCancelPreview(booking: AdminBooking): CancelBookingPreview {
     cancellationPolicy: booking.cancellationPolicy,
     cancellationFeeType: booking.cancellationFeeType,
     cancellationFeeValue: booking.cancellationFeeValue,
+    cancellationDeadlineDays: booking.cancellationDeadlineDays ?? 0,
   };
 }
 

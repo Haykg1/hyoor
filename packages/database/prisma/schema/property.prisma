@@ -41,55 +41,57 @@ enum StayFeeDepositType {
 }
 
 model Property {
-  id                   String              @id @default(cuid())
-  hostId               String
-  status               PropertyStatus      @default(DRAFT)
-  propertyType         PropertyType
-  title                String
-  slug                 String              @unique
-  description          String
-  cancellationPolicy   CancellationPolicy  @default(MODERATE)
-  cancellationFeeType  CancellationFeeType @default(PERCENT)
-  cancellationFeeValue Int                 @default(0)
-  country              String              @default("AM")
-  region               String?
-  city                 String
-  street               String?
-  buildingNumber       String?
-  formattedAddress     String?
-  placeKind            String?
-  addressLabels        Json?
-  titleLabels          Json?
-  apartmentNumber      String?
-  addressLine          String?
-  latitude             Decimal?            @db.Decimal(10, 7)
-  longitude            Decimal?            @db.Decimal(10, 7)
-  maxGuests            Int
-  maxAdults            Int                 @default(0)
-  maxChildren          Int                 @default(0)
-  maxInfants           Int                 @default(0)
-  bedrooms             Int
-  beds                 Int
-  bathrooms            Decimal             @db.Decimal(3, 1)
-  currency             String              @default("AMD")
-  pricePerNight        Int
-  stayFeeRulesMode     StayFeeRulesMode    @default(SIMPLE)
-  minNights            Int                 @default(1)
-  maxNights            Int?
-  checkInTime          String?
-  checkOutTime         String?
-  smokingAllowed       Boolean             @default(false)
-  petsAllowed          Boolean             @default(false)
-  partiesAllowed       Boolean             @default(false)
-  quietHoursStart      String?
-  quietHoursEnd        String?
-  additionalRules      String?
-  guestInstructions    String?             @db.Text
-  externalBookingUrl   String?
-  featured             Boolean             @default(false)
-  featuredPoiIds       String[]            @default([])
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
+  id                       String              @id @default(cuid())
+  hostId                   String
+  status                   PropertyStatus      @default(DRAFT)
+  propertyType             PropertyType
+  title                    String
+  slug                     String              @unique
+  description              String
+  cancellationPolicy       CancellationPolicy  @default(MODERATE)
+  cancellationFeeType      CancellationFeeType @default(PERCENT)
+  cancellationFeeValue     Int                 @default(0)
+  /// Days before check-in when guest cancel closes. 0 = until check-in day; max 100.
+  cancellationDeadlineDays Int                 @default(0)
+  country                  String              @default("AM")
+  region                   String?
+  city                     String
+  street                   String?
+  buildingNumber           String?
+  formattedAddress         String?
+  placeKind                String?
+  addressLabels            Json?
+  titleLabels              Json?
+  apartmentNumber          String?
+  addressLine              String?
+  latitude                 Decimal?            @db.Decimal(10, 7)
+  longitude                Decimal?            @db.Decimal(10, 7)
+  maxGuests                Int
+  maxAdults                Int                 @default(0)
+  maxChildren              Int                 @default(0)
+  maxInfants               Int                 @default(0)
+  bedrooms                 Int
+  beds                     Int
+  bathrooms                Decimal             @db.Decimal(3, 1)
+  currency                 String              @default("AMD")
+  pricePerNight            Int
+  stayFeeRulesMode         StayFeeRulesMode    @default(SIMPLE)
+  minNights                Int                 @default(1)
+  maxNights                Int?
+  checkInTime              String?
+  checkOutTime             String?
+  smokingAllowed           Boolean             @default(false)
+  petsAllowed              Boolean             @default(false)
+  partiesAllowed           Boolean             @default(false)
+  quietHoursStart          String?
+  quietHoursEnd            String?
+  additionalRules          String?
+  guestInstructions        String?             @db.Text
+  externalBookingUrl       String?
+  featured                 Boolean             @default(false)
+  featuredPoiIds           String[]            @default([])
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
 
   host           HostProfile           @relation(fields: [hostId], references: [id], onDelete: Restrict)
   photos         PropertyPhoto[]

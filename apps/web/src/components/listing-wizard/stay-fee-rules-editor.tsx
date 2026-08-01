@@ -10,9 +10,12 @@ import {
 import { Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
+import {
+  SettlementMoneyInput,
+  useMoneyInputCurrency,
+} from '@/components/currency/settlement-money-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MoneyInput } from '@/components/ui/money-input';
 import {
   Select,
   SelectContent,
@@ -31,11 +34,13 @@ export interface StayFeeRulesEditorProps {
   currency: string;
   propertyMinNights?: number;
   propertyMaxNights?: number | null;
+  propertyPricePerNight?: number | null;
   onModeChange: (mode: StayFeeRulesMode) => void;
   onCleaningFeeChange: (value: number) => void;
   onSecurityDepositChange: (value: number) => void;
   onRulesChange: (rules: StayFeeRuleInput[]) => void;
   className?: string;
+  showModeLabel?: boolean;
 }
 
 interface SeasonGroup {
@@ -94,6 +99,16 @@ function todayIsoUtc(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+function clampFixedDepositValue(value: number, pricePerNight: number | null | undefined): number {
+  const safe = Math.max(0, value);
+  if (pricePerNight == null || pricePerNight <= 0) return safe;
+  return Math.min(safe, pricePerNight);
+}
+
+function clampPercentDepositValue(value: number): number {
+  return Math.min(100, Math.max(0, value));
+}
+
 export function getStayFeeEditorValidation(params: {
   mode: StayFeeRulesMode;
   rules: StayFeeRuleInput[];
@@ -101,6 +116,7 @@ export function getStayFeeEditorValidation(params: {
   securityDeposit: number;
   propertyMinNights?: number;
   propertyMaxNights?: number | null;
+  propertyPricePerNight?: number | null;
 }) {
   const rulesForValidation =
     params.mode === 'SIMPLE'
@@ -111,6 +127,7 @@ export function getStayFeeEditorValidation(params: {
     rules: rulesForValidation,
     propertyMinNights: params.propertyMinNights,
     propertyMaxNights: params.propertyMaxNights,
+    propertyPricePerNight: params.propertyPricePerNight,
   });
 }
 
@@ -122,13 +139,16 @@ export function StayFeeRulesEditor({
   currency,
   propertyMinNights = 1,
   propertyMaxNights = null,
+  propertyPricePerNight = null,
   onModeChange,
   onCleaningFeeChange,
   onSecurityDepositChange,
   onRulesChange,
   className,
+  showModeLabel = false,
 }: StayFeeRulesEditorProps): React.JSX.Element {
   const t = useTranslations('stay_fee_rules');
+  const moneyCurrency = useMoneyInputCurrency(currency);
   const seasons = groupBySeason(rules.length > 0 ? rules : [buildSimpleCatchAllRule(0, 0)]);
   const validationCode = getStayFeeEditorValidation({
     mode,
@@ -137,6 +157,7 @@ export function StayFeeRulesEditor({
     securityDeposit,
     propertyMinNights,
     propertyMaxNights,
+    propertyPricePerNight,
   });
   const validationMessage = translateStayFeeValidationCode(t, validationCode);
   const showCoverageWarning = mode === 'RULES' && !hasYearRoundFallback(rules);
@@ -158,7 +179,7 @@ export function StayFeeRulesEditor({
   return (
     <div className={cn('space-y-4', className)}>
       <div>
-        <p className="mb-2 text-sm font-medium">{t('mode_label')}</p>
+        {showModeLabel ? <p className="mb-2 text-sm font-medium">{t('mode_label')}</p> : null}
         <div className="grid gap-2 sm:grid-cols-2">
           {(['SIMPLE', 'RULES'] as const).map((value) => (
             <button
@@ -181,20 +202,26 @@ export function StayFeeRulesEditor({
       {mode === 'SIMPLE' ? (
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-sm font-medium">{t('cleaning_fee')}</label>
-            <MoneyInput
-              currency={currency}
+            <label className="text-sm font-medium">
+              {t('cleaning_fee')} ({moneyCurrency})
+            </label>
+            <SettlementMoneyInput
+              settlementCurrency={currency}
               value={cleaningFee}
               onValueChange={onCleaningFeeChange}
               placeholder={t('cleaning_placeholder')}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium">{t('security_deposit')}</label>
-            <MoneyInput
-              currency={currency}
+            <label className="text-sm font-medium">
+              {t('security_deposit')} ({moneyCurrency})
+            </label>
+            <SettlementMoneyInput
+              settlementCurrency={currency}
               value={securityDeposit}
-              onValueChange={onSecurityDepositChange}
+              onValueChange={(value) =>
+                onSecurityDepositChange(clampFixedDepositValue(value, propertyPricePerNight))
+              }
               placeholder={t('deposit_placeholder')}
             />
           </div>
@@ -273,143 +300,155 @@ export function StayFeeRulesEditor({
                 {season.bands.map((band, bandIndex) => (
                   <div
                     key={`band-${seasonIndex}-${bandIndex}`}
-                    className="grid gap-3 rounded-lg border border-border/60 bg-background p-3 sm:grid-cols-2 lg:grid-cols-6"
+                    className="space-y-3 rounded-lg border border-border/60 bg-background p-3"
                   >
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">{t('min_nights')}</label>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={band.minNights}
-                        onChange={(e) => {
-                          const next = [...seasons];
-                          const bands = [...season.bands];
-                          bands[bandIndex] = {
-                            ...band,
-                            minNights: Number(e.target.value) || 1,
-                          };
-                          next[seasonIndex] = { ...season, bands };
-                          updateSeasons(next);
-                        }}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">{t('max_nights')}</label>
-                      <Input
-                        type="number"
-                        min={1}
-                        placeholder={t('max_nights_open')}
-                        value={band.maxNights ?? ''}
-                        onChange={(e) => {
-                          const next = [...seasons];
-                          const bands = [...season.bands];
-                          const val = e.target.value;
-                          bands[bandIndex] = {
-                            ...band,
-                            maxNights: val === '' ? null : Number(val) || null,
-                          };
-                          next[seasonIndex] = { ...season, bands };
-                          updateSeasons(next);
-                        }}
-                      />
-                    </div>
-                    <div className="space-y-1 sm:col-span-2 lg:col-span-1">
-                      <label className="text-xs text-muted-foreground">{t('cleaning_fee')}</label>
-                      <MoneyInput
-                        currency={currency}
-                        value={band.cleaningFee}
-                        onValueChange={(value) => {
-                          const next = [...seasons];
-                          const bands = [...season.bands];
-                          bands[bandIndex] = { ...band, cleaningFee: value };
-                          next[seasonIndex] = { ...season, bands };
-                          updateSeasons(next);
-                        }}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">{t('deposit_type')}</label>
-                      <Select
-                        value={band.depositType}
-                        onValueChange={(value: StayFeeDepositType) => {
-                          const next = [...seasons];
-                          const bands = [...season.bands];
-                          bands[bandIndex] = {
-                            ...band,
-                            depositType: value,
-                            depositValue:
-                              value === 'PERCENT'
-                                ? Math.min(100, band.depositValue)
-                                : band.depositValue,
-                          };
-                          next[seasonIndex] = { ...season, bands };
-                          updateSeasons(next);
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="FIXED">{t('deposit_types.FIXED')}</SelectItem>
-                          <SelectItem value="PERCENT">{t('deposit_types.PERCENT')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">
-                        {band.depositType === 'PERCENT'
-                          ? t('deposit_percent')
-                          : t('security_deposit')}
-                      </label>
-                      {band.depositType === 'PERCENT' ? (
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground">{t('min_nights')}</label>
                         <Input
                           type="number"
-                          min={0}
-                          max={100}
-                          value={band.depositValue}
+                          min={1}
+                          value={band.minNights}
                           onChange={(e) => {
                             const next = [...seasons];
                             const bands = [...season.bands];
                             bands[bandIndex] = {
                               ...band,
-                              depositValue: Math.min(100, Math.max(0, Number(e.target.value) || 0)),
+                              minNights: Number(e.target.value) || 1,
                             };
                             next[seasonIndex] = { ...season, bands };
                             updateSeasons(next);
                           }}
                         />
-                      ) : (
-                        <MoneyInput
-                          currency={currency}
-                          value={band.depositValue}
-                          onValueChange={(value) => {
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground">{t('max_nights')}</label>
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder={t('max_nights_open')}
+                          value={band.maxNights ?? ''}
+                          onChange={(e) => {
                             const next = [...seasons];
                             const bands = [...season.bands];
-                            bands[bandIndex] = { ...band, depositValue: value };
+                            const val = e.target.value;
+                            bands[bandIndex] = {
+                              ...band,
+                              maxNights: val === '' ? null : Number(val) || null,
+                            };
                             next[seasonIndex] = { ...season, bands };
                             updateSeasons(next);
                           }}
                         />
-                      )}
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground">
+                          {t('cleaning_fee')} ({moneyCurrency})
+                        </label>
+                        <SettlementMoneyInput
+                          settlementCurrency={currency}
+                          value={band.cleaningFee}
+                          onValueChange={(value) => {
+                            const next = [...seasons];
+                            const bands = [...season.bands];
+                            bands[bandIndex] = { ...band, cleaningFee: value };
+                            next[seasonIndex] = { ...season, bands };
+                            updateSeasons(next);
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-end">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        disabled={season.bands.length <= 1}
-                        onClick={() => {
-                          const next = [...seasons];
-                          next[seasonIndex] = {
-                            ...season,
-                            bands: season.bands.filter((_, i) => i !== bandIndex),
-                          };
-                          updateSeasons(next);
-                        }}
-                        aria-label={t('remove_band')}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
+                      <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground">{t('deposit_type')}</label>
+                        <Select
+                          value={band.depositType}
+                          onValueChange={(value: StayFeeDepositType) => {
+                            const next = [...seasons];
+                            const bands = [...season.bands];
+                            bands[bandIndex] = {
+                              ...band,
+                              depositType: value,
+                              depositValue:
+                                value === 'PERCENT'
+                                  ? clampPercentDepositValue(band.depositValue)
+                                  : clampFixedDepositValue(
+                                      band.depositValue,
+                                      propertyPricePerNight,
+                                    ),
+                            };
+                            next[seasonIndex] = { ...season, bands };
+                            updateSeasons(next);
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="FIXED">{t('deposit_types.FIXED')}</SelectItem>
+                            <SelectItem value="PERCENT">{t('deposit_types.PERCENT')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground">
+                          {band.depositType === 'PERCENT'
+                            ? t('deposit_percent')
+                            : `${t('security_deposit')} (${moneyCurrency})`}
+                        </label>
+                        {band.depositType === 'PERCENT' ? (
+                          <Input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={band.depositValue}
+                            onChange={(e) => {
+                              const next = [...seasons];
+                              const bands = [...season.bands];
+                              bands[bandIndex] = {
+                                ...band,
+                                depositValue: clampPercentDepositValue(Number(e.target.value) || 0),
+                              };
+                              next[seasonIndex] = { ...season, bands };
+                              updateSeasons(next);
+                            }}
+                          />
+                        ) : (
+                          <SettlementMoneyInput
+                            settlementCurrency={currency}
+                            value={band.depositValue}
+                            onValueChange={(value) => {
+                              const next = [...seasons];
+                              const bands = [...season.bands];
+                              bands[bandIndex] = {
+                                ...band,
+                                depositValue: clampFixedDepositValue(value, propertyPricePerNight),
+                              };
+                              next[seasonIndex] = { ...season, bands };
+                              updateSeasons(next);
+                            }}
+                          />
+                        )}
+                      </div>
+                      <div className="flex justify-end sm:justify-start">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          disabled={season.bands.length <= 1}
+                          onClick={() => {
+                            const next = [...seasons];
+                            next[seasonIndex] = {
+                              ...season,
+                              bands: season.bands.filter((_, i) => i !== bandIndex),
+                            };
+                            updateSeasons(next);
+                          }}
+                          aria-label={t('remove_band')}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}

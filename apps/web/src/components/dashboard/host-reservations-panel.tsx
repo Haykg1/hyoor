@@ -5,7 +5,7 @@ import { getLocalizedTitle } from '@repo/shared';
 import { Calendar, House, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { CancelBookingDialog } from '@/components/bookings/cancel-booking-dialog';
 import { Button } from '@/components/ui/button';
@@ -118,16 +118,30 @@ export function HostReservationsPanel(): React.JSX.Element {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ReservationTab>('upcoming');
 
-  useEffect(() => {
-    listMyBookings({ limit: 100 })
-      .then((res) => setBookings(res.data))
-      .catch((err: unknown) => {
+  const loadBookings = useCallback(
+    async (options?: { silent?: boolean }): Promise<void> => {
+      if (!options?.silent) {
+        setLoading(true);
+      }
+      try {
+        const res = await listMyBookings({ limit: 100 });
+        setBookings(res.data);
+      } catch (err: unknown) {
         if (err instanceof ApiError && err.status === 401) {
           router.replace('/auth/login');
         }
-      })
-      .finally(() => setLoading(false));
-  }, [router]);
+      } finally {
+        if (!options?.silent) {
+          setLoading(false);
+        }
+      }
+    },
+    [router],
+  );
+
+  useEffect(() => {
+    void loadBookings();
+  }, [loadBookings]);
 
   const { upcoming, past } = splitHostReservations(bookings);
   const tabBookings: Record<ReservationTab, BookingDetail[]> = { upcoming, past };
@@ -175,7 +189,7 @@ export function HostReservationsPanel(): React.JSX.Element {
               key={booking.id}
               booking={booking}
               onCancelled={() => {
-                void listMyBookings({ limit: 100 }).then((res) => setBookings(res.data));
+                void loadBookings({ silent: true });
               }}
             />
           ))}

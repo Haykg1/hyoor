@@ -3,13 +3,20 @@
 import {
   CancellationFeeTypes,
   CancellationPolicies,
+  MAX_CANCELLATION_DEADLINE_DAYS,
   MAX_CANCELLATION_FEE_PERCENT,
+  MIN_CANCELLATION_DEADLINE_DAYS,
   type StayFeeRuleInput,
   type StayFeeRulesMode,
 } from '@repo/shared';
 import { useTranslations } from 'next-intl';
 import type { UseFormReturn } from 'react-hook-form';
 
+import { DisplayCurrencyToggle } from '@/components/currency/display-currency-toggle';
+import {
+  SettlementMoneyInput,
+  useMoneyInputCurrency,
+} from '@/components/currency/settlement-money-input';
 import { StayFeeRulesEditor } from '@/components/listing-wizard/stay-fee-rules-editor';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -21,7 +28,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { MoneyInput } from '@/components/ui/money-input';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import {
   Select,
@@ -31,6 +37,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useDisplayMoney } from '@/hooks/use-display-money';
 import type { ListingFormValues } from '@/lib/listing/schema';
 import { cn } from '@/lib/utils';
 
@@ -42,27 +49,35 @@ const LISTING_CURRENCY = 'USD';
 
 export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
   const t = useTranslations('listing_wizard.pricing_rules');
+  const { displayCurrency, setDisplayCurrency } = useDisplayMoney();
+  const moneyCurrency = useMoneyInputCurrency(LISTING_CURRENCY);
   const mode = form.watch('stayFeeRulesMode') ?? 'SIMPLE';
   const cleaningFee = form.watch('cleaningFee') ?? 0;
   const securityDeposit = form.watch('securityDeposit') ?? 0;
   const stayFeeRules = (form.watch('stayFeeRules') ?? []) as StayFeeRuleInput[];
   const minNights = form.watch('minNights') ?? 1;
   const maxNights = form.watch('maxNights') ?? null;
+  const pricePerNight = form.watch('pricePerNight') ?? 0;
   return (
     <Form {...form}>
       <div className="space-y-8">
         <div className="space-y-6">
-          <h3 className="text-sm font-semibold">{t('pricing_section')}</h3>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold">{t('pricing_section')}</h3>
+            <DisplayCurrencyToggle value={displayCurrency} onChange={setDisplayCurrency} />
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="pricePerNight"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('price_per_night')} *</FormLabel>
+                  <FormLabel>
+                    {t('price_per_night')} ({moneyCurrency}) *
+                  </FormLabel>
                   <FormControl>
-                    <MoneyInput
-                      currency={LISTING_CURRENCY}
+                    <SettlementMoneyInput
+                      settlementCurrency={LISTING_CURRENCY}
                       placeholder={t('price_placeholder')}
                       value={field.value ?? 0}
                       onValueChange={field.onChange}
@@ -123,6 +138,7 @@ export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
               currency={LISTING_CURRENCY}
               propertyMinNights={minNights}
               propertyMaxNights={maxNights}
+              propertyPricePerNight={pricePerNight}
               onModeChange={(next: StayFeeRulesMode) =>
                 form.setValue('stayFeeRulesMode', next, { shouldDirty: true, shouldValidate: true })
               }
@@ -163,92 +179,117 @@ export function StepPricing({ form }: StepPricingProps): React.JSX.Element {
                     </button>
                   ))}
                 </div>
+                {field.value === 'NON_REFUNDABLE' ? (
+                  <p className="text-xs text-muted-foreground">
+                    {t('cancellation_fee_non_refundable_hint')}
+                  </p>
+                ) : null}
                 <FormMessage />
               </FormItem>
             )}
           />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="cancellationFeeType"
-              render={({ field }) => {
-                const isNonRefundable = form.watch('cancellationPolicy') === 'NON_REFUNDABLE';
-                return (
+          {form.watch('cancellationPolicy') !== 'NON_REFUNDABLE' ? (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="cancellationFeeType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('cancellation_fee_type')}</FormLabel>
+                      <Select value={field.value ?? 'PERCENT'} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {CancellationFeeTypes.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {t(`fee_types.${type}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="cancellationFeeValue"
+                  render={({ field }) => {
+                    const feeType = form.watch('cancellationFeeType') ?? 'PERCENT';
+                    const nightly = form.watch('pricePerNight') ?? 0;
+                    const maxValue = feeType === 'PERCENT' ? MAX_CANCELLATION_FEE_PERCENT : nightly;
+                    return (
+                      <FormItem>
+                        <FormLabel>
+                          {feeType === 'FIXED'
+                            ? `${t('cancellation_fee_fixed')} (${moneyCurrency})`
+                            : t('cancellation_fee_percent')}
+                        </FormLabel>
+                        <FormControl>
+                          {feeType === 'FIXED' ? (
+                            <SettlementMoneyInput
+                              settlementCurrency={LISTING_CURRENCY}
+                              value={field.value ?? 0}
+                              onValueChange={(minor) => field.onChange(Math.min(maxValue, minor))}
+                            />
+                          ) : (
+                            <Input
+                              type="number"
+                              min={0}
+                              max={maxValue}
+                              value={field.value ?? 0}
+                              onChange={(e) => {
+                                const next = Math.max(0, Number(e.target.value) || 0);
+                                field.onChange(Math.min(maxValue, next));
+                              }}
+                            />
+                          )}
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground">
+                          {feeType === 'FIXED'
+                            ? t('cancellation_fee_fixed_hint')
+                            : t('cancellation_fee_percent_hint')}
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="cancellationDeadlineDays"
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('cancellation_fee_type')}</FormLabel>
-                    <Select
-                      disabled={isNonRefundable}
-                      value={isNonRefundable ? 'PERCENT' : (field.value ?? 'PERCENT')}
-                      onValueChange={field.onChange}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {CancellationFeeTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {t(`fee_types.${type}`)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-            <FormField
-              control={form.control}
-              name="cancellationFeeValue"
-              render={({ field }) => {
-                const isNonRefundable = form.watch('cancellationPolicy') === 'NON_REFUNDABLE';
-                const feeType = form.watch('cancellationFeeType') ?? 'PERCENT';
-                const pricePerNight = form.watch('pricePerNight') ?? 0;
-                const maxValue =
-                  feeType === 'PERCENT' ? MAX_CANCELLATION_FEE_PERCENT : pricePerNight;
-                return (
-                  <FormItem>
-                    <FormLabel>
-                      {feeType === 'FIXED'
-                        ? t('cancellation_fee_fixed')
-                        : t('cancellation_fee_percent')}
-                    </FormLabel>
+                    <FormLabel>{t('cancellation_deadline_days')}</FormLabel>
                     <FormControl>
-                      {feeType === 'FIXED' && !isNonRefundable ? (
-                        <MoneyInput
-                          currency={LISTING_CURRENCY}
-                          value={field.value ?? 0}
-                          onValueChange={(minor) => field.onChange(Math.min(maxValue, minor))}
-                        />
-                      ) : (
-                        <Input
-                          type="number"
-                          min={0}
-                          max={isNonRefundable ? 100 : maxValue}
-                          disabled={isNonRefundable}
-                          value={isNonRefundable ? 100 : (field.value ?? 0)}
-                          onChange={(e) => {
-                            const next = Math.max(0, Number(e.target.value) || 0);
-                            field.onChange(Math.min(isNonRefundable ? 100 : maxValue, next));
-                          }}
-                        />
-                      )}
+                      <Input
+                        type="number"
+                        min={MIN_CANCELLATION_DEADLINE_DAYS}
+                        max={MAX_CANCELLATION_DEADLINE_DAYS}
+                        value={field.value ?? 0}
+                        onChange={(e) => {
+                          const next = Math.max(
+                            MIN_CANCELLATION_DEADLINE_DAYS,
+                            Number(e.target.value) || 0,
+                          );
+                          field.onChange(Math.min(MAX_CANCELLATION_DEADLINE_DAYS, next));
+                        }}
+                      />
                     </FormControl>
                     <p className="text-xs text-muted-foreground">
-                      {isNonRefundable
-                        ? t('cancellation_fee_non_refundable_hint')
-                        : feeType === 'FIXED'
-                          ? t('cancellation_fee_fixed_hint')
-                          : t('cancellation_fee_percent_hint')}
+                      {t('cancellation_deadline_days_hint')}
                     </p>
                     <FormMessage />
                   </FormItem>
-                );
-              }}
-            />
-          </div>
+                )}
+              />
+            </>
+          ) : null}
         </div>
         <div className="space-y-6 border-t border-border pt-6">
           <h3 className="text-sm font-semibold">{t('rules_section')}</h3>

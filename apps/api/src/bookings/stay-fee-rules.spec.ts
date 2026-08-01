@@ -157,6 +157,52 @@ describe('stay-fee-rules', () => {
     expect(deriveSimpleFees([catchAll])).toEqual({ cleaningFee: 1000, securityDeposit: 5000 });
   });
 
+  it('rejects percent deposit above 100', () => {
+    const error = validateStayFeeRules({
+      mode: 'RULES',
+      rules: [
+        {
+          dateFrom: null,
+          dateTo: null,
+          minNights: 1,
+          maxNights: null,
+          cleaningFee: 0,
+          depositType: 'PERCENT',
+          depositValue: 101,
+        },
+      ],
+    });
+    expect(error).toBe(StayFeeRulesValidationCodes.PERCENT_DEPOSIT_INVALID);
+  });
+
+  it('rejects fixed deposit above nightly rate', () => {
+    const error = validateStayFeeRules({
+      mode: 'RULES',
+      propertyPricePerNight: 10000,
+      rules: [
+        {
+          dateFrom: null,
+          dateTo: null,
+          minNights: 1,
+          maxNights: null,
+          cleaningFee: 0,
+          depositType: 'FIXED',
+          depositValue: 10001,
+        },
+      ],
+    });
+    expect(error).toBe(StayFeeRulesValidationCodes.FIXED_DEPOSIT_ABOVE_NIGHTLY);
+  });
+
+  it('rejects SIMPLE fixed deposit above nightly rate', () => {
+    const error = validateStayFeeRules({
+      mode: 'SIMPLE',
+      propertyPricePerNight: 5000,
+      rules: [buildSimpleCatchAllRule(0, 5001)],
+    });
+    expect(error).toBe(StayFeeRulesValidationCodes.FIXED_DEPOSIT_ABOVE_NIGHTLY);
+  });
+
   it('normalize preserves existing deposit when updating cleaning fee only', () => {
     const existing = [buildSimpleCatchAllRule(1500, 2500)];
     const { mode, rules } = normalizeStayFeeRulesFromDto({

@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { CancellationPolicyNotice } from '@/components/bookings/cancellation-policy-notice';
+import { AnalyticsInfoHint } from '@/components/dashboard/analytics/analytics-info-hint';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -32,6 +33,7 @@ interface BookingConfirmDialogProps {
   cancellationPolicy: string;
   cancellationFeeType: CancellationFeeType;
   cancellationFeeValue: number;
+  cancellationDeadlineDays: number;
   currency: string;
   isSubmitting: boolean;
   onConfirm: () => void;
@@ -50,6 +52,7 @@ export function BookingConfirmDialog({
   cancellationPolicy,
   cancellationFeeType,
   cancellationFeeValue,
+  cancellationDeadlineDays,
   currency,
   isSubmitting,
   onConfirm,
@@ -108,7 +111,13 @@ export function BookingConfirmDialog({
               )}
               {quote.securityDeposit > 0 && (
                 <div className="flex justify-between text-muted-foreground">
-                  <span>{tBooking('security_deposit')}</span>
+                  <span className="inline-flex items-center gap-1">
+                    {tBooking('security_deposit')}
+                    <AnalyticsInfoHint
+                      label={tBooking('security_deposit_info_label')}
+                      description={tBooking('security_deposit_info')}
+                    />
+                  </span>
                   <span>{formatPrice(quote.securityDeposit, quote.currency)}</span>
                 </div>
               )}
@@ -123,7 +132,10 @@ export function BookingConfirmDialog({
             cancellationPolicy={cancellationPolicy}
             cancellationFeeType={cancellationFeeType}
             cancellationFeeValue={cancellationFeeValue}
+            cancellationDeadlineDays={cancellationDeadlineDays}
             currency={quote?.currency ?? currency}
+            checkIn={checkIn}
+            audience="guest"
           />
         </div>
         <DialogFooter className="gap-2 sm:gap-0">

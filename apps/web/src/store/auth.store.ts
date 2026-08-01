@@ -16,11 +16,16 @@ interface MeResponse {
   email: string;
   role: AuthUser['role'];
   avatarUrl?: string | null;
+  profile?: {
+    firstName?: string | null;
+    lastName?: string | null;
+  } | null;
 }
 
 interface AuthState {
   user: AuthUser | null;
   avatarUrl: string | null;
+  displayName: string;
   isAuthenticated: boolean;
   isLoading: boolean;
   setUser: (user: AuthUser) => void;
@@ -35,6 +40,23 @@ interface AuthState {
 
 function toAuthUser(user: MeResponse): AuthUser {
   return { id: user.id, email: user.email, role: user.role };
+}
+
+function welcomeDisplayName(me: MeResponse): string {
+  const first = me.profile?.firstName?.trim() ?? '';
+  const last = me.profile?.lastName?.trim() ?? '';
+  const full = [first, last].filter(Boolean).join(' ');
+  return full || me.email.split('@')[0] || '';
+}
+
+function applyMeResponse(me: MeResponse, set: (partial: Partial<AuthState>) => void): void {
+  set({
+    user: toAuthUser(me),
+    avatarUrl: me.avatarUrl ?? null,
+    displayName: welcomeDisplayName(me),
+    isAuthenticated: true,
+    isLoading: false,
+  });
 }
 
 function applyAuthResponse(
@@ -55,6 +77,7 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       avatarUrl: null,
+      displayName: '',
       isAuthenticated: false,
       isLoading: true,
       setUser: (user) => set({ user, isAuthenticated: true, isLoading: false }),
@@ -62,7 +85,13 @@ export const useAuthStore = create<AuthState>()(
       clearAuth: () => {
         api.clearAuthToken();
         clearAuthCookies();
-        set({ user: null, avatarUrl: null, isAuthenticated: false, isLoading: false });
+        set({
+          user: null,
+          avatarUrl: null,
+          displayName: '',
+          isAuthenticated: false,
+          isLoading: false,
+        });
       },
       login: async (input) => {
         set({ isLoading: true });
@@ -98,19 +127,26 @@ export const useAuthStore = create<AuthState>()(
         api.hydrateAccessTokenFromCookie();
         const hasSession = Boolean(getAccessTokenFromCookie() || getRefreshTokenFromCookie());
         if (!hasSession) {
-          set({ user: null, avatarUrl: null, isAuthenticated: false, isLoading: false });
+          set({
+            user: null,
+            avatarUrl: null,
+            displayName: '',
+            isAuthenticated: false,
+            isLoading: false,
+          });
           return;
         }
         try {
           const me = await api.get<MeResponse>('/users/me');
+          applyMeResponse(me, set);
+        } catch {
           set({
-            user: toAuthUser(me),
-            avatarUrl: me.avatarUrl ?? null,
-            isAuthenticated: true,
+            user: null,
+            avatarUrl: null,
+            displayName: '',
+            isAuthenticated: false,
             isLoading: false,
           });
-        } catch {
-          set({ user: null, avatarUrl: null, isAuthenticated: false, isLoading: false });
         }
       },
       setSessionFromTokens: async (tokens) => {
@@ -119,16 +155,17 @@ export const useAuthStore = create<AuthState>()(
         setAuthCookies(tokens);
         try {
           const me = await api.get<MeResponse>('/users/me');
-          set({
-            user: toAuthUser(me),
-            avatarUrl: me.avatarUrl ?? null,
-            isAuthenticated: true,
-            isLoading: false,
-          });
+          applyMeResponse(me, set);
         } catch {
           api.clearAuthToken();
           clearAuthCookies();
-          set({ user: null, avatarUrl: null, isAuthenticated: false, isLoading: false });
+          set({
+            user: null,
+            avatarUrl: null,
+            displayName: '',
+            isAuthenticated: false,
+            isLoading: false,
+          });
           throw new Error('Failed to load user profile');
         }
       },

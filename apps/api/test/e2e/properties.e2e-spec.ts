@@ -91,6 +91,54 @@ describe('Properties (e2e)', () => {
     expect(response.body.data.cancellationFeeValue).toBe(100);
   });
 
+  it('persists cancellationDeadlineDays on create and update', async () => {
+    const host = await registerHostUser(app);
+    const created = await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send({
+        ...sampleProperty,
+        cancellationPolicy: 'FLEXIBLE',
+        cancellationFeeType: 'PERCENT',
+        cancellationFeeValue: 0,
+        cancellationDeadlineDays: 14,
+      })
+      .expect(201);
+    expect(created.body.data.cancellationDeadlineDays).toBe(14);
+    const updated = await request(app.getHttpServer())
+      .patch(`/api/v1/properties/${created.body.data.id}`)
+      .set(authHeader(host.accessToken))
+      .send({ cancellationDeadlineDays: 30 })
+      .expect(200);
+    expect(updated.body.data.cancellationDeadlineDays).toBe(30);
+  });
+
+  it('rejects cancellationDeadlineDays outside 0..100', async () => {
+    const host = await registerHostUser(app);
+    await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send({
+        ...sampleProperty,
+        cancellationDeadlineDays: 101,
+      })
+      .expect(400);
+    await request(app.getHttpServer())
+      .post('/api/v1/properties')
+      .set(authHeader(host.accessToken))
+      .send({
+        ...sampleProperty,
+        cancellationDeadlineDays: -1,
+      })
+      .expect(400);
+    const property = await createActivePropertyDirect(app, host);
+    await request(app.getHttpServer())
+      .patch(`/api/v1/properties/${property.id}`)
+      .set(authHeader(host.accessToken))
+      .send({ cancellationDeadlineDays: 101 })
+      .expect(400);
+  });
+
   it('accepts optional guestInstructions on create and update', async () => {
     const host = await registerHostUser(app);
     const instructions = '<p>Lockbox code: <strong>1234</strong></p>';

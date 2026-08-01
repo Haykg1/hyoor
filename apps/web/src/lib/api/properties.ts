@@ -19,6 +19,7 @@ import type {
   UpdatePropertyInput,
 } from '@repo/shared';
 import type { PhotoMimeType } from '@repo/shared';
+import { cache } from 'react';
 
 import { api, ApiError } from '@/lib/api';
 import { compressImage } from '@/lib/compress-image';
@@ -113,7 +114,7 @@ export async function listProperties(
   return envelope.data;
 }
 
-export async function listFeaturedProperties(limit = 8): Promise<PropertySummary[]> {
+export const listFeaturedProperties = cache(async (limit = 8): Promise<PropertySummary[]> => {
   try {
     const result = await listProperties({ featured: true, limit });
     return result.data;
@@ -123,7 +124,7 @@ export async function listFeaturedProperties(limit = 8): Promise<PropertySummary
     }
     return [];
   }
-}
+});
 
 export interface SearchPropertiesResult {
   data: PropertySummary[];

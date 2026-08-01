@@ -1,8 +1,10 @@
 import {
   CancellationFeeTypes,
   CancellationPolicies,
+  MAX_CANCELLATION_DEADLINE_DAYS,
   MAX_CANCELLATION_FEE_PERCENT,
   MAX_FEATURED_POIS,
+  MIN_CANCELLATION_DEADLINE_DAYS,
   PropertyTypes,
   StayFeeDepositTypes,
   StayFeeRulesModes,
@@ -98,6 +100,12 @@ export const stepPricingRulesSchema = z
     cancellationPolicy: z.enum(CancellationPolicies),
     cancellationFeeType: z.enum(CancellationFeeTypes).optional(),
     cancellationFeeValue: z.number().int().min(0).optional(),
+    cancellationDeadlineDays: z
+      .number()
+      .int()
+      .min(MIN_CANCELLATION_DEADLINE_DAYS)
+      .max(MAX_CANCELLATION_DEADLINE_DAYS)
+      .optional(),
     minNights: z.number().int().min(1).optional(),
     maxNights: z.number().int().min(1).optional(),
     checkInTime: z.string().max(5).optional().or(z.literal('')),
@@ -211,6 +219,7 @@ export const DEFAULT_LISTING_VALUES: ListingFormValues = {
   cancellationPolicy: 'MODERATE',
   cancellationFeeType: 'PERCENT',
   cancellationFeeValue: 0,
+  cancellationDeadlineDays: 0,
   minNights: 1,
   checkInTime: '15:00',
   checkOutTime: '11:00',
@@ -286,6 +295,7 @@ export function toCreatePropertyInput(values: ListingFormValues): CreateProperty
         : (values.cancellationFeeType ?? 'PERCENT'),
     cancellationFeeValue:
       values.cancellationPolicy === 'NON_REFUNDABLE' ? 100 : (values.cancellationFeeValue ?? 0),
+    cancellationDeadlineDays: values.cancellationDeadlineDays ?? 0,
     minNights: values.minNights ?? 1,
     maxNights: values.maxNights,
     checkInTime: optionalTime(values.checkInTime),

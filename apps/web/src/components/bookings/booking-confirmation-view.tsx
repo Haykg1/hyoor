@@ -242,7 +242,10 @@ export function BookingConfirmationView({
               cancellationPolicy={booking.property.cancellationPolicy}
               cancellationFeeType={booking.property.cancellationFeeType}
               cancellationFeeValue={booking.property.cancellationFeeValue}
+              cancellationDeadlineDays={booking.property.cancellationDeadlineDays}
               currency={booking.currency}
+              checkIn={isHost ? undefined : booking.checkIn}
+              audience={isHost ? 'listing' : 'guest'}
             />
           ) : null}
         </CardContent>

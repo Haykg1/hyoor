@@ -8,6 +8,20 @@ import type {
 
 import { api } from '@/lib/api';
 
+const listMyBookingsInFlight = new Map<string, Promise<PaginatedResponse<BookingDetail>>>();
+
+function listMyBookingsCacheKey(params: {
+  limit?: number;
+  page?: number;
+  status?: string;
+}): string {
+  const qs = new URLSearchParams();
+  if (params.limit) qs.set('limit', String(params.limit));
+  if (params.page) qs.set('page', String(params.page));
+  if (params.status) qs.set('status', params.status);
+  return qs.toString();
+}
+
 export async function getBookingQuote(input: BookingQuoteInput): Promise<BookingQuoteResult> {
   const qs = new URLSearchParams({
     propertyId: input.propertyId,
@@ -35,12 +49,19 @@ export async function listMyBookings(
     status?: string;
   } = {},
 ): Promise<PaginatedResponse<BookingDetail>> {
-  const qs = new URLSearchParams();
-  if (params.limit) qs.set('limit', String(params.limit));
-  if (params.page) qs.set('page', String(params.page));
-  if (params.status) qs.set('status', params.status);
-  const query = qs.toString();
-  return api.get<PaginatedResponse<BookingDetail>>(`/bookings/my${query ? `?${query}` : ''}`);
+  const key = listMyBookingsCacheKey(params);
+  const existing = listMyBookingsInFlight.get(key);
+  if (existing) {
+    return existing;
+  }
+  const query = key;
+  const request = api
+    .get<PaginatedResponse<BookingDetail>>(`/bookings/my${query ? `?${query}` : ''}`)
+    .finally(() => {
+      listMyBookingsInFlight.delete(key);
+    });
+  listMyBookingsInFlight.set(key, request);
+  return request;
 }
 
 export interface StripeSetupIntentResult {

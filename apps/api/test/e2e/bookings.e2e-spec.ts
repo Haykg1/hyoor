@@ -218,6 +218,228 @@ describe('Bookings (e2e)', () => {
       .expect(400);
   });
 
+  it('rejects guest cancel after cancellation deadline days', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    await prisma.property.update({
+      where: { id: property.id },
+      data: {
+        cancellationPolicy: 'MODERATE',
+        cancellationFeeType: 'PERCENT',
+        cancellationFeeValue: 10,
+        cancellationDeadlineDays: 7,
+      },
+    });
+    const now = new Date();
+    const checkIn = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 3),
+    );
+    const checkOut = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 6),
+    );
+    const checkInIso = checkIn.toISOString().slice(0, 10);
+    const checkOutIso = checkOut.toISOString().slice(0, 10);
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: checkInIso,
+        checkOut: checkOutIso,
+        guestCount: 2,
+      })
+      .expect(201);
+    const bookingId = create.body.data.id as string;
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${bookingId}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
+    const cancel = await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${bookingId}/cancel`)
+      .set(authHeader(guest.accessToken))
+      .send({})
+      .expect(400);
+    expect(cancel.body.message).toMatch(/cancellation window has closed/i);
+  });
+
+  it('rejects guest cancel when check-in is exactly deadlineDays away', async () => {
+    // Today + 4 nights check-in with deadlineDays=4 → window already closed today.
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    await prisma.property.update({
+      where: { id: property.id },
+      data: {
+        cancellationPolicy: 'MODERATE',
+        cancellationFeeType: 'PERCENT',
+        cancellationFeeValue: 10,
+        cancellationDeadlineDays: 4,
+      },
+    });
+    const now = new Date();
+    const checkIn = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 4),
+    );
+    const checkOut = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 7),
+    );
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: checkIn.toISOString().slice(0, 10),
+        checkOut: checkOut.toISOString().slice(0, 10),
+        guestCount: 2,
+      })
+      .expect(201);
+    const bookingId = create.body.data.id as string;
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${bookingId}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
+    const cancel = await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${bookingId}/cancel`)
+      .set(authHeader(guest.accessToken))
+      .send({})
+      .expect(400);
+    expect(cancel.body.message).toMatch(/cancellation window has closed/i);
+  });
+
+  it('allows guest cancel when one day remains before the deadline', async () => {
+    // Today + 5 nights check-in with deadlineDays=4 → deadline is tomorrow, still open.
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    await prisma.property.update({
+      where: { id: property.id },
+      data: {
+        cancellationPolicy: 'FLEXIBLE',
+        cancellationFeeType: 'PERCENT',
+        cancellationFeeValue: 0,
+        cancellationDeadlineDays: 4,
+      },
+    });
+    const now = new Date();
+    const checkIn = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 5),
+    );
+    const checkOut = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 8),
+    );
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: checkIn.toISOString().slice(0, 10),
+        checkOut: checkOut.toISOString().slice(0, 10),
+        guestCount: 2,
+      })
+      .expect(201);
+    const bookingId = create.body.data.id as string;
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${bookingId}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
+    const cancel = await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${bookingId}/cancel`)
+      .set(authHeader(guest.accessToken))
+      .send({ reason: 'One day left' })
+      .expect(200);
+    expect(cancel.body.data.status).toBe('CANCELLED_BY_GUEST');
+  });
+
+  it('allows guest cancel inside cancellation deadline window', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    await prisma.property.update({
+      where: { id: property.id },
+      data: {
+        cancellationPolicy: 'FLEXIBLE',
+        cancellationFeeType: 'PERCENT',
+        cancellationFeeValue: 0,
+        cancellationDeadlineDays: 7,
+      },
+    });
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: '2027-09-01',
+        checkOut: '2027-09-04',
+        guestCount: 2,
+      })
+      .expect(201);
+    const bookingId = create.body.data.id as string;
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${bookingId}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
+    const cancel = await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${bookingId}/cancel`)
+      .set(authHeader(guest.accessToken))
+      .send({ reason: 'Within window' })
+      .expect(200);
+    expect(cancel.body.data.status).toBe('CANCELLED_BY_GUEST');
+  });
+
+  it('lets host cancel after guest cancellation deadline has passed', async () => {
+    const host = await registerHostUser(app);
+    const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const property = await createActivePropertyDirect(app, host);
+    const prisma = app.get(PrismaService);
+    await prisma.property.update({
+      where: { id: property.id },
+      data: {
+        cancellationPolicy: 'MODERATE',
+        cancellationFeeType: 'PERCENT',
+        cancellationFeeValue: 10,
+        cancellationDeadlineDays: 7,
+      },
+    });
+    const now = new Date();
+    const checkIn = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 3),
+    );
+    const checkOut = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 6),
+    );
+    const create = await request(app.getHttpServer())
+      .post('/api/v1/bookings')
+      .set(authHeader(guest.accessToken))
+      .send({
+        propertyId: property.id,
+        checkIn: checkIn.toISOString().slice(0, 10),
+        checkOut: checkOut.toISOString().slice(0, 10),
+        guestCount: 2,
+      })
+      .expect(201);
+    const bookingId = create.body.data.id as string;
+    await request(app.getHttpServer())
+      .post(`/api/v1/bookings/${bookingId}/payment/confirm`)
+      .set(authHeader(guest.accessToken))
+      .send({ paymentMethodId: 'pm_mock_test' })
+      .expect(200);
+    const cancel = await request(app.getHttpServer())
+      .patch(`/api/v1/bookings/${bookingId}/cancel`)
+      .set(authHeader(host.accessToken))
+      .send({ applyCancellationFee: true })
+      .expect(200);
+    expect(cancel.body.data.status).toBe('CANCELLED_BY_HOST');
+  });
+
   it('applies fixed fee on guest cancel', async () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });

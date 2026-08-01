@@ -230,7 +230,10 @@ export default function BookingPaymentPage(): React.JSX.Element {
             cancellationPolicy={booking.property.cancellationPolicy}
             cancellationFeeType={booking.property.cancellationFeeType}
             cancellationFeeValue={booking.property.cancellationFeeValue}
+            cancellationDeadlineDays={booking.property.cancellationDeadlineDays}
             currency={booking.currency}
+            checkIn={booking.checkIn}
+            audience="guest"
           />
         </CardContent>
       </Card>

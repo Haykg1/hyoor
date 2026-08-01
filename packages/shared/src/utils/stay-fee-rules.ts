@@ -17,6 +17,7 @@ export const StayFeeRulesValidationCodes = {
   CLEANING_FEE_INVALID: 'CLEANING_FEE_INVALID',
   PERCENT_DEPOSIT_INVALID: 'PERCENT_DEPOSIT_INVALID',
   FIXED_DEPOSIT_INVALID: 'FIXED_DEPOSIT_INVALID',
+  FIXED_DEPOSIT_ABOVE_NIGHTLY: 'FIXED_DEPOSIT_ABOVE_NIGHTLY',
   SEASON_OVERLAP: 'SEASON_OVERLAP',
   BAND_OVERLAP: 'BAND_OVERLAP',
   SIMPLE_FIELDS_IN_RULES_MODE: 'SIMPLE_FIELDS_IN_RULES_MODE',
@@ -168,6 +169,15 @@ export interface StayFeeRulesValidationOptions {
   rules: StayFeeRuleInput[];
   propertyMinNights?: number;
   propertyMaxNights?: number | null;
+  propertyPricePerNight?: number | null;
+}
+
+function fixedDepositExceedsNightly(
+  depositValue: number,
+  pricePerNight: number | null | undefined,
+): boolean {
+  if (pricePerNight == null || pricePerNight <= 0) return false;
+  return depositValue > pricePerNight;
 }
 
 export function validateStayFeeRules(
@@ -176,6 +186,7 @@ export function validateStayFeeRules(
   const { mode, rules } = options;
   const propertyMinNights = options.propertyMinNights ?? 1;
   const propertyMaxNights = options.propertyMaxNights ?? null;
+  const propertyPricePerNight = options.propertyPricePerNight ?? null;
   if (mode === 'SIMPLE') {
     const catchAlls = rules.filter(isCatchAllRule);
     if (catchAlls.length !== 1) {
@@ -183,6 +194,9 @@ export function validateStayFeeRules(
     }
     if (catchAlls[0]!.depositType !== 'FIXED') {
       return StayFeeRulesValidationCodes.SIMPLE_DEPOSIT_MUST_BE_FIXED;
+    }
+    if (fixedDepositExceedsNightly(catchAlls[0]!.depositValue, propertyPricePerNight)) {
+      return StayFeeRulesValidationCodes.FIXED_DEPOSIT_ABOVE_NIGHTLY;
     }
     return null;
   }
@@ -226,6 +240,8 @@ export function validateStayFeeRules(
       }
     } else if (rule.depositValue < 0 || !Number.isInteger(rule.depositValue)) {
       return StayFeeRulesValidationCodes.FIXED_DEPOSIT_INVALID;
+    } else if (fixedDepositExceedsNightly(rule.depositValue, propertyPricePerNight)) {
+      return StayFeeRulesValidationCodes.FIXED_DEPOSIT_ABOVE_NIGHTLY;
     }
   }
   const datedWindows = new Map<string, { from: string; to: string }>();

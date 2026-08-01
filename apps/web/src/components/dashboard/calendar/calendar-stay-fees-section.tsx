@@ -61,8 +61,17 @@ export function CalendarStayFeesSection({
         securityDeposit,
         propertyMinNights: property.minNights,
         propertyMaxNights: property.maxNights,
+        propertyPricePerNight: property.pricePerNight,
       }),
-    [mode, rules, cleaningFee, securityDeposit, property.minNights, property.maxNights],
+    [
+      mode,
+      rules,
+      cleaningFee,
+      securityDeposit,
+      property.minNights,
+      property.maxNights,
+      property.pricePerNight,
+    ],
   );
   const canSave = validationCode === null;
   async function handleSave(): Promise<void> {
@@ -109,6 +118,7 @@ export function CalendarStayFeesSection({
         currency={property.currency}
         propertyMinNights={property.minNights}
         propertyMaxNights={property.maxNights}
+        propertyPricePerNight={property.pricePerNight}
         onModeChange={setMode}
         onCleaningFeeChange={setCleaningFee}
         onSecurityDepositChange={setSecurityDeposit}
