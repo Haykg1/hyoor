@@ -7,25 +7,27 @@ import { buildPageMetadata } from '@/lib/seo/metadata';
 
 export const dynamic = 'force-static';
 
-interface TermsPageProps {
+interface CancellationPageProps {
   params: { locale: Locale };
 }
 
-export async function generateMetadata({ params: { locale } }: TermsPageProps): Promise<Metadata> {
-  const t = await getTranslations({ locale, namespace: 'legal.terms' });
+export async function generateMetadata({
+  params: { locale },
+}: CancellationPageProps): Promise<Metadata> {
+  const t = await getTranslations({ locale, namespace: 'legal.cancellation' });
   return buildPageMetadata({
     locale,
-    path: '/terms',
+    path: '/cancellation',
     title: t('meta_title'),
     description: t('meta_description'),
   });
 }
 
-export default async function TermsPage({
+export default async function CancellationPolicyPage({
   params: { locale },
-}: TermsPageProps): Promise<React.JSX.Element> {
+}: CancellationPageProps): Promise<React.JSX.Element> {
   setRequestLocale(locale);
-  const html = await loadLegalDocHtml('terms-of-service', locale);
+  const html = await loadLegalDocHtml('cancellation-refund-policy', locale);
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       <article className="legal-prose" dangerouslySetInnerHTML={{ __html: html }} />

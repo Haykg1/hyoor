@@ -8,16 +8,16 @@ The core product is in good shape: auth (email OTP verification, password reset,
 
 ## 1. Blockers — legal & trust content (cannot launch without these)
 
-All "About / Support" footer links point to `/` (see `apps/web/src/components/public/footer/public-footer.tsx`) and none of these pages exist:
+Legal policy pages and cookie consent are in place. Several About/Support footer links still point to `/` (see `apps/web/src/components/public/footer/public-footer.tsx`).
 
-- [ ] **Terms of Service** — draft page live at `/terms` (rendered from `apps/web/src/content/legal/terms-of-service.md`, linked from footer, auth pages, and booking confirm). Remaining: fill `[PLACEHOLDERS]` (see `docs/legal/go-live-legal-placeholders.md`) + lawyer review.
-- [ ] **Privacy Policy** — draft page live at `/privacy` (same setup as terms). Remaining: fill `[PLACEHOLDERS]` + lawyer review.
-- [ ] **Cancellation / Refund policy page** — the logic exists in code (`apps/web/src/lib/bookings/cancellation.ts`), but there is no public page a guest can read; Stripe requires a public refund policy.
-- [ ] **Cookie consent banner** — auth cookies are fine as "strictly necessary", but the moment you add analytics you need consent (and a cookie policy page).
+- [x] **Terms of Service** — public `/terms` in en/hy/ru; footer + auth/booking links. Remaining: fill `[PLACEHOLDERS]` (see `docs/legal/go-live-legal-placeholders.md`) + lawyer review.
+- [x] **Privacy Policy** — public `/privacy` in en/hy/ru; same placeholder + lawyer-review gap as Terms.
+- [x] **Cancellation / Refund policy page** — public `/cancellation` in en/hy/ru; footer + sitemap; aligned with ToS §8 and cancellation-fee logic.
+- [x] **Cookie consent banner** — banner + preferences dialog on all locales; Cookie Policy at `/cookies` (en/hy/ru); consent stored in `rentstar_cookie_consent`; analytics gated via `canUseAnalytics()` (no analytics scripts yet). Sitemap + footer linked.
 - [ ] **Contact page** (footer link is dead) — a real support email/form; also required for Stripe/OAuth verification.
 - [ ] **Help center & Safety pages** (footer links are dead) — even a minimal FAQ page each.
 - [ ] **Careers / Press pages** (footer links are dead) — or remove the links for launch.
-- [ ] **Host Terms / commission agreement** — hosts connect Stripe accounts and pay a platform fee (`STRIPE_PLATFORM_FEE_PERCENT_DEFAULT`); that relationship needs written terms.
+- [ ] **Host Terms / commission agreement** — hosts connect Stripe accounts and pay a platform fee (`STRIPE_PLATFORM_FEE_PERCENT_DEFAULT`); fee language lives in ToS §7, but a dedicated host-facing agreement is still missing.
 
 ## 2. Blockers — payments
 
@@ -41,10 +41,10 @@ All "About / Support" footer links point to `/` (see `apps/web/src/components/pu
 
 - [x] **No `robots.txt` and no `sitemap.xml`** — added `app/robots.ts` + `app/sitemap.ts` (locale-aware; active property pages; private paths disallowed; localhost/staging noindex via `NEXT_PUBLIC_ALLOW_INDEXING`).
 - [ ] **No favicon, app icons, or OG image** — nothing in `apps/web/public/` except templates; browser tabs and social shares will look broken. Add `icon`, `apple-icon`, `opengraph-image`, and a web manifest.
-- [ ] **No per-page metadata** — only the compare pages implement `generateMetadata`. Property detail pages ship with the global "RentStar" title: bad for SEO and link sharing. Add `generateMetadata` at least to property, search, and auth pages.
-- [ ] **No structured data** — add schema.org `VacationRental`/`Product` JSON-LD on property pages for rich results.
-- [ ] **No React error boundaries** — there is a `not-found.tsx` but no `error.tsx` or `global-error.tsx` anywhere; an uncaught render error shows Next's raw crash screen to users.
-- [ ] **hreflang/canonical tags** — with three locales you want alternates metadata so Google doesn't treat en/hy/ru as duplicates.
+- [x] **No per-page metadata** — `generateMetadata` on property, search, and auth pages (plus compare). Shared helper sets title/description/OG/Twitter, canonical + hreflang; auth is `noindex`.
+- [x] **No structured data** — property pages emit schema.org `VacationRental` JSON-LD (address, geo, occupancy, offers, aggregateRating when available).
+- [x] **No React error boundaries** — added `[locale]/error.tsx`, `global-error.tsx`, and shared `ErrorState` matching the public status-screen design; `not-found` uses the same UI.
+- [x] **hreflang/canonical tags** — all public surfaces (home, search, ai-search, property, compare, auth) emit canonical + locale alternates via `buildPageMetadata`.
 
 ## 5. Medium — product & compliance gaps
 
@@ -52,8 +52,8 @@ All "About / Support" footer links point to `/` (see `apps/web/src/components/pu
 - [ ] **Web analytics** — no product analytics at all (nothing wrong for launch, but you'll be blind; pair with the cookie consent from section 1).
 - [ ] **Zero frontend tests** — the API has good coverage; the web app has none. At minimum add tests for booking-price math and the listing wizard schema (`apps/web/src/lib/listing/schema.ts`).
 - [ ] **Load a real review of the seed accounts** — `admin@rentstar.am` etc. with known passwords must not exist in the production database (docker-init runs `migrate deploy + seed` on startup — make sure prod seeding is disabled or prod-safe).
-- [ ] **Rate-limit review** — throttling is wired globally (good); double-check stricter per-route limits on `auth/login`, OTP request, and password reset to prevent brute force / SMS-pump-style abuse.
-- [ ] **API docs exposure** — Swagger is served at `/api/docs` unconditionally; decide whether to disable or protect it in production.
+- [x] **Rate-limit review** — throttling is wired globally (good); double-check stricter per-route limits on `auth/login`, OTP request, and password reset to prevent brute force / SMS-pump-style abuse.
+- [x] **API docs exposure** — Swagger (`/api/docs`) is registered only when `NODE_ENV !== 'production'`.
 - [ ] **Currency rates dependency** — FX display rates come from `open.er-api.com`; decide the fallback behavior if it's down and whether `CURRENCY_RATES_FETCH_ON_BOOT` should be on in prod.
 
 ## 6. Nice-to-have before or shortly after launch

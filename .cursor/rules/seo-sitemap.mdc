@@ -1,6 +1,6 @@
 ---
-description: Keep robots/sitemap in sync when adding public indexable pages
-globs: apps/web/src/app/**/*.{ts,tsx},apps/web/src/lib/seo/**/*.{ts,tsx}
+description: Keep robots/sitemap/metadata in sync when adding public indexable pages
+globs: apps/web/src/app/**/*.{ts,tsx},apps/web/src/lib/seo/**/*.{ts,tsx},apps/web/src/content/legal/**
 alwaysApply: false
 ---
 
@@ -13,6 +13,7 @@ When adding or renaming a **public, indexable** page under `apps/web`, update th
 - Static paths: `STATIC_PATHS` in `apps/web/src/app/sitemap.ts`
 - Locale URL helpers: `apps/web/src/lib/seo/site.ts` (`localizedPath`, `languageAlternates`)
 - Crawl policy: `apps/web/src/app/robots.ts` (`PRIVATE_PATH_PREFIXES`)
+- Page metadata helper: `apps/web/src/lib/seo/metadata.ts` (`buildPageMetadata`)
 
 ## Include in sitemap when
 
@@ -21,6 +22,8 @@ When adding or renaming a **public, indexable** page under `apps/web`, update th
 - URL is stable (not a one-off token/share link)
 
 Property detail URLs are already generated from the ACTIVE properties API — do **not** hardcode individual listing IDs.
+
+Legal pages (`/terms`, `/privacy`, `/cancellation`, `/cookies`, …) are public and **must** be in `STATIC_PATHS`.
 
 ## Do NOT add to sitemap
 
@@ -36,3 +39,5 @@ If a new private area should stay out of Google, also add its path prefix to `PR
 1. Decide: indexable public page? → add path to `STATIC_PATHS` (or confirm dynamic coverage).
 2. Private surface? → add to `robots.ts` disallow list if missing.
 3. Prefer locale-agnostic paths (`/privacy`); sitemap expands `en` / `hy` / `ru` via helpers.
+4. Add `generateMetadata` using `buildPageMetadata` (canonical + hreflang). Use `noIndex: true` for auth/private surfaces.
+5. If the page is a policy/legal surface, also follow `legal-policy-sync.mdc`.

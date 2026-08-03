@@ -27,13 +27,9 @@ export default async function PrivacyPage({
   params: { locale },
 }: PrivacyPageProps): Promise<React.JSX.Element> {
   setRequestLocale(locale);
-  const t = await getTranslations('legal');
-  const html = await loadLegalDocHtml('privacy-policy');
+  const html = await loadLegalDocHtml('privacy-policy', locale);
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <p className="mb-8 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-        {t('english_only_note')}
-      </p>
       <article className="legal-prose" dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   );

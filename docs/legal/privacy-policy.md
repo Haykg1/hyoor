@@ -1,7 +1,8 @@
-# RentStar — Privacy Policy
+# Privacy Policy
 
-> **Moved.** The single source for this document is now
-> [`apps/web/src/content/legal/privacy-policy.md`](../../apps/web/src/content/legal/privacy-policy.md),
-> which the website renders at `/privacy`. Edit that file — this stub exists only so old
-> references don't dangle. The placeholder checklist lives in
-> [go-live-legal-placeholders.md](./go-live-legal-placeholders.md).
+**Live copies (rendered on the website):** locale files under
+[`apps/web/src/content/legal/privacy-policy.*.md`](../../apps/web/src/content/legal/)
+(`en` / `hy` / `ru`), served at `/privacy`.
+
+Edit those files — not this pointer — when data flows change. Placeholder checklist:
+[go-live-legal-placeholders.md](./go-live-legal-placeholders.md).

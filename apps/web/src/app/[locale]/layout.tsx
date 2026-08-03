@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import type { ReactNode } from 'react';
 
+import { CookieConsent } from '@/components/cookies/cookie-consent';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { FavoritesHydrator } from '@/components/providers/favorites-hydrator';
 import { MessagingHydrator } from '@/components/providers/messaging-hydrator';
@@ -56,6 +57,7 @@ export default async function LocaleLayout({
               <MessagingHydrator />
               <NextIntlClientProvider locale={locale} messages={messages}>
                 {children}
+                <CookieConsent />
                 <Toaster richColors closeButton />
               </NextIntlClientProvider>
             </AuthProvider>

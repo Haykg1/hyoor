@@ -12,5 +12,6 @@ alwaysApply: false
 - **Data fetching**: Server Actions for mutations; fetch in Server Components for reads. Use `@/lib/api` client — not raw `fetch` in components.
 - **Naming**: `kebab-case` directories; `PascalCase` React components.
 - **State**: Zustand for client state only — not raw DB records.
-- **SEO**: New public indexable pages must be considered for `apps/web/src/app/sitemap.ts` (and `robots.ts` if private) — see `seo-sitemap.mdc`.
+- **SEO**: New public indexable pages must go into `apps/web/src/app/sitemap.ts` (and `robots.ts` if private) — see `seo-sitemap.mdc`.
+- **Legal**: Behavior that affects privacy, terms, cancellations/refunds, host terms, or cookies must update the live policy markdown in the same change — see `legal-policy-sync.mdc`.
 - **After changes**: `pnpm --filter web lint --fix && pnpm --filter web format && pnpm --filter web typecheck`
