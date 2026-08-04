@@ -1,19 +1,19 @@
-# RentStar — Privacy Policy
+# [WEBSITE NAME] — Privacy Policy
 
 <!--
 **DRAFT — NOT LEGAL ADVICE.** Drafted to match the data flows actually implemented in the
-RentStar codebase. Must be reviewed by a lawyer familiar with the Armenian Law on Personal
+[WEBSITE NAME] codebase. Must be reviewed by a lawyer familiar with the Armenian Law on Personal
 Data Protection and, if you serve EU users, the GDPR. Items in `[SQUARE BRACKETS]` are
 placeholders.
 Locale files: privacy-policy.{en,hy,ru}.md — keep all three aligned.
 -->
 
-_Last updated: [DATE]_
+_Last updated: 05-08-2026_
 
 ## 1. Who is responsible for your data
 
 The data controller is **[LEGAL ENTITY NAME]**, [ADDRESS], Republic of Armenia
-("**RentStar**", "**we**"). Contact for privacy matters: **[PRIVACY EMAIL]**.
+("**[WEBSITE NAME]**", "**we**"). Contact for privacy matters: **[PRIVACY EMAIL]**.
 
 ## 2. What data we collect
 
@@ -79,7 +79,7 @@ mechanism per provider.]
 
 ## 5. Cookies
 
-RentStar uses cookies and similar technologies as described in our
+[WEBSITE NAME] uses cookies and similar technologies as described in our
 [Cookie Policy](/cookies). In short:
 
 | Cookie                    | Purpose                             | Lifetime         |
@@ -128,7 +128,7 @@ authority as required by law.
 
 ## 9. Children
 
-RentStar is not directed at children and accounts may only be created by adults (18+). We do
+[WEBSITE NAME] is not directed at children and accounts may only be created by adults (18+). We do
 not knowingly collect children's data; if you believe a child has provided us data, contact
 [PRIVACY EMAIL].
 

@@ -1,4 +1,4 @@
-# RentStar — Cookie Policy
+# [WEBSITE NAME] — Cookie Policy
 
 <!--
 **DRAFT — NOT LEGAL ADVICE.** Must match actual cookies/storage in apps/web
@@ -8,7 +8,7 @@ and the consent banner in components/cookies/.
 
 _Last updated: 02-08-2026_
 
-This Cookie Policy explains how **RentStar** (“we”) uses cookies and similar technologies
+This Cookie Policy explains how **[WEBSITE NAME]** (“we”) uses cookies and similar technologies
 when you use our website. It should be read with our
 [Privacy Policy](/privacy) and [Terms of Service](/terms).
 
@@ -82,8 +82,22 @@ When you first visit, a banner lets you:
 
 You can reopen the dialog anytime via **Cookie settings** in the website footer.
 
-You can also delete cookies in your browser settings. Deleting auth cookies will sign you out.
-Deleting `rentstar_cookie_consent` will show the banner again.
+### 3.1 Managing cookies in your browser
+
+Different browsers provide different methods to block and delete cookies used by websites.
+You can change your browser settings at any time to block or delete cookies. Official
+guides for the most common browsers:
+
+- [Google Chrome](https://support.google.com/chrome/answer/95647)
+- [Apple Safari](https://support.apple.com/guide/safari/manage-cookies-sfri11471/mac)
+- [Mozilla Firefox](https://support.mozilla.org/kb/clear-cookies-and-site-data-firefox)
+- [Microsoft Edge](https://support.microsoft.com/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09)
+
+If you use any other browser, please check its official support documentation.
+
+Note that deleting auth cookies will sign you out, and deleting `rentstar_cookie_consent`
+will show the consent banner again. Blocking strictly necessary cookies may prevent parts
+of the site (such as sign-in) from working.
 
 ## 4. Third parties
 
@@ -96,7 +110,7 @@ We do not currently inject other third-party marketing trackers.
 
 ## 5. International users
 
-If you access RentStar from the EU/EEA/UK, this policy is intended to meet transparency and
+If you access [WEBSITE NAME] from the EU/EEA/UK, this policy is intended to meet transparency and
 consent expectations under the ePrivacy Directive (as implemented locally) and the GDPR’s
 transparency principles for cookie-related processing described in our Privacy Policy.
 

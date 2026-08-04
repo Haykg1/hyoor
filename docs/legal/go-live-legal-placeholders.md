@@ -19,7 +19,7 @@ the draft banner as an HTML comment near the top).
 | ☐    | `[SUPPORT EMAIL]`                            | ToS 14, 33, 109, 112, 168, 189        | e.g. support@rentstar.am                            |
 | ☐    | `[PRIVACY EMAIL]`                            | Privacy 13, 111, 127, 137             | May equal support email                             |
 | ☐    | `[PHONE]`                                    | ToS 189                               | Support phone, or delete                            |
-| ☐    | `[DATE]`                                     | ToS 8 · Privacy 8 · Cookie (en/hy/ru) | Publication date                                    |
+| ☐    | `05-08-2026`                                 | ToS 8 · Privacy 8 · Cookie (en/hy/ru) | Publication date                                    |
 | ☐    | `[LEGAL ENTITY NAME]` / `[ADDRESS]` / emails | Cookie policy intro (en/hy/ru)        | Same as company identity row above                  |
 
 ## Numbers that already match the code — confirm and unbracket

@@ -1,4 +1,4 @@
-# RentStar — Terms of Service
+# [WEBSITE NAME] — Terms of Service
 
 > **Moved to locale files.** Edit
 > [`terms-of-service.en.md`](./terms-of-service.en.md) /

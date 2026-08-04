@@ -1,4 +1,4 @@
-# RentStar — Cancellation & Refund Policy
+# [WEBSITE NAME] — Cancellation & Refund Policy
 
 <!--
 **DRAFT — NOT LEGAL ADVICE.** Must match apps/web/src/content/legal/terms-of-service.md §8
@@ -8,7 +8,7 @@ Items in [SQUARE BRACKETS] are placeholders — see docs/legal/go-live-legal-pla
 
 \_Last updated: 03-08-2026
 
-This Cancellation & Refund Policy explains how cancellations and refunds work on **RentStar**
+This Cancellation & Refund Policy explains how cancellations and refunds work on **[WEBSITE NAME]**
 when you book or host a short-term stay. It applies together with our
 [Terms of Service](/terms). If anything here conflicts with a listing’s own cancellation
 terms shown at checkout, the listing terms control for that booking.
@@ -32,7 +32,7 @@ the amounts that apply to that booking.
 
 ## 2. Guest cancellations (Flexible / Moderate / Strict)
 
-If the listing is **not** Non-refundable, you may cancel through your RentStar account
+If the listing is **not** Non-refundable, you may cancel through your [WEBSITE NAME] account
 while the booking is still before check-in **and** before the listing’s cancellation
 deadline.
 
@@ -60,7 +60,7 @@ payment. For exceptional circumstances, contact the Host or **[SUPPORT EMAIL]**.
   **full refund**: the stay payment is returned and the deposit hold is released in full.
 - If a Host cancels **at the Guest’s request** after the Guest’s own cancel window has
   closed, the listing’s cancellation fee **may** be applied as if the Guest had cancelled.
-  Fee claims of this kind are subject to **RentStar admin review** before any fee is kept.
+  Fee claims of this kind are subject to **[WEBSITE NAME] admin review** before any fee is kept.
 
 ## 5. Timing and how money is returned
 

@@ -1,29 +1,29 @@
-# RentStar — Terms of Service
+# [WEBSITE NAME] — Terms of Service
 
 <!--
 **DRAFT — NOT LEGAL ADVICE.** This document was drafted to match the actual behavior of the
-RentStar platform as implemented in code. It must be reviewed and adapted by a qualified
+[WEBSITE NAME] platform as implemented in code. It must be reviewed and adapted by a qualified
 lawyer (Armenian law + data-protection counsel) before publication. Items in
 `[SQUARE BRACKETS]` are placeholders that must be filled in.
 Locale files: terms-of-service.{en,hy,ru}.md — keep all three aligned.
 -->
 
-_Last updated: [DATE]_
+_Last updated: 05-08-2026_
 
 ## 1. Who we are
 
-RentStar ("**RentStar**", "**we**", "**us**") is operated by **[LEGAL ENTITY NAME]**, a company
+[WEBSITE NAME] ("**[WEBSITE NAME]**", "**we**", "**us**") is operated by **[LEGAL ENTITY NAME]**, a company
 registered in the Republic of Armenia under registration number **[REG NUMBER]**, with its
 registered address at **[ADDRESS]**. You can contact us at **[SUPPORT EMAIL]**.
 
-RentStar is an online marketplace that connects people who offer short-term accommodation
-("**Hosts**") with people seeking to book it ("**Guests**"). RentStar is **not** a party to the
+[WEBSITE NAME] is an online marketplace that connects people who offer short-term accommodation
+("**Hosts**") with people seeking to book it ("**Guests**"). [WEBSITE NAME] is **not** a party to the
 rental agreement between Guest and Host: we provide the platform, booking tools, and payment
 processing, but the accommodation itself is provided by the Host.
 
 ## 2. Acceptance and eligibility
 
-By creating an account or using RentStar you agree to these Terms and to our
+By creating an account or using [WEBSITE NAME] you agree to these Terms and to our
 [Privacy Policy](/privacy). You must be at least 18 years old and able to enter
 binding contracts. If you register on behalf of a company, you confirm you are authorized to
 bind that company.
@@ -45,7 +45,7 @@ bind that company.
   requirements.
 - Listings must be accurate: photos, description, amenities, house rules, pricing, cleaning
   fees, security-deposit rules, and cancellation policy must reflect reality. New listings may
-  be subject to review by RentStar before becoming publicly visible.
+  be subject to review by [WEBSITE NAME] before becoming publicly visible.
 - Hosts set their own nightly prices, seasonal pricing, cleaning fees, security-deposit
   amounts, and cancellation policy within the options the platform provides.
 - Hosts must honor confirmed bookings. Repeated Host cancellations may lead to penalties,
@@ -69,30 +69,30 @@ bind that company.
 
 ## 6. Payments, deposits, and payouts
 
-- Card payments are processed by **Stripe**. RentStar does not store your card details.
-- **Authorization at booking:** when you book with a card, RentStar places an authorization
+- Card payments are processed by **Stripe**. [WEBSITE NAME] does not store your card details.
+- **Authorization at booking:** when you book with a card, [WEBSITE NAME] places an authorization
   hold on your card for the rent (and a separate hold for the security deposit, if the listing
   requires one). No money is captured at this point.
 - **Capture at check-in:** the rent is captured (charged) on or around the check-in day.
 - **Security deposit:** the deposit is a hold, not a charge. After checkout it is
   automatically released, unless the Host submits a damage claim within the claim window
-  (currently **[48] hours** after checkout). Claims are reviewed by RentStar; if a claim is
+  (currently **[48] hours** after checkout). Claims are reviewed by [WEBSITE NAME]; if a claim is
   approved, the approved amount (up to the deposit) is charged and the remainder released; if
   declined, the full hold is released. Guests are notified of the outcome by email and in-app.
 - **Cash payment:** where offered, Guests may select payment in cash to the Host at check-in.
-  For cash bookings, RentStar does not process the payment, and any deposit arrangements are
+  For cash bookings, [WEBSITE NAME] does not process the payment, and any deposit arrangements are
   handled directly between Guest and Host.
 - **Host payouts:** payouts are made to the Host's connected Stripe account after check-in,
   subject to a processing delay (currently approximately **[24] hours**) and to Stripe's own
-  settlement times. RentStar deducts a platform service fee (Section 7) before payout.
+  settlement times. [WEBSITE NAME] deducts a platform service fee (Section 7) before payout.
 - If a card authorization or capture fails, we may retry, ask you to provide another payment
   method, or cancel the booking.
 
-## 7. RentStar service fee
+## 7. [WEBSITE NAME] service fee
 
-RentStar charges Hosts a platform service fee as a percentage of the booking value (the
+[WEBSITE NAME] charges Hosts a platform service fee as a percentage of the booking value (the
 default fee is **[10]%**; the applicable rate is shown to the Host and may be individually
-agreed). The fee is deducted automatically from the amounts paid out to the Host. RentStar
+agreed). The fee is deducted automatically from the amounts paid out to the Host. [WEBSITE NAME]
 may change the default fee prospectively with **[30] days'** notice; changes do not affect
 already-confirmed bookings.
 
@@ -137,7 +137,7 @@ cleaning fee, and never includes the security deposit.
   honest, based on a genuine stay, and free of unlawful or abusive content. We may remove
   reviews that violate these rules; we do not otherwise edit reviews.
 - You retain ownership of content you upload (photos, descriptions, reviews, messages) and
-  grant RentStar a non-exclusive, worldwide, royalty-free license to host, display, and
+  grant [WEBSITE NAME] a non-exclusive, worldwide, royalty-free license to host, display, and
   reproduce it for operating and promoting the platform.
 - You must not upload content that infringes third-party rights or applicable law.
 
@@ -152,27 +152,27 @@ fees or payment flows.
 ## 11. Damage claims and disputes between Guests and Hosts
 
 - Host damage claims against a security deposit must be submitted within the claim window
-  with a description and supporting evidence. RentStar reviews claims in good faith and its
+  with a description and supporting evidence. [WEBSITE NAME] reviews claims in good faith and its
   decision on the deposit disposition is administrative, not a legal judgment.
-- Either party remains free to pursue remaining claims against the other directly; RentStar
+- Either party remains free to pursue remaining claims against the other directly; [WEBSITE NAME]
   is not liable for damage to property or for Guest or Host behavior.
 
 ## 12. Our role and liability
 
-- RentStar provides the platform "as is". We do not own, manage, or inspect properties and do
+- [WEBSITE NAME] provides the platform "as is". We do not own, manage, or inspect properties and do
   not guarantee the accuracy of listings, the conduct of users, or uninterrupted availability
   of the service.
-- To the maximum extent permitted by applicable law, RentStar's aggregate liability arising
+- To the maximum extent permitted by applicable law, [WEBSITE NAME]'s aggregate liability arising
   out of the platform is limited to the greater of (a) the total service fees we earned from
   the bookings giving rise to the claim, or (b) **[AMOUNT] AMD**. Nothing in these Terms
   limits liability that cannot be limited under applicable law (including for intent or gross
   negligence, or death/personal injury).
-- RentStar is not liable for the acts or omissions of payment providers, banks, or other
+- [WEBSITE NAME] is not liable for the acts or omissions of payment providers, banks, or other
   third-party services, though we will reasonably assist in resolving issues.
 
 ## 13. Termination
 
-You may stop using RentStar and request account closure at any time via [SUPPORT EMAIL] or
+You may stop using [WEBSITE NAME] and request account closure at any time via [SUPPORT EMAIL] or
 your account settings. Confirmed future bookings must first be resolved (completed or
 cancelled under Section 8). We may terminate or suspend accounts for material breach of these
 Terms. Sections that by their nature survive (payments owed, content licenses, liability,

@@ -1,4 +1,4 @@
-# RentStar — Privacy Policy
+# [WEBSITE NAME] — Privacy Policy
 
 > **Moved to locale files.** Edit
 > [`privacy-policy.en.md`](./privacy-policy.en.md) /

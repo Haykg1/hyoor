@@ -1,5 +1,5 @@
 ---
-description: Keep legal/policy docs in sync when product behavior affecting guests/hosts/data changes
+description: Keep legal/policy docs in sync when cookies, storage, payments, or cancellations change
 alwaysApply: true
 ---
 
@@ -14,19 +14,53 @@ When a code change affects anything users (guests/hosts) or regulators must be t
 | Terms of Service | `apps/web/src/content/legal/terms-of-service.{en,hy,ru}.md` |
 | Privacy Policy | `apps/web/src/content/legal/privacy-policy.{en,hy,ru}.md` |
 | Cancellation / Refunds | `apps/web/src/content/legal/cancellation-refund-policy.{en,hy,ru}.md` |
+| Cookie / consent | `apps/web/src/content/legal/cookie-policy.{en,hy,ru}.md`, consent UI (`apps/web/src/components/cookies/`), `cookies.*` i18n, Privacy sections on cookies/storage |
 | Host terms / commission / payouts | ToS host sections and/or a dedicated host-terms doc when it exists; keep fee/payout numbers aligned with config defaults |
-| Cookies / tracking | `apps/web/src/content/legal/cookie-policy.{en,hy,ru}.md`, banner copy (`cookies.*` i18n), Privacy §5 |
 
 Placeholders stay in `[SQUARE BRACKETS]` — also note new ones in `docs/legal/go-live-legal-placeholders.md`.
 
-## Update policies when you change (examples)
+## Mandatory sync triggers
+
+### Cookies / consent
+
+If you **add, rename, remove, or change purpose/retention** of any cookie (or cookie-like HTTP storage), also update:
+
+1. Cookie policy tables (`cookie-policy.{en,hy,ru}.md`)
+2. Consent banner / preferences UI and `cookies.*` copy when categories or choices change
+3. Privacy Policy cookie/storage sections when the story for users changes
+
+### localStorage / sessionStorage
+
+If you **add, rename, remove, or change what is stored** in `localStorage` / `sessionStorage` (including Zustand `persist` keys, theme, locale helpers, feature flags):
+
+1. Document it in the cookie/similar-technologies policy (same locale set)
+2. Update Privacy Policy if personal or tracking data is involved
+3. If the storage is non-essential, wire it through consent categories — do not write analytics/preference storage before consent allows it
+
+### Payments
+
+If you change **payment, fee, deposit, refund, payout, Stripe Connect, or checkout** behavior that guests/hosts need to know about (amounts, timing, who pays what, failure handling, methods):
+
+1. Update Terms of Service payment/host payout sections as needed
+2. Update Cancellation & Refund Policy when refunds/captures/deposits are affected
+3. Keep Privacy Policy payment-processor / data-sharing wording accurate
+4. Align numbers with code/env defaults (fee %, deposit window, payout delay, etc.)
+
+### Cancellations
+
+If you change **cancellation rules or behind-the-scenes fee logic** (e.g. `packages/shared/src/utils/cancellation-fee.ts`, booking cancel APIs, deadlines, host-cancel / admin review, what the fee is calculated on):
+
+1. Update `cancellation-refund-policy.{en,hy,ru}.md` when user-visible outcomes change
+2. Update Terms § on cancellations if ToS still describes the old rules
+3. Keep listing/checkout copy and i18n consistent with the same numbers and deadlines
+
+Even “internal” logic changes that alter refunds, fees, or eligibility **are in scope** if the published policy would otherwise be wrong.
+
+## Other examples that still require a policy pass
 
 - Auth / identity: registration, OAuth, OTP, password reset, account deletion/export
-- Personal data: new fields collected, stored, shared with third parties, retention
-- Payments / Stripe Connect: fees, payouts, deposits, refunds, payment methods
-- Bookings: cancellation rules, fee types/caps, deadlines, host-cancel / admin review
+- Personal data: new fields collected, stored, shared, retention
 - Messaging, reviews, AI search: data used or shared
-- Cookies / analytics / ads: any non-essential storage or tracking
 - Host onboarding, platform fee, liability, KYC flows
 
 If unsure whether a change is user-facing legally, **assume it is** and update the relevant doc (or ask).
@@ -34,11 +68,11 @@ If unsure whether a change is user-facing legally, **assume it is** and update t
 ## Locales
 
 - Terms, Privacy, Cancellation/refund, and Cookie policies are multi-locale — keep `en` / `hy` / `ru` aligned.
-- UI chrome (titles, footer labels) goes through i18n (`legal.*`, `footer.*`) via the i18n MCP when available.
+- UI chrome (titles, footer labels, consent copy) goes through i18n (`legal.*`, `footer.*`, `cookies.*`) via the i18n MCP when available.
 
 ## Same-PR checklist
 
-1. Identify which policies are affected (privacy / terms / cancellation / host / cookies).
+1. Identify which policies are affected (privacy / terms / cancellation / cookies / host).
 2. Edit the live markdown under `apps/web/src/content/legal/` (not only `docs/legal/`).
-3. Keep numbers consistent with code/env defaults (fee %, deposit window, payout delay, etc.).
+3. Keep numbers consistent with code/env defaults.
 4. If you add a **new public page**, also follow `seo-sitemap.mdc` (sitemap + metadata).
