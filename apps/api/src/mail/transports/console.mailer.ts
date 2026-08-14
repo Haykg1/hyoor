@@ -13,6 +13,7 @@ export class ConsoleMailer extends MailerService {
         '',
         divider,
         `📧  To:      ${opts.to}`,
+        ...(opts.replyTo ? [`    Reply-To: ${opts.replyTo}`] : []),
         `    Subject: ${opts.subject}`,
         divider,
         opts.text,

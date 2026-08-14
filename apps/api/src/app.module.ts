@@ -16,6 +16,7 @@ import { CompareShareModule } from './compare-share/compare-share.module';
 import type { AppConfig } from './config/configuration';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation.schema';
+import { ContactModule } from './contact/contact.module';
 import { CurrencyModule } from './currency/currency.module';
 import { DatabaseModule } from './database/database.module';
 import { FavoritesModule } from './favorites/favorites.module';
@@ -81,6 +82,7 @@ const isTestEnv = process.env.NODE_ENV === 'test';
     PromotionsModule,
     NotificationsModule,
     CompareShareModule,
+    ContactModule,
     AdminModule,
     SchedulingModule,
   ],

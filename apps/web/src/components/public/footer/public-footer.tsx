@@ -17,17 +17,13 @@ interface FooterColumnConfig {
 const FOOTER_COLUMNS: FooterColumnConfig[] = [
   {
     headingKey: 'about',
-    links: [
-      { href: '/', labelKey: 'careers' },
-      { href: '/', labelKey: 'press' },
-      { href: '/', labelKey: 'contact' },
-    ],
+    links: [{ href: '/contact', labelKey: 'contact' }],
   },
   {
     headingKey: 'support',
     links: [
-      { href: '/', labelKey: 'help_center' },
-      { href: '/', labelKey: 'safety' },
+      { href: '/faq', labelKey: 'help_center' },
+      { href: '/faq#stay', labelKey: 'safety' },
     ],
   },
   {

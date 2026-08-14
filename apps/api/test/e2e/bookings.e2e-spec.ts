@@ -1119,6 +1119,10 @@ describe('Bookings (e2e)', () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
     const property = await createActivePropertyDirect(app, host);
+    const bookingStartDate = utcIsoDaysFromToday(0);
+    const bookingEndDate = utcIsoDaysFromToday(30);
+    const checkIn = utcIsoDaysFromToday(10);
+    const checkOut = utcIsoDaysFromToday(13);
     const promo = await request(app.getHttpServer())
       .post('/api/v1/promotions')
       .set(authHeader(host.accessToken))
@@ -1128,8 +1132,8 @@ describe('Bookings (e2e)', () => {
         discountType: 'PERCENT',
         discountPercent: 15,
         description: 'Create and cancel flow test promotion.',
-        bookingStartDate: '2026-08-01',
-        bookingEndDate: '2026-08-31',
+        bookingStartDate,
+        bookingEndDate,
         maxApplications: 3,
         notifyGuests: false,
       })
@@ -1140,8 +1144,8 @@ describe('Bookings (e2e)', () => {
       .set(authHeader(guest.accessToken))
       .send({
         propertyId: property.id,
-        checkIn: '2026-08-05',
-        checkOut: '2026-08-08',
+        checkIn,
+        checkOut,
         guestCount: 2,
       })
       .expect(201);

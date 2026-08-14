@@ -17,7 +17,10 @@ When a code change affects anything users (guests/hosts) or regulators must be t
 | Cookie / consent | `apps/web/src/content/legal/cookie-policy.{en,hy,ru}.md`, consent UI (`apps/web/src/components/cookies/`), `cookies.*` i18n, Privacy sections on cookies/storage |
 | Host terms / commission / payouts | ToS host sections and/or a dedicated host-terms doc when it exists; keep fee/payout numbers aligned with config defaults |
 
-Placeholders stay in `[SQUARE BRACKETS]` — also note new ones in `docs/legal/go-live-legal-placeholders.md`.
+Placeholders stay in `[SQUARE BRACKETS]` in the markdown. Fill identity values in
+`packages/shared/src/constants/company.ts` (substituted at render via
+`apps/web/src/lib/legal/placeholders.ts`). Note new tokens in
+`docs/legal/go-live-legal-placeholders.md`.
 
 ## Mandatory sync triggers
 

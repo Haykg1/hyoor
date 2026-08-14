@@ -6,24 +6,30 @@ The core product is in good shape: auth (email OTP verification, password reset,
 
 ---
 
+
+
 ## 1. Blockers — legal & trust content (cannot launch without these)
 
-Legal policy pages and cookie consent are in place. Several About/Support footer links still point to `/` (see `apps/web/src/components/public/footer/public-footer.tsx`).
+Legal policy pages and cookie consent are in place. Footer Hosting still has a dead Host resources link (`apps/web/src/components/public/footer/public-footer.tsx`).
 
 - [x] **Terms of Service** — public `/terms` in en/hy/ru; footer + auth/booking links. Remaining: fill `[PLACEHOLDERS]` (see `docs/legal/go-live-legal-placeholders.md`) + lawyer review.
 - [x] **Privacy Policy** — public `/privacy` in en/hy/ru; same placeholder + lawyer-review gap as Terms.
 - [x] **Cancellation / Refund policy page** — public `/cancellation` in en/hy/ru; footer + sitemap; aligned with ToS §8 and cancellation-fee logic.
 - [x] **Cookie consent banner** — banner + preferences dialog on all locales; Cookie Policy at `/cookies` (en/hy/ru); consent stored in `rentstar_cookie_consent`; analytics gated via `canUseAnalytics()` (no analytics scripts yet). Sitemap + footer linked.
-- [ ] **Contact page** (footer link is dead) — a real support email/form; also required for Stripe/OAuth verification.
-- [ ] **Help center & Safety pages** (footer links are dead) — even a minimal FAQ page each.
-- [ ] **Careers / Press pages** (footer links are dead) — or remove the links for launch.
+- [x] **Replace legal placeholders with real values** — fill identity/emails in `packages/shared/src/constants/company.ts` (legal markdown `[TOKEN]`s map through `apps/web/src/lib/legal/placeholders.ts`). Tracked in `docs/legal/go-live-legal-placeholders.md`; then lawyer review.
+- [x] **Contact page** — public `/contact` with company details from `COMPANY`, form routed to support/info inboxes, footer + sitemap.
+- [x] **Help center / FAQ** — public `/faq` (en/hy/ru) from product logic; footer Help Center + Safety; sitemap + FAQPage JSON-LD.
+- [x] **Careers / Press pages** — omitted for MVP; dead footer links removed.
 - [ ] **Host Terms / commission agreement** — hosts connect Stripe accounts and pay a platform fee (`STRIPE_PLATFORM_FEE_PERCENT_DEFAULT`); fee language lives in ToS §7, but a dedicated host-facing agreement is still missing.
+
+
 
 ## 2. Blockers — payments
 
 - [ ] **ArCa and Idram providers are stubs** — both throw `NotImplementedException` (`apps/api/src/payments/providers/arca.provider.ts`, `idram.provider.ts`). For the Armenian market these matter. Either implement them before launch or make sure the UI never offers them (verify the payment-method picker hides them).
 - [ ] **Live Stripe setup** — live keys, production webhook endpoint registered in the Stripe dashboard (`stripe-webhook.controller.ts` path), Connect platform profile approved, payout schedule reviewed. Stripe will ask for the ToS/privacy/refund pages from section 1.
-- [ ] **Merge the in-flight work** — 47 modified files are uncommitted and 2 commits (deposit charge/release flow, stay-fee normalization) are unpushed on `feature/security-deposit-claims`. Nothing on this branch is live-able until it's reviewed, merged, and green in CI.
+
+
 
 ## 3. Critical — production infrastructure & operations
 
@@ -37,14 +43,18 @@ Legal policy pages and cookie consent are in place. Several About/Support footer
 - [ ] **Secrets management** — real JWT secrets, Stripe keys, DB credentials must come from the host's secret store, not a committed `.env`.
 - [ ] **Staging environment** — no way to test Stripe webhooks/payouts safely before prod.
 
+
+
 ## 4. High — web platform basics (SEO, errors, PWA)
 
-- [x] **No `robots.txt` and no `sitemap.xml`** — added `app/robots.ts` + `app/sitemap.ts` (locale-aware; active property pages; private paths disallowed; localhost/staging noindex via `NEXT_PUBLIC_ALLOW_INDEXING`).
+- [x] **No** `robots.txt` **and no** `sitemap.xml` — added `app/robots.ts` + `app/sitemap.ts` (locale-aware; active property pages; private paths disallowed; localhost/staging noindex via `NEXT_PUBLIC_ALLOW_INDEXING`).
 - [ ] **No favicon, app icons, or OG image** — nothing in `apps/web/public/` except templates; browser tabs and social shares will look broken. Add `icon`, `apple-icon`, `opengraph-image`, and a web manifest.
 - [x] **No per-page metadata** — `generateMetadata` on property, search, and auth pages (plus compare). Shared helper sets title/description/OG/Twitter, canonical + hreflang; auth is `noindex`.
 - [x] **No structured data** — property pages emit schema.org `VacationRental` JSON-LD (address, geo, occupancy, offers, aggregateRating when available).
 - [x] **No React error boundaries** — added `[locale]/error.tsx`, `global-error.tsx`, and shared `ErrorState` matching the public status-screen design; `not-found` uses the same UI.
 - [x] **hreflang/canonical tags** — all public surfaces (home, search, ai-search, property, compare, auth) emit canonical + locale alternates via `buildPageMetadata`.
+
+
 
 ## 5. Medium — product & compliance gaps
 
@@ -56,6 +66,8 @@ Legal policy pages and cookie consent are in place. Several About/Support footer
 - [x] **API docs exposure** — Swagger (`/api/docs`) is registered only when `NODE_ENV !== 'production'`.
 - [ ] **Currency rates dependency** — FX display rates come from `open.er-api.com`; decide the fallback behavior if it's down and whether `CURRENCY_RATES_FETCH_ON_BOOT` should be on in prod.
 
+
+
 ## 6. Nice-to-have before or shortly after launch
 
 - [ ] About page with company details (legal entity, address) — often legally required for commercial sites.
@@ -66,11 +78,13 @@ Legal policy pages and cookie consent are in place. Several About/Support footer
 
 ---
 
+
+
 ## Suggested order of attack
 
-1. Merge and stabilize `feature/security-deposit-claims` (it touches payments — everything else depends on it).
-2. Legal pages + footer links + cookie banner (section 1) — also unblocks Stripe live review and Google OAuth verification.
-3. Production infrastructure: hosting, TLS, managed Postgres + backups, real S3, Resend domain, secrets (section 3).
-4. Stripe live mode + webhook registration; hide ArCa/Idram until implemented (section 2).
-5. SEO/error-page basics — robots, sitemap, icons, metadata, `error.tsx` (section 4) — roughly a day of work, huge external polish.
-6. CI hardening + Sentry + uptime checks (section 3), then section 5 items post-launch-candidate.
+1. Legal pages + footer links + cookie banner (section 1) — also unblocks Stripe live review and Google OAuth verification.
+2. Production infrastructure: hosting, TLS, managed Postgres + backups, real S3, Resend domain, secrets (section 3).
+3. Stripe live mode + webhook registration; hide ArCa/Idram until implemented (section 2).
+4. SEO/error-page basics — robots, sitemap, icons, metadata, `error.tsx` (section 4) — roughly a day of work, huge external polish.
+5. CI hardening + Sentry + uptime checks (section 3), then section 5 items post-launch-candidate.
+

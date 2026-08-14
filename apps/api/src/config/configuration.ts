@@ -1,3 +1,5 @@
+import { COMPANY } from '@repo/shared';
+
 export interface AppConfig {
   port: number;
   database: { url: string };
@@ -19,6 +21,8 @@ export interface AppConfig {
   mail: {
     from: string;
     resendApiKey: string;
+    contactSupportEmail: string;
+    contactInfoEmail: string;
   };
   oauth: {
     google: { clientId: string; clientSecret: string; callbackUrl: string };
@@ -100,6 +104,8 @@ export default (): AppConfig => ({
   mail: {
     from: process.env.MAIL_FROM ?? 'RentStar <noreply@rentstar.am>',
     resendApiKey: process.env.RESEND_API_KEY ?? '',
+    contactSupportEmail: process.env.CONTACT_SUPPORT_EMAIL ?? COMPANY.supportEmail,
+    contactInfoEmail: process.env.CONTACT_INFO_EMAIL ?? COMPANY.infoEmail,
   },
   oauth: {
     google: {

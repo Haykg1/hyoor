@@ -35,7 +35,8 @@ references (Stripe customer and payment-intent identifiers). **We never see or s
 card number** — card data is entered directly with Stripe.
 
 **Communications.** Messages you exchange with Hosts or Guests on the platform, reviews you
-write and receive, notifications, and correspondence with our support.
+write and receive, notifications, correspondence with our support, and messages you send
+through the public contact form (name, email, role, topic, and message body).
 
 **Search data.** Search queries, including free-text queries you type into AI-assisted
 search (see Section 4 — these are processed by an AI provider).
@@ -52,6 +53,7 @@ standard server logs collected when you use the site.
 | Email verification, booking and deposit notifications, password reset | account, booking                            | performance of a contract                                            |
 | Reviewing damage claims and payment failures                          | booking, communications, evidence submitted | performance of a contract; legitimate interest in dispute resolution |
 | AI-assisted search and suggestions                                    | search queries                              | legitimate interest / consent [LAWYER TO CONFIRM]                    |
+| Responding to public contact-form messages                            | name, email, role, topic, message           | legitimate interest                                                  |
 | Security, fraud prevention, rate limiting, logs                       | technical data                              | legitimate interest                                                  |
 | Complying with tax, accounting, AML obligations                       | booking and payment data                    | legal obligation                                                     |
 
@@ -65,7 +67,7 @@ We do not use your data for third-party advertising and we do not sell it.
 - **Amazon Web Services (S3)** — storage of uploaded photos (listings, avatars), region
   **[eu-central-1 / REGION]**.
 - **Resend** — sending transactional emails (verification codes, password resets, booking
-  and deposit emails).
+  and deposit emails) and forwarding public contact-form messages to our support inboxes.
 - **OpenAI** — free-text AI search queries are sent to OpenAI to interpret them. Do not
   include sensitive personal information in search queries.
 - **Google / Apple** — only if you choose to sign in with them.

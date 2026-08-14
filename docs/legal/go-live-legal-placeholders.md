@@ -4,8 +4,13 @@ Tracks every `[PLACEHOLDER]` in the locale legal files under
 [`apps/web/src/content/legal/`](../../apps/web/src/content/legal/) —
 `terms-of-service.{en,hy,ru}.md`, `privacy-policy.{en,hy,ru}.md`,
 `cancellation-refund-policy.*.md`, and `cookie-policy.*.md` — rendered at
-`/terms`, `/privacy`, `/cancellation`, and `/cookies`. Fill placeholders in **all**
-locale files before publishing.
+`/terms`, `/privacy`, `/cancellation`, and `/cookies`.
+
+**Fill identity in one place:** [`packages/shared/src/constants/company.ts`](../../packages/shared/src/constants/company.ts).
+Legal markdown keeps the `[TOKEN]` spelling; `apps/web/src/lib/legal/placeholders.ts` maps
+tokens onto `COMPANY` and shared fee/payout/deposit defaults. Empty values are left as
+brackets on the live pages. Do not duplicate identity/emails across locale files.
+
 Check items off as they are resolved. Line numbers are approximate (the web copies carry
 the draft banner as an HTML comment near the top).
 

@@ -15,6 +15,8 @@ export const validationSchema = Joi.object({
   FRONTEND_URL: Joi.string().uri().required(),
   MAIL_FROM: Joi.string().optional(),
   RESEND_API_KEY: Joi.string().allow('').optional(),
+  CONTACT_SUPPORT_EMAIL: Joi.string().email().optional(),
+  CONTACT_INFO_EMAIL: Joi.string().email().optional(),
   // GOOGLE_CLIENT_ID: Joi.string().required(),
   // GOOGLE_CLIENT_SECRET: Joi.string().required(),
   GOOGLE_CALLBACK_URL: Joi.string().uri().optional(),

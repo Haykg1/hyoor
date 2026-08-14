@@ -23,6 +23,7 @@ export class ResendMailer extends MailerService {
       subject: opts.subject,
       text: opts.text,
       html: opts.html ?? opts.text,
+      replyTo: opts.replyTo,
     });
     if (result.error) {
       this.logger.error(`Resend send failed: ${JSON.stringify(result.error)}`);

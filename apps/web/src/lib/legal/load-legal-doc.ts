@@ -4,6 +4,7 @@ import path from 'node:path';
 import { marked } from 'marked';
 
 import { routing, type Locale } from '@/i18n/routing';
+import { applyLegalPlaceholders } from '@/lib/legal/placeholders';
 
 export type LegalDoc =
   | 'terms-of-service'
@@ -33,6 +34,7 @@ function resolveLegalFileNames(doc: LegalDoc, locale?: Locale): string[] {
  * Reads a legal markdown document and renders it to HTML at build time.
  * All public legal docs are locale-aware (`*.en.md` / `*.hy.md` / `*.ru.md`),
  * with a plain `*.md` stub as last-resort fallback.
+ * `[TOKEN]` placeholders are substituted from `placeholders.ts` before Markdown is parsed.
  * Pages using this must be statically rendered (`dynamic = 'force-static'`)
  * so the markdown is baked into the prerendered output — the standalone
  * production bundle does not ship `src/content`.
@@ -44,7 +46,7 @@ export async function loadLegalDocHtml(doc: LegalDoc, locale?: Locale): Promise<
   for (const fileName of candidates) {
     try {
       const markdown = await readFile(path.join(legalDir, fileName), 'utf8');
-      return marked.parse(markdown, { async: false });
+      return marked.parse(applyLegalPlaceholders(markdown), { async: false });
     } catch (err) {
       lastError = err;
     }

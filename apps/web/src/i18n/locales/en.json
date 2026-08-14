@@ -254,8 +254,6 @@
     "about": "About RentStar",
     "support": "Support",
     "hosting": "Hosting",
-    "careers": "Careers",
-    "press": "Press",
     "contact": "Contact us",
     "help_center": "Help Center",
     "safety": "Safety info",
@@ -1819,5 +1817,230 @@
     "preferences_intro": "Choose which cookie categories RentStar may use on this device. You can change this anytime from the footer.",
     "preferences_title": "Cookie preferences",
     "save_preferences": "Save preferences"
+  },
+  "contact": {
+    "channels": {
+      "info_email": {
+        "description": "Partnerships, press, and general company mail",
+        "label": "Company"
+      },
+      "office": {
+        "description": "By appointment",
+        "label": "Office"
+      },
+      "phone": {
+        "description": "Mon–Fri, 09:00–18:00",
+        "label": "Phone (Yerevan)"
+      },
+      "support_email": {
+        "description": "Replies during business hours",
+        "label": "Email Support"
+      }
+    },
+    "faq": {
+      "ai": {
+        "a": "On the AI Search page, type naturally — for example a cabin near Lake Sevan this weekend. We map your request to available listings, dates, and filters.",
+        "q": "How does AI search work?"
+      },
+      "armenia": {
+        "a": "Right now we focus on short-term rentals in Armenia.",
+        "q": "Do you list stays outside Armenia?"
+      },
+      "cancellation": {
+        "a": "Each host chooses Flexible, Moderate, Strict, or Non-refundable. The policy is shown on the listing before you book. See our Cancellation & Refund Policy for how fees are calculated.",
+        "q": "What is the cancellation policy?"
+      },
+      "currencies": {
+        "a": "Guests can view prices in AMD or USD. Hosts set listing prices in USD and receive payouts through Stripe.",
+        "q": "What currencies do you support?"
+      },
+      "list": {
+        "a": "Create a host profile, then use the listing wizard to add photos, amenities, pricing, and a cancellation policy. New listings are reviewed before they go live.",
+        "q": "How do I list my property?"
+      },
+      "report": {
+        "a": "Message your host from the booking first. If you still need help, send this form with Booking support or Report a listing — include your booking details.",
+        "q": "How do I report an issue with a stay?"
+      },
+      "subtitle": "Quick answers before you reach out.",
+      "title": "Common questions",
+      "view_all": "View all FAQs"
+    },
+    "form": {
+      "email": "Email address",
+      "email_placeholder": "you@example.com",
+      "error": "We couldn't send your message. Please try again or email us directly.",
+      "i_am": "I am a",
+      "message": "Message",
+      "message_placeholder": "Describe your question or issue in detail…",
+      "name": "Full name",
+      "name_placeholder": "Armen Petrosyan",
+      "privacy_notice": "By submitting you agree to our <privacy>Privacy Policy</privacy>.",
+      "required": "*",
+      "roles": {
+        "guest": "Guest",
+        "host": "Host",
+        "partner": "Partner"
+      },
+      "send_another": "Send another message",
+      "sent_body": "Thanks, {name}. We'll reply to {email} shortly.",
+      "sent_title": "Message sent!",
+      "submit": "Send message",
+      "submitting": "Sending…",
+      "subtitle": "We read every message during business hours, Monday to Friday.",
+      "title": "Send us a message",
+      "topic": "Topic",
+      "topic_placeholder": "Select a topic…"
+    },
+    "hero": {
+      "badge": "We're here to help",
+      "subtitle": "Whether you have a booking question or need host onboarding help — our Yerevan team replies during business hours.",
+      "title": "Get in touch with",
+      "title_highlight": "{siteName} Support"
+    },
+    "host_cta": {
+      "body": "Create a host profile and add your first listing from the dashboard.",
+      "link": "Become a host",
+      "title": "Ready to list your property?"
+    },
+    "meta_description": "Reach {siteName} support in Yerevan. Email, phone, and a contact form for guests, hosts, and partners.",
+    "meta_title": "Contact us — {siteName}",
+    "sla": {
+      "general_label": "General inquiries",
+      "general_time": "1–2 business days",
+      "host_label": "Host onboarding",
+      "host_time": "1 business day",
+      "press_label": "Partnership / press",
+      "press_time": "2–3 business days",
+      "title": "Response times",
+      "urgent_label": "Urgent (active booking, business hours)",
+      "urgent_time": "Same day"
+    },
+    "topics": {
+      "booking": "Booking support",
+      "general": "General inquiry",
+      "host_onboarding": "Host onboarding",
+      "other": "Other",
+      "partnership_press": "Partnership / press",
+      "payment_refunds": "Payment & refunds",
+      "report_listing": "Report a listing",
+      "technical": "Technical issue"
+    }
+  },
+  "faq": {
+    "categories": {
+      "about": "About Arimna.am",
+      "account": "Account",
+      "booking": "Booking and payments",
+      "cancellations": "Cancellations and refunds",
+      "hosting": "Hosting",
+      "search": "Finding a stay",
+      "stay": "During your stay"
+    },
+    "cta": {
+      "body": "Send a message and our Yerevan team will reply during business hours.",
+      "link": "Contact support",
+      "title": "Still need help?"
+    },
+    "empty": "No questions match that search.",
+    "empty_cta": "Contact us",
+    "hero": {
+      "badge": "Help Center",
+      "subtitle": "Short answers about booking, payments, cancellations, and hosting — based on how the platform actually works.",
+      "title": "{siteName} frequently asked questions"
+    },
+    "items": {
+      "ai_search": {
+        "a": "Type a natural request, such as a cabin near Lake Sevan this weekend. We map that to available listings, dates, and filters.",
+        "q": "How does AI search work?"
+      },
+      "contact_host": {
+        "a": "Open the booking and use in-app messaging. That is the fastest way to reach the host before and during the stay.",
+        "q": "How do I contact my host?"
+      },
+      "create_account": {
+        "a": "Sign up with email and a verification code, or continue with Google. You must be 18 or older, and your email must be verified before you book.",
+        "q": "How do I create an account?"
+      },
+      "currencies": {
+        "a": "You can view prices in AMD or USD. Checkout charges the listing currency (USD); other currencies are display estimates only.",
+        "q": "What currencies can I see prices in?"
+      },
+      "deposit": {
+        "a": "If the listing requires a deposit, we place a separate card hold, not a charge. After checkout it is released unless the host files a claim within {claimHours} hours.",
+        "q": "What is a security deposit?"
+      },
+      "deposit_claim": {
+        "a": "Hosts may submit a damage claim within {claimHours} hours after checkout. We review it; if approved, that amount is charged from the deposit hold and the rest is released.",
+        "q": "How do security-deposit claims work?"
+      },
+      "host_cancels": {
+        "a": "If the host cancels on their own, you receive a full refund and the deposit hold is released.",
+        "q": "What if the host cancels my booking?"
+      },
+      "how_book": {
+        "a": "Create an account, verify your email, choose dates, and complete checkout. You must be 18 or older.",
+        "q": "How do I book a stay?"
+      },
+      "how_cancel": {
+        "a": "If the listing is not Non-refundable, cancel in your account before the listing deadline. Any fee is taken from the stay subtotal, never from the security deposit. See the <cancellation>Cancellation & Refund Policy</cancellation> for details.",
+        "q": "Can I cancel my booking?"
+      },
+      "how_list": {
+        "a": "Create a host profile from <host>Become a host</host>, then add a listing with the wizard or a spreadsheet import. New listings are reviewed before they go live.",
+        "q": "How do I list my property?"
+      },
+      "how_search": {
+        "a": "Use <search>Search</search> to filter dates, guests, and location, or <ai>AI Search</ai> to describe the stay in your own words.",
+        "q": "How do I find a stay?"
+      },
+      "is_safe": {
+        "a": "Card payments go through Stripe, deposits are holds, and stays use in-app messaging, reviews, and Yerevan-based support. {siteName} is a marketplace, not the host of your stay.",
+        "q": "Is booking on Arimna.am safe?"
+      },
+      "languages": {
+        "a": "The site is available in English, Armenian, and Russian. Switch language from the header at any time.",
+        "q": "What languages is the site available in?"
+      },
+      "non_refundable": {
+        "a": "You cannot cancel through the platform after payment. Contact the host or <contact>support</contact> if you need an exception.",
+        "q": "What is a non-refundable listing?"
+      },
+      "outside_armenia": {
+        "a": "No. {siteName} currently lists short-term stays in Armenia only.",
+        "q": "Do you list stays outside Armenia?"
+      },
+      "payments": {
+        "a": "Card payments are processed by Stripe. Rent is authorized when you book and captured around check-in; we never store your card number.",
+        "q": "How do payments work?"
+      },
+      "payouts": {
+        "a": "Connect a Stripe account to receive payouts. After check-in we pay that account, minus the platform fee, after about {payoutHours} hours plus Stripe's settlement time.",
+        "q": "How do host payouts work?"
+      },
+      "platform_fee": {
+        "a": "The default host service fee is {feePercent}% of the booking value, deducted from the payout. Your rate is shown in the host dashboard.",
+        "q": "What is the platform fee?"
+      },
+      "report": {
+        "a": "Message the host from the booking first. If you still need help, use the <contact>contact form</contact> and include your booking details.",
+        "q": "How do I report a problem with a stay?"
+      },
+      "reviews": {
+        "a": "After a completed stay, guests and hosts can leave reviews. Published reviews appear on the listing.",
+        "q": "How do reviews work?"
+      },
+      "what_is": {
+        "a": "{siteName} is a short-term rental marketplace for stays in Armenia. Hosts list homes and guests book them; we provide the platform and payments, not the lodging itself.",
+        "q": "What is Arimna.am?"
+      },
+      "who_operates": {
+        "a": "{siteName} is operated by {legalName}, registered in Armenia at {address}.",
+        "q": "Who operates Arimna.am?"
+      }
+    },
+    "meta_description": "Answers about booking, payments, cancellations, deposits, and hosting on {siteName}.",
+    "meta_title": "FAQ — {siteName} short-term rentals in Armenia",
+    "search_placeholder": "Search questions…"
   }
 }

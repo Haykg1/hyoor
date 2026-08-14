@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import type { INestApplication } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
+import { addUtcDays, todayIsoUtc } from '@repo/shared';
 import request from 'supertest';
 
 import { LlmService } from '../../src/ai-search/llm/llm.service';
@@ -137,6 +138,9 @@ describe('AI search (e2e)', () => {
   });
 
   it('searches properties when the LLM calls the search tool', async () => {
+    const today = todayIsoUtc();
+    const pastCheckIn = addUtcDays(today, -20);
+    const pastCheckOut = addUtcDays(today, -16);
     mockPropertiesSearch.mockResolvedValue({
       data: [
         {
@@ -158,8 +162,8 @@ describe('AI search (e2e)', () => {
       message: 'Here are some stays in Yerevan.',
       args: {
         locationQuery: 'Yerevan',
-        checkIn: '2026-07-01',
-        checkOut: '2026-07-05',
+        checkIn: pastCheckIn,
+        checkOut: pastCheckOut,
         maxGuests: 2,
       },
       usage: mockUsage,
@@ -190,12 +194,17 @@ describe('AI search (e2e)', () => {
       expect(data.filters.searchCity).toBeUndefined();
     }
     expect(data.searchPath).toContain('/search?');
-    // Past check-in is clamped to today (e2e clock is 2026-07-15).
-    expect(data.searchPath).toContain('checkIn=2026-07-15');
+    expect(data.searchPath).toContain(`checkIn=${today}`);
+    expect(data.searchPath).toContain(`checkOut=${addUtcDays(today, 4)}`);
     expect(mockPropertiesSearch).toHaveBeenCalledTimes(1);
   });
 
   it('searches with flexible July dates and returns suggested stay per property', async () => {
+    const today = todayIsoUtc();
+    const pastFrom = addUtcDays(today, -14);
+    const windowEnd = addUtcDays(today, 20);
+    const suggestedCheckIn = addUtcDays(today, -11);
+    const suggestedCheckOut = addUtcDays(today, -6);
     mockPropertiesSearch.mockResolvedValue({
       data: [
         {
@@ -220,8 +229,8 @@ describe('AI search (e2e)', () => {
       totalPages: 1,
       suggestedDatesByPropertyId: {
         'property-dilijan': {
-          suggestedCheckIn: '2026-07-04',
-          suggestedCheckOut: '2026-07-09',
+          suggestedCheckIn,
+          suggestedCheckOut,
         },
       },
     });
@@ -231,8 +240,8 @@ describe('AI search (e2e)', () => {
       args: {
         locationQuery: 'Dilijan',
         stayNights: 5,
-        availableFrom: '2026-07-01',
-        availableTo: '2026-07-27',
+        availableFrom: pastFrom,
+        availableTo: windowEnd,
         maxPrice: 24000,
       },
       usage: mockUsage,
@@ -253,17 +262,15 @@ describe('AI search (e2e)', () => {
     const data = response.body.data;
     expect(data.type).toBe('search');
     expect(data.filters.stayNights).toBe(5);
-    // Past window start is clamped to today (e2e clock is 2026-07-15).
-    expect(data.filters.availableFrom).toBe('2026-07-15');
-    expect(data.properties[0].suggestedCheckIn).toBe('2026-07-04');
-    expect(data.properties[0].suggestedCheckOut).toBe('2026-07-09');
-    // Suggested past stays are sanitized when building searchPath.
-    expect(data.searchPath).toContain('checkIn=2026-07-15');
+    expect(data.filters.availableFrom).toBe(today);
+    expect(data.properties[0].suggestedCheckIn).toBe(suggestedCheckIn);
+    expect(data.properties[0].suggestedCheckOut).toBe(suggestedCheckOut);
+    expect(data.searchPath).toContain(`checkIn=${today}`);
     expect(mockPropertiesSearch).toHaveBeenCalledWith(
       expect.objectContaining({
         stayNights: 5,
-        availableFrom: '2026-07-15',
-        availableTo: '2026-07-27',
+        availableFrom: today,
+        availableTo: windowEnd,
         maxPrice: 24000,
       }),
     );

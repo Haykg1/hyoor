@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import type { INestApplication } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
+import { addUtcDays, todayIsoUtc } from '@repo/shared';
 import request from 'supertest';
 
 import { LlmService } from '../../src/ai-search/llm/llm.service';
@@ -21,8 +22,11 @@ import {
   type RegisteredHostUser,
 } from '../helpers/property-test.helper';
 import { resetE2eDatabase } from '../helpers/reset-database';
-import { authHeader } from '../helpers/test-data.helper';
-import { registerUser, uniqueEmail } from '../helpers/test-data.helper';
+import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
+
+function utcDay(offsetDays: number): string {
+  return addUtcDays(todayIsoUtc(), offsetDays);
+}
 
 describe('Host calendar AI (e2e)', () => {
   let app: INestApplication;
@@ -98,10 +102,12 @@ describe('Host calendar AI (e2e)', () => {
   });
 
   it('returns calendar preview when LLM proposes changes', async () => {
+    const dateFrom = utcDay(10);
+    const dateTo = utcDay(12);
     mockLlm.completeHostCalendar.mockResolvedValue({
       kind: 'calendar_proposal',
-      message: 'I will close June 10–12.',
-      args: { dateFrom: '2026-06-10', dateTo: '2026-06-12', isAvailable: false },
+      message: `I will close ${dateFrom}–${dateTo}.`,
+      args: { dateFrom, dateTo, isAvailable: false },
       usage: mockUsage,
     });
     const response = await request(app.getHttpServer())
@@ -115,20 +121,22 @@ describe('Host calendar AI (e2e)', () => {
   });
 
   it('returns already_applied when dates already match', async () => {
+    const dateFrom = utcDay(10);
+    const dateTo = utcDay(11);
     await request(app.getHttpServer())
       .put(`/api/v1/availability/${propertyId}`)
       .set(authHeader(host.accessToken))
       .send({
         entries: [
-          { date: '2026-06-10', isAvailable: false },
-          { date: '2026-06-11', isAvailable: false },
+          { date: dateFrom, isAvailable: false },
+          { date: dateTo, isAvailable: false },
         ],
       })
       .expect(200);
     mockLlm.completeHostCalendar.mockResolvedValue({
       kind: 'calendar_proposal',
       message: 'Closing those dates.',
-      args: { dateFrom: '2026-06-10', dateTo: '2026-06-11', isAvailable: false },
+      args: { dateFrom, dateTo, isAvailable: false },
       usage: mockUsage,
     });
     const response = await request(app.getHttpServer())
@@ -140,13 +148,15 @@ describe('Host calendar AI (e2e)', () => {
   });
 
   it('confirms and applies calendar changes with revert hint', async () => {
+    const dateFrom = utcDay(20);
+    const dateTo = utcDay(21);
     const response = await request(app.getHttpServer())
       .post(`/api/v1/ai-search/host-calendar/${propertyId}/confirm`)
       .set(authHeader(host.accessToken))
       .send({
         entries: [
-          { date: '2026-06-20', isAvailable: false },
-          { date: '2026-06-21', isAvailable: false },
+          { date: dateFrom, isAvailable: false },
+          { date: dateTo, isAvailable: false },
         ],
       })
       .expect(201);
@@ -155,7 +165,7 @@ describe('Host calendar AI (e2e)', () => {
     expect(response.body.data.appliedSummary.appliedCount).toBe(2);
     const range = await request(app.getHttpServer())
       .get(`/api/v1/availability/${propertyId}`)
-      .query({ from: '2026-06-20', to: '2026-06-21' })
+      .query({ from: dateFrom, to: dateTo })
       .expect(200);
     expect(range.body.data.entries[0].isAvailable).toBe(false);
   });
@@ -225,13 +235,16 @@ describe('Host calendar AI (e2e)', () => {
 
   it('skips booked dates on confirm and applies the rest', async () => {
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
+    const openDay = utcDay(9);
+    const stayStart = utcDay(10);
+    const stayEnd = utcDay(13);
     await request(app.getHttpServer())
       .post('/api/v1/bookings')
       .set(authHeader(guest.accessToken))
       .send({
         propertyId,
-        checkIn: '2026-07-10',
-        checkOut: '2026-07-13',
+        checkIn: stayStart,
+        checkOut: stayEnd,
         guestCount: 2,
       })
       .expect(201);
@@ -240,10 +253,10 @@ describe('Host calendar AI (e2e)', () => {
       .set(authHeader(host.accessToken))
       .send({
         entries: [
-          { date: '2026-07-09', isAvailable: false },
-          { date: '2026-07-10', isAvailable: false },
-          { date: '2026-07-11', isAvailable: false },
-          { date: '2026-07-12', isAvailable: false },
+          { date: openDay, isAvailable: false },
+          { date: stayStart, isAvailable: false },
+          { date: utcDay(11), isAvailable: false },
+          { date: utcDay(12), isAvailable: false },
         ],
       })
       .expect(201);
@@ -252,17 +265,17 @@ describe('Host calendar AI (e2e)', () => {
     expect(response.body.data.appliedSummary.skippedBookedCount).toBe(3);
     const range = await request(app.getHttpServer())
       .get(`/api/v1/availability/${propertyId}`)
-      .query({ from: '2026-07-09', to: '2026-07-12' })
+      .query({ from: openDay, to: utcDay(12) })
       .expect(200);
     const byDate = Object.fromEntries(
       range.body.data.entries.map(
         (e: { date: string; isAvailable: boolean; isBlockedByBooking: boolean }) => [e.date, e],
       ),
     );
-    expect(byDate['2026-07-09'].isAvailable).toBe(false);
-    expect(byDate['2026-07-10'].isBlockedByBooking).toBe(true);
-    expect(byDate['2026-07-11'].isBlockedByBooking).toBe(true);
-    expect(byDate['2026-07-12'].isBlockedByBooking).toBe(true);
+    expect(byDate[openDay].isAvailable).toBe(false);
+    expect(byDate[stayStart].isBlockedByBooking).toBe(true);
+    expect(byDate[utcDay(11)].isBlockedByBooking).toBe(true);
+    expect(byDate[utcDay(12)].isBlockedByBooking).toBe(true);
   });
 
   it('returns calendar suggestions for property owner', async () => {

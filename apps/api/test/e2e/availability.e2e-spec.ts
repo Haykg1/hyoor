@@ -1,4 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
+import { addUtcDays, todayIsoUtc } from '@repo/shared';
 import request from 'supertest';
 
 import { PrismaService } from '../../src/database/prisma.service';
@@ -6,6 +7,10 @@ import { createTestApp, type TestAppContext } from '../helpers/create-test-app';
 import { createHostProperty, registerHostUser } from '../helpers/property-test.helper';
 import { resetE2eDatabase } from '../helpers/reset-database';
 import { authHeader, registerUser, uniqueEmail } from '../helpers/test-data.helper';
+
+function utcDay(offsetDays: number): string {
+  return addUtcDays(todayIsoUtc(), offsetDays);
+}
 
 describe('Availability (e2e)', () => {
   let app: INestApplication;
@@ -75,24 +80,26 @@ describe('Availability (e2e)', () => {
   it('bulk upserts availability as property owner', async () => {
     const host = await registerHostUser(app);
     const property = await createHostProperty(app, host);
+    const closed = utcDay(10);
+    const priced = utcDay(11);
     const response = await request(app.getHttpServer())
       .put(`/api/v1/availability/${property.id}`)
       .set(authHeader(host.accessToken))
       .send({
         entries: [
-          { date: '2025-06-10', isAvailable: false },
-          { date: '2025-06-11', isAvailable: true, priceOverride: 30000 },
+          { date: closed, isAvailable: false },
+          { date: priced, isAvailable: true, priceOverride: 30000 },
         ],
       })
       .expect(200);
     expect(response.body.data).toHaveLength(2);
     expect(response.body.data[0]).toMatchObject({
-      date: '2025-06-10',
+      date: closed,
       isAvailable: false,
       effectivePricePerNight: 25000,
     });
     expect(response.body.data[1]).toMatchObject({
-      date: '2025-06-11',
+      date: priced,
       isAvailable: true,
       priceOverride: 30000,
       effectivePricePerNight: 30000,
@@ -103,10 +110,13 @@ describe('Availability (e2e)', () => {
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
     const property = await createHostProperty(app, host);
+    const blocked = utcDay(15);
+    const stayStart = utcDay(20);
+    const stayEnd = utcDay(23);
     await request(app.getHttpServer())
       .put(`/api/v1/availability/${property.id}`)
       .set(authHeader(host.accessToken))
-      .send({ entries: [{ date: '2025-06-15', isAvailable: false }] })
+      .send({ entries: [{ date: blocked, isAvailable: false }] })
       .expect(200);
     const prisma = app.get(PrismaService);
     await prisma.booking.create({
@@ -114,8 +124,8 @@ describe('Availability (e2e)', () => {
         propertyId: property.id,
         guestId: guest.userId,
         status: 'CONFIRMED',
-        checkIn: new Date('2025-06-20T00:00:00.000Z'),
-        checkOut: new Date('2025-06-23T00:00:00.000Z'),
+        checkIn: new Date(`${stayStart}T00:00:00.000Z`),
+        checkOut: new Date(`${stayEnd}T00:00:00.000Z`),
         guestCount: 2,
         currency: 'AMD',
         nightlyRate: 25000,
@@ -125,14 +135,9 @@ describe('Availability (e2e)', () => {
     });
     const response = await request(app.getHttpServer())
       .get(`/api/v1/availability/${property.id}/blocked`)
-      .query({ from: '2025-06-01', to: '2025-06-30' })
+      .query({ from: utcDay(0), to: utcDay(30) })
       .expect(200);
-    expect(response.body.data.dates).toEqual([
-      '2025-06-15',
-      '2025-06-20',
-      '2025-06-21',
-      '2025-06-22',
-    ]);
+    expect(response.body.data.dates).toEqual([blocked, stayStart, utcDay(21), utcDay(22)]);
   });
 
   it('rejects bulk upsert from non-owner host', async () => {
@@ -142,7 +147,7 @@ describe('Availability (e2e)', () => {
     const response = await request(app.getHttpServer())
       .put(`/api/v1/availability/${property.id}`)
       .set(authHeader(otherHost.accessToken))
-      .send({ entries: [{ date: '2025-06-10', isAvailable: false }] })
+      .send({ entries: [{ date: utcDay(10), isAvailable: false }] })
       .expect(403);
     expect(response.body.success).toBe(false);
   });
@@ -152,7 +157,7 @@ describe('Availability (e2e)', () => {
     const property = await createHostProperty(app, host);
     await request(app.getHttpServer())
       .put(`/api/v1/availability/${property.id}`)
-      .send({ entries: [{ date: '2025-06-10', isAvailable: false }] })
+      .send({ entries: [{ date: utcDay(10), isAvailable: false }] })
       .expect(401);
   });
 

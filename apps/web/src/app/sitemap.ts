@@ -22,6 +22,8 @@ const STATIC_PATHS: ReadonlyArray<{
   { path: '/privacy', changeFrequency: 'monthly', priority: 0.3 },
   { path: '/cancellation', changeFrequency: 'monthly', priority: 0.3 },
   { path: '/cookies', changeFrequency: 'monthly', priority: 0.3 },
+  { path: '/contact', changeFrequency: 'monthly', priority: 0.5 },
+  { path: '/faq', changeFrequency: 'monthly', priority: 0.6 },
 ];
 
 const MAX_SITEMAP_PAGES = 500;

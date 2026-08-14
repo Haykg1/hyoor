@@ -3,6 +3,7 @@ export interface SendMailOptions {
   subject: string;
   text: string;
   html?: string;
+  replyTo?: string;
 }
 
 export abstract class MailerService {
