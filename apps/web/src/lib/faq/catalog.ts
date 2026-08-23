@@ -16,7 +16,7 @@ export const FAQ_ITEMS_BY_CATEGORY: Record<FaqCategory, readonly string[]> = {
   booking: ['how_book', 'payments', 'deposit'],
   cancellations: ['how_cancel', 'non_refundable', 'host_cancels'],
   stay: ['is_safe', 'contact_host', 'reviews', 'report'],
-  hosting: ['how_list', 'payouts', 'platform_fee', 'deposit_claim'],
+  hosting: ['how_list', 'platform_fee'],
   account: ['create_account', 'languages'],
 };
 

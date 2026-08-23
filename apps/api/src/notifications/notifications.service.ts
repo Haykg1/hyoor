@@ -268,41 +268,11 @@ export class NotificationsService {
           body: 'You received a new review.',
           refType: 'review',
         };
-      case 'PAYOUT_SENT':
-        return {
-          title: 'Payout sent',
-          body: 'Your payout has been processed.',
-          refType: 'payout',
-        };
       case 'PROPERTY_PROMOTION':
         return {
           title: 'New deal on a saved property',
           body: 'A host posted a limited-time promotion on a property you saved.',
           refType: 'promotion',
-        };
-      case 'DEPOSIT_CLAIM_SUBMITTED':
-        return {
-          title: 'Security deposit claim submitted',
-          body: 'A claim against a security deposit is awaiting review.',
-          refType: 'booking',
-        };
-      case 'DEPOSIT_CLAIM_RESOLVED':
-        return {
-          title: 'Security deposit claim resolved',
-          body: 'A security deposit claim has been reviewed.',
-          refType: 'booking',
-        };
-      case 'DEPOSIT_RELEASED':
-        return {
-          title: 'Security deposit released',
-          body: 'The hold on your security deposit has been released.',
-          refType: 'booking',
-        };
-      case 'CANCELLATION_FEE_REVIEW':
-        return {
-          title: 'Cancellation fee under review',
-          body: 'A host cancellation fee is awaiting review.',
-          refType: 'booking',
         };
       default:
         return { title: 'Notification' };

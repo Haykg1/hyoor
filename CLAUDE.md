@@ -91,9 +91,9 @@ packages/
   eslint-config/, prettier-config/, tsconfig/  # shared tooling config
 ```
 
-Feature domains currently in `apps/api/src/`: `admin`, `ai-search`, `auth`, `availability`, `bookings`, `cancellation-claims`, `compare-share`, `contact`, `currency`, `deposit-claims`, `favorites`, `geocoding`, `health`, `host-analytics`, `host-profiles`, `mail`, `messaging`, `notifications`, `payment-failures`, `payments`, `poi`, `promotions`, `properties`, `redis`, `reviews`, `scheduling`, `users`.
+Feature domains currently in `apps/api/src/`: `admin`, `ai-search`, `auth`, `availability`, `bookings`, `compare-share`, `contact`, `currency`, `favorites`, `geocoding`, `health`, `host-analytics`, `host-profiles`, `mail`, `messaging`, `notifications`, `payment-failures`, `payments`, `poi`, `promotions`, `properties`, `redis`, `reviews`, `scheduling`, `users`.
 
-Core Prisma domains: Identity (`User`, `UserProfile`, `OAuthAccount`), Hosts (`HostProfile`), Listings (`Property`, `PropertyPhoto`, `PropertyAmenity`), Calendar (`Availability`), Bookings (`Booking` — Stripe Checkout + Connect; `SecurityDepositClaim`, `CancellationFeeClaim`, `PaymentFailure`), Messaging (`Conversation`, `Message`), Reviews (bidirectional guest ↔ property/host), Notifications, Promotions (`PropertyPromotion`).
+Core Prisma domains: Identity (`User`, `UserProfile`, `OAuthAccount`), Hosts (`HostProfile`), Listings (`Property`, `PropertyPhoto`, `PropertyAmenity`), Calendar (`Availability`), Bookings (`Booking` — external payment refs via cash/idram/arca; `PaymentFailure`), Messaging (`Conversation`, `Message`), Reviews (bidirectional guest ↔ property/host), Notifications, Promotions (`PropertyPromotion`).
 
 ### Conventions that don't show up from a single file
 

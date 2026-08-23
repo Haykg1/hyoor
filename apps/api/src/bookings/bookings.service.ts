@@ -9,21 +9,14 @@ import { ConfigService } from '@nestjs/config';
 import type { Booking, BookingStatus, Property } from '@repo/database/client';
 import { Prisma } from '@repo/database/client';
 import type { BookingQuoteResult, PaginatedResponse } from '@repo/shared';
-import {
-  canGuestCancelStay,
-  computeCancellationFee,
-  resolveStayFees,
-  type StayFeeRulesMode,
-} from '@repo/shared';
+import { canGuestCancelStay, resolveStayFees, type StayFeeRulesMode } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 
 import { AvailabilityService } from '../availability/availability.service';
 import type { AppConfig } from '../config/configuration';
 import { PrismaService } from '../database/prisma.service';
-import { DepositClaimsService } from '../deposit-claims/deposit-claims.service';
 import { HostProfilesService } from '../host-profiles/host-profiles.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { StripeCheckoutService } from '../payments/stripe/stripe-checkout.service';
 import { PromotionsService } from '../promotions/promotions.service';
 import { StorageService } from '../storage/storage.service';
 
@@ -70,7 +63,6 @@ export interface BookingDetail extends Omit<
   property: BookingPropertySummary;
   guest: BookingGuestProfile;
   promotionSummary?: import('@repo/shared').BookingPromotionSummary | null;
-  securityDepositClaim: import('@repo/shared').SecurityDepositClaimView | null;
 }
 
 const COVER_PHOTO_PRESIGN_EXPIRES = 3600;
@@ -84,8 +76,6 @@ export class BookingsService {
     private readonly notificationsService: NotificationsService,
     private readonly promotionsService: PromotionsService,
     private readonly storage: StorageService,
-    private readonly stripeCheckout: StripeCheckoutService,
-    private readonly depositClaimsService: DepositClaimsService,
     private readonly config: ConfigService<AppConfig, true>,
   ) {}
 
@@ -129,11 +119,6 @@ export class BookingsService {
     if (property.host.userId === guestId) {
       throw new BadRequestException('You cannot book your own property');
     }
-    if (!property.host.stripePayoutsEnabled) {
-      throw new BadRequestException(
-        'This host has not finished setting up payments yet. Please try another property.',
-      );
-    }
     const checkIn = parseIsoDate(dto.checkIn, 'checkIn');
     const checkOut = parseIsoDate(dto.checkOut, 'checkOut');
     validateStayDates(checkIn, checkOut);
@@ -162,7 +147,7 @@ export class BookingsService {
       throw new BadRequestException(quote.promoCodeError);
     }
     const promotionId = quote.appliedPromotion?.id ?? null;
-    const lockMinutes = this.config.get('stripe.paymentLockMinutes', { infer: true });
+    const lockMinutes = this.config.get('payments.paymentLockMinutes', { infer: true });
     const paymentLockExpiresAt = new Date(Date.now() + lockMinutes * 60 * 1000);
     const booking = await this.prisma.$transaction(async (tx) => {
       // Serializes concurrent create() calls for this property; re-check below is what
@@ -200,7 +185,6 @@ export class BookingsService {
           discountAmount: quote.discountAmount,
           promotionId,
           totalAmount: quote.totalAmount,
-          paymentProvider: 'STRIPE',
           paymentLockExpiresAt,
         },
       });
@@ -302,24 +286,7 @@ export class BookingsService {
         );
       }
     }
-    const isPlatformStaff = role === 'ADMIN' || role === 'STAFF';
-    const applyFee = access.asHost ? Boolean(dto.applyCancellationFee) : true;
     const wasPaymentBlocking = PAYMENT_BLOCKING_STATUSES.includes(booking.status);
-    const feeAmount = computeCancellationFee(
-      booking.totalAmount - booking.securityDeposit,
-      property.cancellationFeeType,
-      property.cancellationFeeValue,
-    );
-    const feeNeedsReview =
-      access.asHost &&
-      !isPlatformStaff &&
-      applyFee &&
-      wasPaymentBlocking &&
-      Boolean(booking.stripePaymentIntentId) &&
-      feeAmount > 0;
-    if (feeNeedsReview && !dto.reason?.trim()) {
-      throw new BadRequestException('A reason is required when applying the cancellation fee');
-    }
     const nextStatus: BookingStatus = access.asHost ? 'CANCELLED_BY_HOST' : 'CANCELLED_BY_GUEST';
     await this.prisma.$transaction(async (tx) => {
       await tx.booking.update({
@@ -333,30 +300,8 @@ export class BookingsService {
       if (wasPaymentBlocking && booking.promotionId) {
         await this.promotionsService.decrementAppliedCount(booking.promotionId, tx);
       }
-      if (feeNeedsReview) {
-        await tx.cancellationFeeClaim.create({
-          data: {
-            bookingId,
-            hostUserId: requestingUserId,
-            amount: feeAmount,
-            reason: dto.reason?.trim(),
-          },
-        });
-      }
     });
     if (wasPaymentBlocking) {
-      if (feeNeedsReview) {
-        if (booking.depositStatus === 'AUTHORIZED') {
-          await this.stripeCheckout.releaseDeposit(booking);
-          await this.prisma.booking.update({
-            where: { id: bookingId },
-            data: { depositStatus: 'RELEASED' },
-          });
-        }
-        await this.notifyAdminsOfFeeClaim(bookingId);
-      } else {
-        await this.stripeCheckout.cancelBookingPayment(booking, applyFee);
-      }
       await this.availabilityService.unblockDatesForBooking(
         booking.propertyId,
         booking.checkIn,
@@ -368,18 +313,6 @@ export class BookingsService {
       : await this.getHostUserId(booking.propertyId);
     await this.notificationsService.notify(recipientId, 'BOOKING_CANCELLED', bookingId, 'booking');
     return this.findById(bookingId, requestingUserId, role);
-  }
-
-  private async notifyAdminsOfFeeClaim(bookingId: string): Promise<void> {
-    const admins = await this.prisma.user.findMany({
-      where: { role: 'ADMIN' },
-      select: { id: true },
-    });
-    await Promise.all(
-      admins.map((admin) =>
-        this.notificationsService.notify(admin.id, 'CANCELLATION_FEE_REVIEW', bookingId, 'booking'),
-      ),
-    );
   }
 
   async complete(bookingId: string): Promise<BookingDetail> {
@@ -640,7 +573,7 @@ export class BookingsService {
   }
 
   private async toBookingDetail(booking: Booking): Promise<BookingDetail> {
-    const [property, guest, promotion, depositClaim] = await Promise.all([
+    const [property, guest, promotion] = await Promise.all([
       this.prisma.property.findUnique({
         where: { id: booking.propertyId },
         include: {
@@ -653,9 +586,6 @@ export class BookingsService {
       }),
       booking.promotionId
         ? this.prisma.propertyPromotion.findUnique({ where: { id: booking.promotionId } })
-        : Promise.resolve(null),
-      booking.securityDeposit > 0
-        ? this.prisma.securityDepositClaim.findUnique({ where: { bookingId: booking.id } })
         : Promise.resolve(null),
     ]);
     if (!property || !guest) {
@@ -696,9 +626,6 @@ export class BookingsService {
       },
       promotionSummary: promotion
         ? this.promotionsService.toAppliedPromotionSummary(promotion)
-        : null,
-      securityDepositClaim: depositClaim
-        ? await this.depositClaimsService.toClaimView(depositClaim)
         : null,
     };
   }

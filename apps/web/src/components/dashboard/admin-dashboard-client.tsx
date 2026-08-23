@@ -75,18 +75,6 @@ export function AdminDashboardClient({
             {t('admin.bookings_link')}
           </Link>
           <Link
-            href="/admin/deposit-claims"
-            className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent"
-          >
-            {t('admin.deposit_claims_link')}
-          </Link>
-          <Link
-            href="/admin/cancellation-claims"
-            className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent"
-          >
-            {t('admin.cancellation_claims_link')}
-          </Link>
-          <Link
             href="/admin/payment-failures"
             className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent"
           >

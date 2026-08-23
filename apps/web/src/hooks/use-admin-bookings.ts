@@ -15,7 +15,6 @@ export function useAdminBookings() {
     totalPages,
     status,
     paymentStatus,
-    payoutStatus,
     propertyId,
     guestId,
     hostId,
@@ -29,7 +28,6 @@ export function useAdminBookings() {
     setPage,
     setStatus,
     setPaymentStatus,
-    setPayoutStatus,
     setSearchQuery,
     setPropertyId,
     setGuestId,
@@ -37,24 +35,11 @@ export function useAdminBookings() {
     setFrom,
     setTo,
     resetFilters,
-    retryRentCapture,
-    retryPayout,
   } = useAdminBookingsStore();
 
   useEffect(() => {
     void fetchBookings();
-  }, [
-    page,
-    status,
-    paymentStatus,
-    payoutStatus,
-    propertyId,
-    guestId,
-    hostId,
-    from,
-    to,
-    fetchBookings,
-  ]);
+  }, [page, status, paymentStatus, propertyId, guestId, hostId, from, to, fetchBookings]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -71,7 +56,6 @@ export function useAdminBookings() {
     totalPages,
     status,
     paymentStatus,
-    payoutStatus,
     propertyId,
     guestId,
     hostId,
@@ -84,7 +68,6 @@ export function useAdminBookings() {
     setPage,
     setStatus,
     setPaymentStatus,
-    setPayoutStatus,
     setSearchQuery,
     setPropertyId,
     setGuestId,
@@ -92,8 +75,6 @@ export function useAdminBookings() {
     setFrom,
     setTo,
     resetFilters,
-    retryRentCapture,
-    retryPayout,
     fetchBookings,
   };
 }

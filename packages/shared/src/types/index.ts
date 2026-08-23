@@ -121,7 +121,7 @@ export interface AuthUser {
   role: UserRole;
 }
 
-/** Currency a host can actually price a listing in. Stripe transactions are USD-only —
+/** Currency a host can actually price a listing in. Platform settlement is USD-only —
  * hosts do not choose a settlement currency. */
 export const HostSettlementCurrencies = ['USD'] as const;
 export type HostSettlementCurrency = (typeof HostSettlementCurrencies)[number];
@@ -351,57 +351,6 @@ export interface BookingGuestProfile {
   email?: string | null;
 }
 
-export const SecurityDepositClaimStatuses = ['PENDING', 'APPROVED', 'REJECTED'] as const;
-export type SecurityDepositClaimStatus = (typeof SecurityDepositClaimStatuses)[number];
-
-export interface SecurityDepositClaimView {
-  id: string;
-  bookingId: string;
-  amount: number;
-  reason: string;
-  status: SecurityDepositClaimStatus;
-  reviewNote: string | null;
-  reviewedAt: string | null;
-  evidenceUrls: string[];
-  createdAt: string;
-}
-
-export interface AdminDepositClaim extends SecurityDepositClaimView {
-  currency: string;
-  securityDeposit: number;
-  checkIn: string;
-  checkOut: string;
-  propertyId: string;
-  propertyTitle: string;
-  guestName: string;
-  hostName: string;
-}
-
-export const CancellationFeeClaimStatuses = ['PENDING', 'APPROVED', 'REJECTED'] as const;
-export type CancellationFeeClaimStatus = (typeof CancellationFeeClaimStatuses)[number];
-
-export interface CancellationFeeClaimView {
-  id: string;
-  bookingId: string;
-  amount: number;
-  reason: string | null;
-  status: CancellationFeeClaimStatus;
-  reviewNote: string | null;
-  reviewedAt: string | null;
-  createdAt: string;
-}
-
-export interface AdminCancellationFeeClaim extends CancellationFeeClaimView {
-  currency: string;
-  rentAmount: number;
-  checkIn: string;
-  checkOut: string;
-  propertyId: string;
-  propertyTitle: string;
-  guestName: string;
-  hostName: string;
-}
-
 export interface BookingDetail {
   id: string;
   propertyId: string;
@@ -423,21 +372,18 @@ export interface BookingDetail {
   platformFeeAmount: number | null;
   /** Host payout amount (settlement units). Null until payment is settled. */
   hostPayoutAmount: number | null;
-  payoutStatus: PayoutStatus;
   refundedAmount: number;
   specialRequests: string | null;
   cancellationReason: string | null;
   paymentProvider: string | null;
   paymentStatus: string;
   paymentLockExpiresAt: string | null;
-  depositStatus: string;
   capturedAt: string | null;
   createdAt: string;
   updatedAt: string;
   property: BookingPropertySummary;
   guest: BookingGuestProfile;
   promotionSummary?: import('../dto/booking-quote').BookingPromotionSummary | null;
-  securityDepositClaim?: SecurityDepositClaimView | null;
 }
 
 export const PropertyStatuses = [
@@ -604,22 +550,7 @@ export const PaymentStatuses = [
 ] as const;
 export type PaymentStatus = (typeof PaymentStatuses)[number];
 
-/** Mirrors Prisma `PayoutStatus` — keep in sync with booking.prisma. */
-export const PayoutStatuses = ['NONE', 'SCHEDULED', 'PAID', 'FAILED'] as const;
-export type PayoutStatus = (typeof PayoutStatuses)[number];
-
-/** Mirrors Prisma `DepositStatus` — keep in sync with booking.prisma. */
-export const DepositStatuses = ['NONE', 'AUTHORIZED', 'RELEASED', 'CAPTURED', 'FAILED'] as const;
-export type DepositStatus = (typeof DepositStatuses)[number];
-
-export const PaymentFailureCategories = [
-  'RENT_CAPTURE_FAILED',
-  'DEPOSIT_RELEASE_FAILED',
-  'DEPOSIT_CLAIM_TRANSFER_FAILED',
-  'PAYOUT_TRANSFER_FAILED',
-  'PAYMENT_LOCK_SWEEP_FAILED',
-  'CANCELLATION_CAPTURE_FAILED',
-] as const;
+export const PaymentFailureCategories = ['PAYMENT_LOCK_SWEEP_FAILED'] as const;
 export type PaymentFailureCategory = (typeof PaymentFailureCategories)[number];
 
 export interface AdminPaymentFailure {
@@ -633,7 +564,6 @@ export interface AdminPaymentFailure {
   hostName: string;
   category: PaymentFailureCategory;
   message: string;
-  stripeErrorCode: string | null;
   resolved: boolean;
   resolvedAt: string | null;
   createdAt: string;
@@ -643,8 +573,6 @@ export interface AdminBooking {
   id: string;
   status: BookingStatus;
   paymentStatus: PaymentStatus;
-  depositStatus: DepositStatus;
-  payoutStatus: PayoutStatus;
   checkIn: string;
   checkOut: string;
   guestCount: number;
@@ -669,8 +597,6 @@ export interface AdminBooking {
   cancellationFeeType: import('../utils/cancellation-fee').CancellationFeeType;
   cancellationFeeValue: number;
   cancellationDeadlineDays?: number;
-  canRetryRentCapture: boolean;
-  canRetryPayout: boolean;
   createdAt: string;
 }
 
@@ -686,7 +612,5 @@ export interface AdminHost {
   platformFeePercent: number | null;
   defaultPlatformFeePercent: number;
   effectivePlatformFeePercent: number;
-  stripeChargesEnabled: boolean;
-  stripePayoutsEnabled: boolean;
   createdAt: string;
 }

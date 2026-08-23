@@ -25,12 +25,7 @@ const PROPERTY_STATUS_STYLES: Record<string, string> = {
 };
 
 const PAYMENT_FAILURE_CATEGORY_STYLES: Record<string, string> = {
-  RENT_CAPTURE_FAILED: 'bg-destructive/10 text-destructive',
-  DEPOSIT_RELEASE_FAILED: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-  DEPOSIT_CLAIM_TRANSFER_FAILED: 'bg-destructive/10 text-destructive',
-  PAYOUT_TRANSFER_FAILED: 'bg-destructive/10 text-destructive',
   PAYMENT_LOCK_SWEEP_FAILED: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-  CANCELLATION_CAPTURE_FAILED: 'bg-destructive/10 text-destructive',
 };
 
 export function StatusBadge({

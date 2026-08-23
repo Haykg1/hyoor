@@ -1,7 +1,7 @@
 'use client';
 
-import type { BookingStatus, PaymentStatus, PayoutStatus } from '@repo/shared';
-import { BookingStatuses, PaymentStatuses, PayoutStatuses } from '@repo/shared';
+import type { BookingStatus, PaymentStatus } from '@repo/shared';
+import { BookingStatuses, PaymentStatuses } from '@repo/shared';
 import { Search, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -15,7 +15,6 @@ interface AdminBookingsToolbarProps {
   searchQuery: string;
   status: BookingStatus | null;
   paymentStatus: PaymentStatus | null;
-  payoutStatus: PayoutStatus | null;
   propertyId: string;
   guestId: string;
   hostId: string;
@@ -24,7 +23,6 @@ interface AdminBookingsToolbarProps {
   onSearchChange: (value: string) => void;
   onStatusChange: (value: BookingStatus | null) => void;
   onPaymentStatusChange: (value: PaymentStatus | null) => void;
-  onPayoutStatusChange: (value: PayoutStatus | null) => void;
   onPropertyIdChange: (value: string) => void;
   onGuestIdChange: (value: string) => void;
   onHostIdChange: (value: string) => void;
@@ -37,7 +35,6 @@ export function AdminBookingsToolbar({
   searchQuery,
   status,
   paymentStatus,
-  payoutStatus,
   propertyId,
   guestId,
   hostId,
@@ -46,7 +43,6 @@ export function AdminBookingsToolbar({
   onSearchChange,
   onStatusChange,
   onPaymentStatusChange,
-  onPayoutStatusChange,
   onPropertyIdChange,
   onGuestIdChange,
   onHostIdChange,
@@ -60,7 +56,6 @@ export function AdminBookingsToolbar({
     searchQuery.trim() ||
     status ||
     paymentStatus ||
-    payoutStatus ||
     propertyId.trim() ||
     guestId.trim() ||
     hostId.trim() ||
@@ -104,19 +99,6 @@ export function AdminBookingsToolbar({
           {PaymentStatuses.map((s) => (
             <option key={s} value={s}>
               {t(`payment_status_values.${s}`)}
-            </option>
-          ))}
-        </select>
-        <select
-          value={payoutStatus ?? ''}
-          onChange={(e) => onPayoutStatusChange((e.target.value || null) as PayoutStatus | null)}
-          className={SELECT_CLASS}
-          aria-label={t('payout_status')}
-        >
-          <option value="">{t('all_payout_statuses')}</option>
-          {PayoutStatuses.map((s) => (
-            <option key={s} value={s}>
-              {t(`payout_status_values.${s}`)}
             </option>
           ))}
         </select>

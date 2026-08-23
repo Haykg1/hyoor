@@ -38,7 +38,7 @@ export interface StayFeeRuleView {
   sortOrder: number;
 }
 
-export const PaymentProviders = ['STRIPE', 'ARCA', 'CASH', 'IDRAM'] as const;
+export const PaymentProviders = ['ARCA', 'CASH', 'IDRAM'] as const;
 export type PaymentProvider = (typeof PaymentProviders)[number];
 
 export const PhotoMimeTypes = ['image/jpeg', 'image/png', 'image/webp'] as const;

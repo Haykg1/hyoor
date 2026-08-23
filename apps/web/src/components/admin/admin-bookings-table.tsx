@@ -27,11 +27,7 @@ interface AdminBookingsTableProps {
   page: number;
   totalPages: number;
   total: number;
-  actionId: string | null;
-  canRetryMoney: boolean;
   onPageChange: (page: number) => void;
-  onRetryRentCapture: (id: string) => Promise<void>;
-  onRetryPayout: (id: string) => Promise<void>;
   onCancelled?: () => void;
 }
 
@@ -96,11 +92,7 @@ export function AdminBookingsTable({
   page,
   totalPages,
   total,
-  actionId,
-  canRetryMoney,
   onPageChange,
-  onRetryRentCapture,
-  onRetryPayout,
   onCancelled,
 }: AdminBookingsTableProps): React.JSX.Element {
   const t = useTranslations('admin.bookings');
@@ -131,7 +123,6 @@ export function AdminBookingsTable({
             <TableHead>{t('table.host')}</TableHead>
             <TableHead>{t('table.status')}</TableHead>
             <TableHead>{t('table.payment')}</TableHead>
-            <TableHead>{t('table.payout')}</TableHead>
             <TableHead className="text-right">{t('table.total')}</TableHead>
             <TableHead>{t('table.actions')}</TableHead>
           </TableRow>
@@ -139,7 +130,6 @@ export function AdminBookingsTable({
         <TableBody>
           {bookings.map((booking) => {
             const expanded = expandedId === booking.id;
-            const busy = actionId === booking.id;
             return (
               <>
                 <TableRow key={booking.id}>
@@ -181,40 +171,16 @@ export function AdminBookingsTable({
                   <TableCell className="text-xs text-muted-foreground">
                     {booking.paymentStatus}
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {booking.payoutStatus}
-                  </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
                     {formatStoredMoney(booking.totalAmount, booking.currency)}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col items-start gap-1">
                       <CopyBookingIdButton bookingId={booking.id} />
-                      {canRetryMoney && booking.canRetryRentCapture ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={busy}
-                          onClick={() => void onRetryRentCapture(booking.id)}
-                        >
-                          {busy ? t('retrying') : t('retry_capture')}
-                        </Button>
-                      ) : null}
-                      {canRetryMoney && booking.canRetryPayout ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={busy}
-                          onClick={() => void onRetryPayout(booking.id)}
-                        >
-                          {busy ? t('retrying') : t('retry_payout')}
-                        </Button>
-                      ) : null}
                       {isBookingCancellable(booking) ? (
                         <Button
                           size="sm"
                           variant="outline"
-                          disabled={busy}
                           onClick={() => setCancelTarget(booking)}
                         >
                           {tBooking('cancel')}
@@ -225,7 +191,7 @@ export function AdminBookingsTable({
                 </TableRow>
                 {expanded ? (
                   <TableRow key={`${booking.id}-nights`}>
-                    <TableCell colSpan={10} className="bg-muted/40">
+                    <TableCell colSpan={9} className="bg-muted/40">
                       <div className="px-2 py-2">
                         <p className="mb-2 text-xs font-medium text-muted-foreground">
                           {t('table.nightly_breakdown')}

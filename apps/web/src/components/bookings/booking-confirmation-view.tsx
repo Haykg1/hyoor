@@ -8,7 +8,6 @@ import { useState } from 'react';
 
 import { CancelBookingDialog } from '@/components/bookings/cancel-booking-dialog';
 import { CancellationPolicyNotice } from '@/components/bookings/cancellation-policy-notice';
-import { HostDepositPanel } from '@/components/bookings/host-deposit-panel';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -46,7 +45,6 @@ interface BookingConfirmationViewProps {
   variant: 'guest' | 'host';
   onContinuePayment?: () => void;
   onCancelled?: () => void;
-  onDepositChanged?: () => void;
 }
 
 function MoneyRow({
@@ -75,7 +73,6 @@ export function BookingConfirmationView({
   variant,
   onContinuePayment,
   onCancelled,
-  onDepositChanged,
 }: BookingConfirmationViewProps): React.JSX.Element {
   const t = useTranslations('booking.confirmation');
   const tBooking = useTranslations('booking');
@@ -214,12 +211,6 @@ export function BookingConfirmationView({
                 <MoneyRow label={t('refunded')} value={money(booking.refundedAmount)} muted />
               ) : null}
               <div className="flex justify-between gap-4 pt-1">
-                <span className="text-muted-foreground">{t('payout_status')}</span>
-                <span className="text-right font-medium">
-                  {t(`payout_status_values.${booking.payoutStatus}`)}
-                </span>
-              </div>
-              <div className="flex justify-between gap-4">
                 <span className="text-muted-foreground">{t('payment_status')}</span>
                 <span className="text-right font-medium">
                   {t(`payment_status_values.${booking.paymentStatus}`)}
@@ -250,9 +241,6 @@ export function BookingConfirmationView({
           ) : null}
         </CardContent>
       </Card>
-      {isHost ? (
-        <HostDepositPanel booking={booking} onDepositChanged={() => onDepositChanged?.()} />
-      ) : null}
       <div className="mt-6 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground">
         {t('booking_status')} <StatusBadge status={booking.status} namespace="booking" />
       </div>

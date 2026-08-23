@@ -7,7 +7,6 @@ import {
   LogOut,
   MessageSquare,
   Plane,
-  ShieldCheck,
   Users,
   User as UserIcon,
 } from 'lucide-react';
@@ -130,22 +129,6 @@ export function UserMenu({ variant = 'default' }: UserMenuProps = {}): React.JSX
             <Link href="/admin/hosts" className="cursor-pointer">
               <Users className="mr-2 h-4 w-4" />
               {t('admin_hosts')}
-            </Link>
-          </DropdownMenuItem>
-        ) : null}
-        {isAdminLike ? (
-          <DropdownMenuItem asChild>
-            <Link href="/admin/deposit-claims" className="cursor-pointer">
-              <ShieldCheck className="mr-2 h-4 w-4" />
-              {t('admin_deposit_claims')}
-            </Link>
-          </DropdownMenuItem>
-        ) : null}
-        {isAdminLike ? (
-          <DropdownMenuItem asChild>
-            <Link href="/admin/cancellation-claims" className="cursor-pointer">
-              <ShieldCheck className="mr-2 h-4 w-4" />
-              {t('admin_cancellation_claims')}
             </Link>
           </DropdownMenuItem>
         ) : null}

@@ -173,7 +173,6 @@ export function AdminHostsTable({
             <TableHead>{t('table.type')}</TableHead>
             <TableHead>{t('table.properties')}</TableHead>
             <TableHead>{t('table.verified')}</TableHead>
-            <TableHead>{t('table.stripe')}</TableHead>
             <TableHead>{t('table.platform_fee')}</TableHead>
           </TableRow>
         </TableHeader>
@@ -190,9 +189,6 @@ export function AdminHostsTable({
                 <Badge variant={host.isVerified ? 'default' : 'secondary'}>
                   {host.isVerified ? t('verified_yes') : t('verified_no')}
                 </Badge>
-              </TableCell>
-              <TableCell className="text-xs text-muted-foreground">
-                {host.stripePayoutsEnabled ? t('stripe_ready') : t('stripe_pending')}
               </TableCell>
               <TableCell>
                 <FeeEditor

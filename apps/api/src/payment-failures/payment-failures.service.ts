@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import type { PaymentFailureCategory, Prisma } from '@repo/database/client';
 import type { AdminPaymentFailure, PaginatedResponse } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
-import Stripe from 'stripe';
 
 import { PrismaService } from '../database/prisma.service';
 
@@ -24,10 +23,8 @@ export class PaymentFailuresService {
 
   async record(bookingId: string, category: PaymentFailureCategory, error: unknown): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
-    const stripeErrorCode =
-      error instanceof Stripe.errors.StripeError ? (error.code ?? null) : null;
     await this.prisma.paymentFailure.create({
-      data: { bookingId, category, message, stripeErrorCode },
+      data: { bookingId, category, message },
     });
   }
 
@@ -111,7 +108,6 @@ export class PaymentFailuresService {
           hostName,
           category: row.category,
           message: row.message,
-          stripeErrorCode: row.stripeErrorCode,
           resolved: row.resolved,
           resolvedAt: row.resolvedAt?.toISOString() ?? null,
           createdAt: row.createdAt.toISOString(),

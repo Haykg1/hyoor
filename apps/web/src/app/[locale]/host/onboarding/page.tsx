@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useRouter } from '@/i18n/navigation';
 import { ApiError } from '@/lib/api';
-import { createHostProfile, type CreateHostProfileResult } from '@/lib/api/host-profiles';
+import { createHostProfile, type MyHostProfile } from '@/lib/api/host-profiles';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store';
 
@@ -28,8 +28,7 @@ export default function HostOnboardingPage(): React.JSX.Element {
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<CreateHostProfileResult | null>(null);
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [result, setResult] = useState<MyHostProfile | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -67,12 +66,6 @@ export default function HostOnboardingPage(): React.JSX.Element {
     }
   }
 
-  function handleSetupPayouts(): void {
-    if (!result?.stripeOnboardingUrl) return;
-    setIsRedirecting(true);
-    window.location.href = result.stripeOnboardingUrl;
-  }
-
   if (authLoading || !user) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -90,18 +83,9 @@ export default function HostOnboardingPage(): React.JSX.Element {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">{t('success_subtitle')}</p>
-            <Button
-              className="w-full"
-              onClick={handleSetupPayouts}
-              disabled={!result.stripeOnboardingUrl || isRedirecting}
-            >
-              {isRedirecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {t('setup_payouts_button')}
+            <Button className="w-full" onClick={() => router.push('/dashboard')}>
+              {t('continue_button')}
             </Button>
-            <Button variant="outline" className="w-full" onClick={() => router.push('/dashboard')}>
-              {t('skip_button')}
-            </Button>
-            <p className="text-center text-xs text-muted-foreground">{t('skip_hint')}</p>
           </CardContent>
         </Card>
       </div>

@@ -25,14 +25,11 @@ receive your provider account identifier and email address from that provider.
 short bio, nationality, preferred language, spoken languages.
 
 **Host data.** Host type (individual or company), company name and description where
-applicable, listing content (addresses, photos, pricing, rules), and the identifier of your
-connected Stripe payout account. Identity/KYC documents required for payouts are collected
-**by Stripe, not by us**.
+applicable, and listing content (addresses, photos, pricing, rules).
 
 **Booking and payment data.** Booking dates, number of guests, amounts (rent, cleaning fee,
-security deposit), chosen payment method, currency, booking status history, and payment
-references (Stripe customer and payment-intent identifiers). **We never see or store your
-card number** — card data is entered directly with Stripe.
+security deposit), chosen payment method, currency, booking status history, and an external
+payment reference for the chosen payment method. **We never see or store your card number.**
 
 **Communications.** Messages you exchange with Hosts or Guests on the platform, reviews you
 write and receive, notifications, correspondence with our support, and messages you send
@@ -61,9 +58,6 @@ We do not use your data for third-party advertising and we do not sell it.
 
 ## 4. Who we share data with (processors and recipients)
 
-- **Stripe** (payments, deposits, host payouts, KYC) — Stripe acts as our payment processor
-  and, for its own compliance duties, as an independent controller. See Stripe's privacy
-  policy.
 - **Amazon Web Services (S3)** — storage of uploaded photos (listings, avatars), region
   **[eu-central-1 / REGION]**.
 - **Resend** — sending transactional emails (verification codes, password resets, booking

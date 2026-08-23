@@ -3,11 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import type {
   Booking,
   BookingStatus,
-  DepositStatus,
   HostProfile,
   HostType,
   PaymentStatus,
-  PayoutStatus,
   Property,
   PropertyPhoto,
   PropertyStatus,
@@ -15,7 +13,6 @@ import type {
   User,
   UserRole,
 } from '@repo/database/client';
-import { Prisma as PrismaNamespace } from '@repo/database/client';
 import type {
   AdminBooking,
   AdminHost,
@@ -29,10 +26,8 @@ import type {
 import { AddressLocales } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE } from '@repo/shared/constants';
 
-import { isPrismaSerializationFailure, runWithRetry } from '../common/connection/retry';
 import type { AppConfig } from '../config/configuration';
 import { PrismaService } from '../database/prisma.service';
-import { StripeCheckoutService } from '../payments/stripe/stripe-checkout.service';
 import { StorageService } from '../storage/storage.service';
 
 import { QueryAdminBookingsDto } from './dto/query-admin-bookings.dto';
@@ -114,7 +109,6 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
-    private readonly stripeCheckout: StripeCheckoutService,
     private readonly config: ConfigService<AppConfig, true>,
   ) {}
 
@@ -365,7 +359,7 @@ export class AdminService {
       }),
       this.prisma.hostProfile.count({ where }),
     ]);
-    const defaultFee = this.config.get('stripe.platformFeePercentDefault', { infer: true });
+    const defaultFee = this.config.get('payments.platformFeePercentDefault', { infer: true });
     return {
       data: rows.map((row) => this.toAdminHost(row, defaultFee)),
       total,
@@ -388,7 +382,7 @@ export class AdminService {
     }
     return this.toAdminHost(
       row,
-      this.config.get('stripe.platformFeePercentDefault', { infer: true }),
+      this.config.get('payments.platformFeePercentDefault', { infer: true }),
     );
   }
 
@@ -424,8 +418,6 @@ export class AdminService {
       platformFeePercent: override,
       defaultPlatformFeePercent: defaultFee,
       effectivePlatformFeePercent: override ?? defaultFee,
-      stripeChargesEnabled: row.stripeChargesEnabled,
-      stripePayoutsEnabled: row.stripePayoutsEnabled,
       createdAt: row.createdAt.toISOString(),
     };
   }
@@ -447,7 +439,7 @@ export class AdminService {
     if (propertyIds.length === 0) return result;
     const groups = await this.prisma.booking.groupBy({
       by: ['propertyId'],
-      where: { propertyId: { in: propertyIds }, payoutStatus: 'PAID' },
+      where: { propertyId: { in: propertyIds }, paymentStatus: 'PAID' },
       _sum: { hostPayoutAmount: true },
     });
     for (const group of groups) {
@@ -501,8 +493,6 @@ export class AdminService {
     const where: Prisma.BookingWhereInput = {
       ...(dto.status ? { status: dto.status as BookingStatus } : {}),
       ...(dto.paymentStatus ? { paymentStatus: dto.paymentStatus as PaymentStatus } : {}),
-      ...(dto.payoutStatus ? { payoutStatus: dto.payoutStatus as PayoutStatus } : {}),
-      ...(dto.depositStatus ? { depositStatus: dto.depositStatus as DepositStatus } : {}),
       ...(dto.propertyId ? { propertyId: dto.propertyId } : {}),
       ...(dto.guestId ? { guestId: dto.guestId } : {}),
       ...(dto.hostId ? { property: { hostId: dto.hostId } } : {}),
@@ -565,70 +555,6 @@ export class AdminService {
     };
   }
 
-  async retryRentCapture(bookingId: string): Promise<AdminBooking> {
-    const booking = await runWithRetry(
-      () =>
-        this.prisma.$transaction(
-          async (tx) => {
-            const row = await tx.booking.findUnique({ where: { id: bookingId } });
-            if (!row) {
-              throw new NotFoundException('Booking not found');
-            }
-            if (!this.isRentCaptureRetryable(row)) {
-              throw new BadRequestException('Booking is not eligible for rent capture retry');
-            }
-            return row;
-          },
-          { isolationLevel: PrismaNamespace.TransactionIsolationLevel.Serializable },
-        ),
-      async () => undefined,
-      undefined,
-      isPrismaSerializationFailure,
-    );
-    await this.stripeCheckout.captureRentOnCheckIn(booking);
-    return this.getAdminBookingOrThrow(bookingId);
-  }
-
-  async retryPayout(bookingId: string): Promise<AdminBooking> {
-    const booking = await runWithRetry(
-      () =>
-        this.prisma.$transaction(
-          async (tx) => {
-            const row = await tx.booking.findUnique({ where: { id: bookingId } });
-            if (!row) {
-              throw new NotFoundException('Booking not found');
-            }
-            if (!this.isPayoutRetryable(row)) {
-              throw new BadRequestException('Booking is not eligible for payout retry');
-            }
-            return row;
-          },
-          { isolationLevel: PrismaNamespace.TransactionIsolationLevel.Serializable },
-        ),
-      async () => undefined,
-      undefined,
-      isPrismaSerializationFailure,
-    );
-    await this.stripeCheckout.payoutToHost(booking);
-    return this.getAdminBookingOrThrow(bookingId);
-  }
-
-  private async getAdminBookingOrThrow(bookingId: string): Promise<AdminBooking> {
-    const row = await this.prisma.booking.findUnique({
-      where: { id: bookingId },
-      include: {
-        property: {
-          include: { host: { include: { user: { include: { profile: true } } } } },
-        },
-        guest: { include: { profile: true } },
-      },
-    });
-    if (!row) {
-      throw new NotFoundException('Booking not found');
-    }
-    return this.toAdminBooking(row);
-  }
-
   private toAdminBooking(
     row: Booking & {
       property: {
@@ -664,8 +590,6 @@ export class AdminService {
       id: row.id,
       status: row.status,
       paymentStatus: row.paymentStatus,
-      depositStatus: row.depositStatus,
-      payoutStatus: row.payoutStatus,
       checkIn: formatIsoDate(row.checkIn),
       checkOut: formatIsoDate(row.checkOut),
       guestCount: row.guestCount,
@@ -690,35 +614,8 @@ export class AdminService {
       cancellationFeeType: property.cancellationFeeType,
       cancellationFeeValue: property.cancellationFeeValue,
       cancellationDeadlineDays: property.cancellationDeadlineDays,
-      canRetryRentCapture: this.isRentCaptureRetryable(row),
-      canRetryPayout: this.isPayoutRetryable(row),
       createdAt: row.createdAt.toISOString(),
     };
-  }
-
-  private isRentCaptureRetryable(booking: Booking): boolean {
-    return (
-      booking.status === 'CONFIRMED' &&
-      booking.paymentStatus === 'AUTHORIZED' &&
-      !!booking.stripePaymentIntentId
-    );
-  }
-
-  private isPayoutRetryable(booking: Booking): boolean {
-    if (!booking.hostPayoutAmount || booking.hostPayoutAmount <= 0) {
-      return false;
-    }
-    if (booking.stripeTransferId) {
-      return false;
-    }
-    if (booking.payoutStatus === 'FAILED') {
-      return true;
-    }
-    if (booking.payoutStatus === 'SCHEDULED') {
-      if (!booking.payoutScheduledAt) return true;
-      return booking.payoutScheduledAt.getTime() <= Date.now();
-    }
-    return false;
   }
 
   async getStats(): Promise<PlatformStats> {

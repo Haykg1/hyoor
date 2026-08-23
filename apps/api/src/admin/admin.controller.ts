@@ -1,15 +1,8 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import type {
-  CancellationFeeClaim,
-  Property,
-  SecurityDepositClaim,
-  User,
-} from '@repo/database/client';
+import type { Property, User } from '@repo/database/client';
 import type {
   AdminBooking,
-  AdminCancellationFeeClaim,
-  AdminDepositClaim,
   AdminHost,
   AdminPaymentFailure,
   HostDashboardStats,
@@ -22,18 +15,11 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { CancellationClaimsService } from '../cancellation-claims/cancellation-claims.service';
-import { ReviewCancellationClaimDto } from '../cancellation-claims/dto/review-cancellation-claim.dto';
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
-import { DepositClaimsService } from '../deposit-claims/deposit-claims.service';
-import { ReviewDepositClaimDto } from '../deposit-claims/dto/review-deposit-claim.dto';
 import { PaymentFailuresService } from '../payment-failures/payment-failures.service';
 import { PoiSeedService, type PoiSeedResult } from '../poi/poi-seed.service';
 import { UpdatePropertyStatusDto } from '../properties/dto/update-property-status.dto';
-import { CheckinCaptureCronService } from '../scheduling/checkin-capture-cron.service';
-import { DepositReleaseCronService } from '../scheduling/deposit-release-cron.service';
 import { GuestInstructionsCronService } from '../scheduling/guest-instructions-cron.service';
-import { HostPayoutCronService } from '../scheduling/host-payout-cron.service';
 import { PaymentLockSweeperService } from '../scheduling/payment-lock-sweeper.service';
 
 import {
@@ -62,13 +48,8 @@ import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
-    private readonly cancellationClaims: CancellationClaimsService,
-    private readonly depositClaims: DepositClaimsService,
-    private readonly depositReleaseCron: DepositReleaseCronService,
     private readonly guestInstructionsCron: GuestInstructionsCronService,
-    private readonly checkinCaptureCron: CheckinCaptureCronService,
     private readonly paymentLockSweeperCron: PaymentLockSweeperService,
-    private readonly hostPayoutCron: HostPayoutCronService,
     private readonly paymentFailures: PaymentFailuresService,
     private readonly poiSeedService: PoiSeedService,
   ) {}
@@ -160,24 +141,6 @@ export class AdminController {
     return this.adminService.getBookings(dto);
   }
 
-  @Post('bookings/:id/retry-rent-capture')
-  @Roles('ADMIN')
-  @ApiOperation({ summary: 'Retry failed or pending rent capture for a booking (admin only)' })
-  @ApiOkResponse({ description: 'Updated booking after capture attempt' })
-  @ApiStandardErrors({ notFound: true })
-  retryRentCapture(@Param('id') id: string): Promise<AdminBooking> {
-    return this.adminService.retryRentCapture(id);
-  }
-
-  @Post('bookings/:id/retry-payout')
-  @Roles('ADMIN')
-  @ApiOperation({ summary: 'Retry failed or due host payout for a booking (admin only)' })
-  @ApiOkResponse({ description: 'Updated booking after payout attempt' })
-  @ApiStandardErrors({ notFound: true })
-  retryPayout(@Param('id') id: string): Promise<AdminBooking> {
-    return this.adminService.retryPayout(id);
-  }
-
   @Get('hosts')
   @ApiOperation({ summary: 'List host profiles with platform fee settings' })
   @ApiOkResponse({ description: 'Paginated host list' })
@@ -200,58 +163,6 @@ export class AdminController {
     return this.adminService.setHostPlatformFee(id, dto.platformFeePercent);
   }
 
-  @Get('deposit-claims')
-  @ApiOperation({ summary: 'List pending security-deposit damage claims' })
-  @ApiOkResponse({ description: 'Pending claims awaiting review, oldest first' })
-  @ApiStandardErrors()
-  getPendingDepositClaims(): Promise<AdminDepositClaim[]> {
-    return this.depositClaims.findPendingDetailed();
-  }
-
-  @Patch('deposit-claims/:id')
-  @ApiOperation({ summary: 'Approve or reject a security-deposit damage claim' })
-  @ApiOkResponse({ description: 'Reviewed claim; approval captures and transfers the deposit' })
-  @ApiStandardErrors({ notFound: true })
-  reviewDepositClaim(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
-    @Body() dto: ReviewDepositClaimDto,
-  ): Promise<SecurityDepositClaim> {
-    return this.depositClaims.review(id, user.userId, dto);
-  }
-
-  @Get('cancellation-fee-claims')
-  @ApiOperation({ summary: 'List pending host cancellation-fee claims' })
-  @ApiOkResponse({ description: 'Pending claims awaiting review, oldest first' })
-  @ApiStandardErrors()
-  getPendingCancellationClaims(): Promise<AdminCancellationFeeClaim[]> {
-    return this.cancellationClaims.findPendingDetailed();
-  }
-
-  @Patch('cancellation-fee-claims/:id')
-  @ApiOperation({ summary: 'Approve or reject a host cancellation-fee claim' })
-  @ApiOkResponse({
-    description: 'Reviewed claim; approval captures the fee, rejection releases the full hold',
-  })
-  @ApiStandardErrors({ notFound: true })
-  reviewCancellationClaim(
-    @Param('id') id: string,
-    @CurrentUser() user: RequestUser,
-    @Body() dto: ReviewCancellationClaimDto,
-  ): Promise<CancellationFeeClaim> {
-    return this.cancellationClaims.review(id, user.userId, dto);
-  }
-
-  @Post('cron/release-expired-deposit-holds')
-  @Roles('ADMIN')
-  @ApiOperation({ summary: 'Manually run the expired security-deposit release job (admin only)' })
-  @ApiOkResponse({ description: 'Job ran to completion' })
-  @ApiStandardErrors()
-  async runReleaseExpiredDepositHolds(): Promise<{ message: string }> {
-    await this.depositReleaseCron.releaseExpiredDepositHolds();
-    return { message: 'releaseExpiredDepositHolds completed' };
-  }
-
   @Post('cron/send-guest-instructions')
   @Roles('ADMIN')
   @ApiOperation({
@@ -264,16 +175,6 @@ export class AdminController {
     return { message: 'sendGuestInstructionsForToday completed' };
   }
 
-  @Post('cron/capture-todays-checkins')
-  @Roles('ADMIN')
-  @ApiOperation({ summary: "Manually run today's check-in rent capture job (admin only)" })
-  @ApiOkResponse({ description: 'Job ran to completion' })
-  @ApiStandardErrors()
-  async runCaptureTodaysCheckIns(): Promise<{ message: string }> {
-    await this.checkinCaptureCron.captureTodaysCheckIns();
-    return { message: 'captureTodaysCheckIns completed' };
-  }
-
   @Post('cron/sweep-expired-payment-locks')
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Manually run the expired payment lock sweep job (admin only)' })
@@ -282,16 +183,6 @@ export class AdminController {
   async runSweepExpiredPaymentLocks(): Promise<{ message: string }> {
     await this.paymentLockSweeperCron.sweepExpiredPaymentLocks();
     return { message: 'sweepExpiredPaymentLocks completed' };
-  }
-
-  @Post('cron/run-scheduled-payouts')
-  @Roles('ADMIN')
-  @ApiOperation({ summary: 'Manually run the scheduled host payouts job (admin only)' })
-  @ApiOkResponse({ description: 'Job ran to completion' })
-  @ApiStandardErrors()
-  async runScheduledPayouts(): Promise<{ message: string }> {
-    await this.hostPayoutCron.runScheduledPayouts();
-    return { message: 'runScheduledPayouts completed' };
   }
 
   @Post('poi/seed')
