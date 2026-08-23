@@ -61,7 +61,7 @@ Legal policy pages and cookie consent are in place. Footer Hosting still has a d
 
 - [ ] About page with company details (legal entity, address) — often legally required for commercial sites.
 - [ ] Host resources page (footer link is dead).
-- [ ] Transactional email coverage: booking confirmed/cancelled emails for both sides (verify beyond the existing OTP, password-reset, guest-instructions, deposit-charged templates).
+- [ ] Transactional email coverage: booking confirmed/cancelled emails for both sides (verify beyond the existing OTP, password-reset, guest-instructions templates).
 - [ ] Admin audit log for sensitive actions (role changes, fee overrides, booking cancellations).
 - [ ] Performance pass: Lighthouse on home/search/property pages, image `sizes` attributes, DB indexes for search queries under load.
 
