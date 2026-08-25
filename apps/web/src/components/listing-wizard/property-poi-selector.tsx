@@ -1,7 +1,11 @@
 'use client';
 
-import type { NearbyPoiItem } from '@repo/shared';
-import { MAX_FEATURED_POIS } from '@repo/shared';
+import {
+  MAX_FEATURED_POIS,
+  POI_DESTINATION_CATEGORIES,
+  type NearbyPoiItem,
+  type PoiDestinationCategory,
+} from '@repo/shared';
 import { Bus, Footprints } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
@@ -27,11 +31,8 @@ function resolvePoiName(poi: NearbyPoiItem, locale: string): string {
   return labels.en || labels.hy || labels.ru || poi.id;
 }
 
-const POI_CATEGORY_KEYS = ['landmark', 'museum', 'park', 'market', 'memorial'] as const;
-type PoiCategoryKey = (typeof POI_CATEGORY_KEYS)[number];
-
-function isPoiCategoryKey(value: string): value is PoiCategoryKey {
-  return (POI_CATEGORY_KEYS as readonly string[]).includes(value);
+function isPoiCategoryKey(value: string): value is PoiDestinationCategory {
+  return (POI_DESTINATION_CATEGORIES as readonly string[]).includes(value);
 }
 
 export function PropertyPoiSelector({

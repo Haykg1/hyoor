@@ -1029,7 +1029,10 @@
         "museum": "Museum",
         "park": "Park",
         "market": "Market",
-        "memorial": "Memorial"
+        "memorial": "Memorial",
+        "church": "Church",
+        "viewpoint": "Viewpoint",
+        "restaurant": "Restaurant"
       },
       "place_searching": "Searching…",
       "place_no_results": "No places found",

@@ -8,8 +8,8 @@
     "country": "AM",
     "wikipediaTitle": "Republic Square, Yerevan",
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Republic_Square,_Yerevan",
-    "latitude": 40.1777,
-    "longitude": 44.5128,
+    "latitude": 40.17764,
+    "longitude": 44.51139,
     "nameLabels": {
       "en": "Republic Square",
       "hy": "Հանրապետության հրապարակ",
@@ -25,8 +25,8 @@
     "country": "AM",
     "wikipediaTitle": "Yerevan Cascade",
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Yerevan_Cascade",
-    "latitude": 40.1872,
-    "longitude": 44.5076,
+    "latitude": 40.19111,
+    "longitude": 44.51556,
     "nameLabels": {
       "en": "Cascade",
       "hy": "Կասկադ",
@@ -42,8 +42,8 @@
     "country": "AM",
     "wikipediaTitle": "Matenadaran",
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Matenadaran",
-    "latitude": 40.1916,
-    "longitude": 44.5153,
+    "latitude": 40.19207,
+    "longitude": 44.52113,
     "nameLabels": {
       "en": "Matenadaran",
       "hy": "Մատենադարան",
@@ -57,8 +57,8 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1856,
-    "longitude": 44.5139,
+    "latitude": 40.18472,
+    "longitude": 44.51472,
     "nameLabels": {
       "en": "Yerevan Opera House",
       "hy": "Օպերայի և բալետի ազգային ակադեմիական թատրոն",
@@ -72,8 +72,8 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1792,
-    "longitude": 44.5145,
+    "latitude": 40.17694,
+    "longitude": 44.51472,
     "nameLabels": {
       "en": "Vernissage Market",
       "hy": "Վերնիսաժ",
@@ -87,8 +87,8 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1878,
-    "longitude": 44.4895,
+    "latitude": 40.18583,
+    "longitude": 44.49028,
     "nameLabels": {
       "en": "Tsitsernakaberd Memorial",
       "hy": "Ծիծեռնակաբերդ",
@@ -117,8 +117,8 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1956,
-    "longitude": 44.5092,
+    "latitude": 40.19583,
+    "longitude": 44.51972,
     "nameLabels": {
       "en": "Victory Park",
       "hy": "Հաղթանակի պուրակ",
@@ -132,8 +132,8 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1758,
-    "longitude": 44.5159,
+    "latitude": 40.17806,
+    "longitude": 44.50556,
     "nameLabels": {
       "en": "Blue Mosque",
       "hy": "Կապույտ մզկիթ",
@@ -147,8 +147,8 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1731,
-    "longitude": 44.5142,
+    "latitude": 40.17194,
+    "longitude": 44.51694,
     "nameLabels": {
       "en": "Saint Gregory the Illuminator Cathedral",
       "hy": "Սուրբ Գրիգոր Լուսավորիչ մայր տաճար",
@@ -162,8 +162,8 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1779,
-    "longitude": 44.5134,
+    "latitude": 40.17772,
+    "longitude": 44.51322,
     "nameLabels": {
       "en": "History Museum of Armenia",
       "hy": "Հայաստանի պատմության թանգարան",
@@ -177,8 +177,8 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1881,
-    "longitude": 44.5082,
+    "latitude": 40.1905,
+    "longitude": 44.5152,
     "nameLabels": {
       "en": "Cafesjian Center for the Arts",
       "hy": "Կաֆեսճյան արվեստի կենտրոն",
@@ -207,8 +207,8 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1895,
-    "longitude": 44.5098,
+    "latitude": 40.19139,
+    "longitude": 44.51222,
     "nameLabels": {
       "en": "Lovers' Park",
       "hy": "Սիրահարների պուրակ",
@@ -321,17 +321,17 @@
     }
   },
   {
-    "id": "zorats_karer",
+    "id": "erebuni_fortress",
     "sortOrder": 22,
     "category": "landmark",
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1582,
-    "longitude": 44.4891,
+    "latitude": 40.1406,
+    "longitude": 44.5381,
     "nameLabels": {
       "en": "Erebuni Fortress",
-      "hy": "Էրեբունի",
+      "hy": "Էրեբունի ամրոց",
       "ru": "Крепость Эребуни"
     }
   },
@@ -378,6 +378,171 @@
       "en": "Yerevan Zoo",
       "hy": "Երևանի կենդանաբանական այգի",
       "ru": "Ереванский зоопарк"
+    }
+  },
+  {
+    "id": "national_gallery",
+    "sortOrder": 26,
+    "category": "museum",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.17789,
+    "longitude": 44.51322,
+    "nameLabels": {
+      "en": "National Gallery of Armenia",
+      "hy": "Հայաստանի ազգային պատկերասրահ",
+      "ru": "Национальная галерея Армении"
+    }
+  },
+  {
+    "id": "swan_lake",
+    "sortOrder": 27,
+    "category": "park",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.18556,
+    "longitude": 44.51361,
+    "nameLabels": {
+      "en": "Swan Lake",
+      "hy": "Կարապի լիճ",
+      "ru": "Лебединое озеро"
+    }
+  },
+  {
+    "id": "katoghike_church",
+    "sortOrder": 28,
+    "category": "church",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1843414,
+    "longitude": 44.5189985,
+    "nameLabels": {
+      "en": "Katoghike Holy Mother of God Church",
+      "hy": "Կաթողիկե Սուրբ Աստվածածին եկեղեցի",
+      "ru": "Церковь Катогике"
+    }
+  },
+  {
+    "id": "saint_sarkis_cathedral",
+    "sortOrder": 29,
+    "category": "church",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.18528,
+    "longitude": 44.50389,
+    "nameLabels": {
+      "en": "Saint Sarkis Cathedral",
+      "hy": "Սուրբ Սարգիս եկեղեցի",
+      "ru": "Собор Святого Саркиса"
+    }
+  },
+  {
+    "id": "mother_armenia",
+    "sortOrder": 30,
+    "category": "viewpoint",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1951553,
+    "longitude": 44.5246737,
+    "nameLabels": {
+      "en": "Mother Armenia Monument",
+      "hy": "Մայր Հայաստան",
+      "ru": "Мать-Армения"
+    }
+  },
+  {
+    "id": "gum_market",
+    "sortOrder": 31,
+    "category": "market",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1673966,
+    "longitude": 44.5149408,
+    "nameLabels": {
+      "en": "GUM Market",
+      "hy": "ԳՈՒՄ շուկա",
+      "ru": "Рынок ГУМ"
+    }
+  },
+  {
+    "id": "parajanov_museum",
+    "sortOrder": 32,
+    "category": "museum",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1788968,
+    "longitude": 44.50007,
+    "nameLabels": {
+      "en": "Sergei Parajanov Museum",
+      "hy": "Սերգեյ Փարաջանովի թանգարան",
+      "ru": "Музей Сергея Параджанова"
+    }
+  },
+  {
+    "id": "saryan_house_museum",
+    "sortOrder": 33,
+    "category": "museum",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1868663,
+    "longitude": 44.5093293,
+    "nameLabels": {
+      "en": "Martiros Saryan House-Museum",
+      "hy": "Մարտիրոս Սարյանի տուն-թանգարան",
+      "ru": "Дом-музей Мартироса Сарьяна"
+    }
+  },
+  {
+    "id": "dolmama",
+    "sortOrder": 34,
+    "category": "restaurant",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1805383,
+    "longitude": 44.5158512,
+    "nameLabels": {
+      "en": "Dolmama Restaurant",
+      "hy": "Դոլմամա ռեստորան",
+      "ru": "Ресторан Долмама"
+    }
+  },
+  {
+    "id": "lavash_restaurant",
+    "sortOrder": 35,
+    "category": "restaurant",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.18083,
+    "longitude": 44.51472,
+    "nameLabels": {
+      "en": "Lavash Restaurant",
+      "hy": "Լավաշ ռեստորան",
+      "ru": "Ресторан Лаваш"
+    }
+  },
+  {
+    "id": "sherep",
+    "sortOrder": 36,
+    "category": "restaurant",
+    "city": "Yerevan",
+    "region": "Yerevan",
+    "country": "AM",
+    "latitude": 40.1783851,
+    "longitude": 44.5111142,
+    "nameLabels": {
+      "en": "Sherep Restaurant",
+      "hy": "Շերեփ ռեստորան",
+      "ru": "Ресторан Шереп"
     }
   }
 ]

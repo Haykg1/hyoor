@@ -29,6 +29,156 @@
         "hy": "Աբովյանի կենտրոնական պուրակ",
         "ru": "Центральный парк Абовяна"
       }
+    },
+    {
+      "id": "abovyan_st_john",
+      "sortOrder": 3,
+      "category": "church",
+      "city": "Abovyan",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.27583,
+      "longitude": 44.63139,
+      "nameLabels": {
+        "en": "Saint John the Baptist Church",
+        "hy": "Սուրբ Հովհաննես Մկրտիչ եկեղեցի",
+        "ru": "Церковь Святого Иоанна Крестителя"
+      }
+    },
+    {
+      "id": "abovyan_bust",
+      "sortOrder": 4,
+      "category": "landmark",
+      "city": "Abovyan",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.27389,
+      "longitude": 44.62556,
+      "nameLabels": {
+        "en": "Khachatur Abovyan Bust",
+        "hy": "Խաչատուր Աբովյանի կիսանդրի",
+        "ru": "Бюст Хачатура Абовяна"
+      }
+    },
+    {
+      "id": "abovyan_friendship_square",
+      "sortOrder": 5,
+      "category": "landmark",
+      "city": "Abovyan",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.2745,
+      "longitude": 44.6258,
+      "nameLabels": {
+        "en": "Friendship Square",
+        "hy": "Բարեկամության հրապարակ",
+        "ru": "Площадь Дружбы"
+      }
+    },
+    {
+      "id": "aramus_fortress",
+      "sortOrder": 6,
+      "category": "landmark",
+      "city": "Abovyan",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.2508,
+      "longitude": 44.6542,
+      "nameLabels": {
+        "en": "Aramus Fortress",
+        "hy": "Արամուսի ամրոց",
+        "ru": "Крепость Арамус"
+      }
+    },
+    {
+      "id": "ptghni_basilica",
+      "sortOrder": 7,
+      "category": "church",
+      "city": "Abovyan",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.2549664,
+      "longitude": 44.5840632,
+      "nameLabels": {
+        "en": "Ptghni Basilica",
+        "hy": "Պտղնիի բազիլիկ",
+        "ru": "Базилика Птгни"
+      }
+    },
+    {
+      "id": "akunk_church",
+      "sortOrder": 8,
+      "category": "church",
+      "city": "Abovyan",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.2669,
+      "longitude": 44.6583,
+      "nameLabels": {
+        "en": "Akunk Church",
+        "hy": "Ակունքի եկեղեցի",
+        "ru": "Церковь Акунка"
+      }
+    },
+    {
+      "id": "garni_temple",
+      "sortOrder": 9,
+      "category": "landmark",
+      "city": "Abovyan",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.1123415,
+      "longitude": 44.7302188,
+      "nameLabels": {
+        "en": "Garni Temple",
+        "hy": "Գառնիի տաճար",
+        "ru": "Храм Гарни"
+      }
+    },
+    {
+      "id": "geghard_monastery",
+      "sortOrder": 10,
+      "category": "church",
+      "city": "Abovyan",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.140425,
+      "longitude": 44.818511,
+      "nameLabels": {
+        "en": "Geghard Monastery",
+        "hy": "Գեղարդի վանք",
+        "ru": "Монастырь Гегард"
+      }
+    },
+    {
+      "id": "symphony_of_stones",
+      "sortOrder": 11,
+      "category": "viewpoint",
+      "city": "Abovyan",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.11944,
+      "longitude": 44.72306,
+      "nameLabels": {
+        "en": "Symphony of Stones",
+        "hy": "Քարերի սիմֆոնիա",
+        "ru": "Симфония камней"
+      }
+    },
+    {
+      "id": "charents_arch",
+      "sortOrder": 12,
+      "category": "viewpoint",
+      "city": "Abovyan",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.1886,
+      "longitude": 44.5778,
+      "nameLabels": {
+        "en": "Charents Arch",
+        "hy": "Չարենցի կամար",
+        "ru": "Арка Чаренца"
+      }
     }
   ],
   "Vagharshapat": [
@@ -60,6 +210,126 @@
         "en": "Zvartnots Cathedral",
         "hy": "Զվարթնոց",
         "ru": "Храм Звартноц"
+      }
+    },
+    {
+      "id": "saint_hripsime",
+      "sortOrder": 3,
+      "category": "church",
+      "city": "Vagharshapat",
+      "region": "Armavir",
+      "country": "AM",
+      "latitude": 40.167,
+      "longitude": 44.3095,
+      "nameLabels": {
+        "en": "Saint Hripsime Church",
+        "hy": "Սուրբ Հռիփսիմե եկեղեցի",
+        "ru": "Церковь Святой Рипсиме"
+      }
+    },
+    {
+      "id": "saint_gayane",
+      "sortOrder": 4,
+      "category": "church",
+      "city": "Vagharshapat",
+      "region": "Armavir",
+      "country": "AM",
+      "latitude": 40.1575203,
+      "longitude": 44.291849,
+      "nameLabels": {
+        "en": "Saint Gayane Church",
+        "hy": "Սուրբ Գայանե եկեղեցի",
+        "ru": "Церковь Святой Гаянэ"
+      }
+    },
+    {
+      "id": "saint_shoghakat",
+      "sortOrder": 5,
+      "category": "church",
+      "city": "Vagharshapat",
+      "region": "Armavir",
+      "country": "AM",
+      "latitude": 40.1636,
+      "longitude": 44.2986,
+      "nameLabels": {
+        "en": "Saint Shoghakat Church",
+        "hy": "Սուրբ Շողակաթ եկեղեցի",
+        "ru": "Церковь Святой Шогакат"
+      }
+    },
+    {
+      "id": "gevorgian_seminary",
+      "sortOrder": 6,
+      "category": "landmark",
+      "city": "Vagharshapat",
+      "region": "Armavir",
+      "country": "AM",
+      "latitude": 40.162,
+      "longitude": 44.2915,
+      "nameLabels": {
+        "en": "Gevorgian Theological Seminary",
+        "hy": "Գևորգյան հոգևոր ճեմարան",
+        "ru": "Геворгянская духовная семинария"
+      }
+    },
+    {
+      "id": "etchmiadzin_ethnographic_museum",
+      "sortOrder": 7,
+      "category": "museum",
+      "city": "Vagharshapat",
+      "region": "Armavir",
+      "country": "AM",
+      "latitude": 40.1616,
+      "longitude": 44.2913,
+      "nameLabels": {
+        "en": "Etchmiadzin Historical and Ethnographic Museum",
+        "hy": "Էջմիածնի պատմաազգագրական թանգարան",
+        "ru": "Историко-этнографический музей Эчмиадзина"
+      }
+    },
+    {
+      "id": "manoogian_treasury",
+      "sortOrder": 8,
+      "category": "museum",
+      "city": "Vagharshapat",
+      "region": "Armavir",
+      "country": "AM",
+      "latitude": 40.1618,
+      "longitude": 44.2916,
+      "nameLabels": {
+        "en": "Alex and Marie Manoogian Treasury Museum",
+        "hy": "Ալեքս և Մարի Մանուկյան գանձատուն",
+        "ru": "Сокровищница Манукянов"
+      }
+    },
+    {
+      "id": "vagharshapat_komitas_park",
+      "sortOrder": 9,
+      "category": "park",
+      "city": "Vagharshapat",
+      "region": "Armavir",
+      "country": "AM",
+      "latitude": 40.1595,
+      "longitude": 44.2885,
+      "nameLabels": {
+        "en": "Komitas Park",
+        "hy": "Կոմիտասի զբոսայգի",
+        "ru": "Парк Комитаса"
+      }
+    },
+    {
+      "id": "vagharshapat_market",
+      "sortOrder": 10,
+      "category": "market",
+      "city": "Vagharshapat",
+      "region": "Armavir",
+      "country": "AM",
+      "latitude": 40.1655,
+      "longitude": 44.294,
+      "nameLabels": {
+        "en": "Vagharshapat Central Market",
+        "hy": "Վաղարշապատի շուկա",
+        "ru": "Рынок Вагаршапата"
       }
     }
   ],
@@ -93,6 +363,246 @@
         "hy": "Սև բերդ",
         "ru": "Чёрная крепость"
       }
+    },
+    {
+      "id": "gyumri_dzitoghtsyan",
+      "sortOrder": 3,
+      "category": "museum",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.7876,
+      "longitude": 43.8479,
+      "nameLabels": {
+        "en": "Dzitoghtsyan Museum of Social Life and National Architecture",
+        "hy": "Ձիթողցյանների ազգային ճարտարապետության և քաղաքային կենցաղի թանգարան",
+        "ru": "Музей Дзитохцянов"
+      }
+    },
+    {
+      "id": "gyumri_aslamazyan",
+      "sortOrder": 4,
+      "category": "museum",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.7862459,
+      "longitude": 43.8409543,
+      "nameLabels": {
+        "en": "Aslamazyan Sisters Gallery",
+        "hy": "Մարիամ և Երանուհի Ասլամազյան քույրերի պատկերասրահ",
+        "ru": "Галерея сестёр Асламазян"
+      }
+    },
+    {
+      "id": "gyumri_holy_saviour",
+      "sortOrder": 5,
+      "category": "church",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.7885,
+      "longitude": 43.8472,
+      "nameLabels": {
+        "en": "Holy Saviour's Church",
+        "hy": "Սուրբ Ամենափրկիչ եկեղեցի",
+        "ru": "Церковь Святого Спасителя"
+      }
+    },
+    {
+      "id": "gyumri_yot_verk",
+      "sortOrder": 6,
+      "category": "church",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.7902,
+      "longitude": 43.8478,
+      "nameLabels": {
+        "en": "Seven Wounds Church",
+        "hy": "Յոթ Վերք Սուրբ Աստվածածին եկեղեցի",
+        "ru": "Церковь Семи Ран"
+      }
+    },
+    {
+      "id": "cherkezi_dzor",
+      "sortOrder": 7,
+      "category": "restaurant",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.7978503,
+      "longitude": 43.8277107,
+      "nameLabels": {
+        "en": "Cherkezi Dzor Fish Restaurant",
+        "hy": "Չերքեզի ձոր",
+        "ru": "Черкези Дзор"
+      }
+    },
+    {
+      "id": "aregak_bakery",
+      "sortOrder": 8,
+      "category": "restaurant",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.7868,
+      "longitude": 43.8438,
+      "nameLabels": {
+        "en": "Aregak Bakery",
+        "hy": "Արեգակ հացատուն",
+        "ru": "Пекарня Арегак"
+      }
+    },
+    {
+      "id": "gyumri_central_park",
+      "sortOrder": 9,
+      "category": "park",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.7843551,
+      "longitude": 43.835426,
+      "nameLabels": {
+        "en": "Gyumri Central Park",
+        "hy": "Գյումրու կենտրոնական զբոսայգի",
+        "ru": "Центральный парк Гюмри"
+      }
+    },
+    {
+      "id": "gyumri_shuka",
+      "sortOrder": 10,
+      "category": "market",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.7865,
+      "longitude": 43.846,
+      "nameLabels": {
+        "en": "Gyumri Shuka",
+        "hy": "Գյումրու շուկա",
+        "ru": "Рынок Гюмри"
+      }
+    },
+    {
+      "id": "gyumri_mother_armenia",
+      "sortOrder": 11,
+      "category": "viewpoint",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.7995,
+      "longitude": 43.836,
+      "nameLabels": {
+        "en": "Mother Armenia",
+        "hy": "Մայր Հայաստան",
+        "ru": "Мать-Армения"
+      }
+    },
+    {
+      "id": "kumayri_historic_district",
+      "sortOrder": 12,
+      "category": "landmark",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.7875,
+      "longitude": 43.8448,
+      "nameLabels": {
+        "en": "Kumayri Historic District",
+        "hy": "Կումայրի պատմական թաղամաս",
+        "ru": "Исторический район Кумайри"
+      }
+    },
+    {
+      "id": "gyumri_ajemyan_theatre",
+      "sortOrder": 13,
+      "category": "landmark",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.789,
+      "longitude": 43.8485,
+      "nameLabels": {
+        "en": "Vardan Ajemyan Drama Theatre",
+        "hy": "Վարդան Աճեմյանի անվան դրամատիկական թատրոն",
+        "ru": "Драматический театр им. Вардана Аджемяна"
+      }
+    },
+    {
+      "id": "marmashen_monastery",
+      "sortOrder": 14,
+      "category": "church",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.842689,
+      "longitude": 43.755781,
+      "nameLabels": {
+        "en": "Marmashen Monastery",
+        "hy": "Մարմաշենի վանք",
+        "ru": "Монастырь Мармашен"
+      }
+    },
+    {
+      "id": "harichavank",
+      "sortOrder": 15,
+      "category": "church",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.606464,
+      "longitude": 43.999422,
+      "nameLabels": {
+        "en": "Harichavank Monastery",
+        "hy": "Հառիճավանք",
+        "ru": "Монастырь Аричаванк"
+      }
+    },
+    {
+      "id": "lmbatavank",
+      "sortOrder": 16,
+      "category": "church",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.60822,
+      "longitude": 43.95776,
+      "nameLabels": {
+        "en": "Lmbatavank",
+        "hy": "Լմբատավանք",
+        "ru": "Лмбатаванк"
+      }
+    },
+    {
+      "id": "horom_citadel",
+      "sortOrder": 17,
+      "category": "landmark",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.6592,
+      "longitude": 43.9775,
+      "nameLabels": {
+        "en": "Horom Citadel",
+        "hy": "Հոռոմի ցիկլոպյան ամրոց",
+        "ru": "Цитадель Хором"
+      }
+    },
+    {
+      "id": "artik_marine_church",
+      "sortOrder": 18,
+      "category": "church",
+      "city": "Gyumri",
+      "region": "Shirak",
+      "country": "AM",
+      "latitude": 40.6194,
+      "longitude": 43.9756,
+      "nameLabels": {
+        "en": "Saint Marine Church, Artik",
+        "hy": "Սուրբ Մարինե եկեղեցի, Արթիկ",
+        "ru": "Церковь Святой Марине, Артик"
+      }
     }
   ],
   "Dilijan": [
@@ -125,6 +635,216 @@
         "hy": "Դիլիջանի ազգային պուրակ",
         "ru": "Дилижанский национальный парк"
       }
+    },
+    {
+      "id": "sharambeyan_street",
+      "sortOrder": 3,
+      "category": "landmark",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7396523,
+      "longitude": 44.8688812,
+      "nameLabels": {
+        "en": "Sharambeyan Street",
+        "hy": "Շարամբեյան փողոց",
+        "ru": "Улица Шарамбеян"
+      }
+    },
+    {
+      "id": "dilijan_folk_art_museum",
+      "sortOrder": 4,
+      "category": "museum",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7405,
+      "longitude": 44.8685,
+      "nameLabels": {
+        "en": "Dilijan Museum of Folk Art",
+        "hy": "Դիլիջանի ժողովրդական արվեստի թանգարան",
+        "ru": "Музей народного искусства Дилижана"
+      }
+    },
+    {
+      "id": "dilijan_lore_museum",
+      "sortOrder": 5,
+      "category": "museum",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7408,
+      "longitude": 44.8615,
+      "nameLabels": {
+        "en": "Dilijan Local Lore Museum and Art Gallery",
+        "hy": "Դիլիջանի երկրագիտական թանգարան և պատկերասրահ",
+        "ru": "Краеведческий музей и художественная галерея Дилижана"
+      }
+    },
+    {
+      "id": "mimino_monument",
+      "sortOrder": 6,
+      "category": "landmark",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7408,
+      "longitude": 44.8675,
+      "nameLabels": {
+        "en": "Mimino Monument",
+        "hy": "«Միմինո» հուշարձան",
+        "ru": "Памятник героям «Мимино»"
+      }
+    },
+    {
+      "id": "haghartsin",
+      "sortOrder": 7,
+      "category": "church",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.76849,
+      "longitude": 44.89088,
+      "nameLabels": {
+        "en": "Haghartsin Monastery",
+        "hy": "Հաղարծին վանք",
+        "ru": "Монастырь Агарцин"
+      }
+    },
+    {
+      "id": "goshavank",
+      "sortOrder": 8,
+      "category": "church",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.729878,
+      "longitude": 44.997725,
+      "nameLabels": {
+        "en": "Goshavank Monastery",
+        "hy": "Գոշավանք",
+        "ru": "Гошаванк"
+      }
+    },
+    {
+      "id": "parz_lake",
+      "sortOrder": 9,
+      "category": "viewpoint",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7512184,
+      "longitude": 44.9596598,
+      "nameLabels": {
+        "en": "Parz Lake",
+        "hy": "Պարզ լիճ",
+        "ru": "Озеро Парз"
+      }
+    },
+    {
+      "id": "jukhtak_vank",
+      "sortOrder": 10,
+      "category": "church",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7576414,
+      "longitude": 44.8028509,
+      "nameLabels": {
+        "en": "Jukhtak Vank",
+        "hy": "Ջուխտակ վանք",
+        "ru": "Джухтак ванк"
+      }
+    },
+    {
+      "id": "matosavank",
+      "sortOrder": 11,
+      "category": "church",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7501181,
+      "longitude": 44.8039021,
+      "nameLabels": {
+        "en": "Matosavank",
+        "hy": "Մատոսավանք",
+        "ru": "Матосаванк"
+      }
+    },
+    {
+      "id": "dilijan_amphitheater",
+      "sortOrder": 12,
+      "category": "landmark",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7415,
+      "longitude": 44.8655,
+      "nameLabels": {
+        "en": "Dilijan Amphitheater",
+        "hy": "Դիլիջանի ամֆիթատրոն",
+        "ru": "Амфитеатр Дилижана"
+      }
+    },
+    {
+      "id": "kchuch",
+      "sortOrder": 13,
+      "category": "restaurant",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7410925,
+      "longitude": 44.8690791,
+      "nameLabels": {
+        "en": "Kchuch Restaurant",
+        "hy": "Կճուճ ռեստորան",
+        "ru": "Ресторан Кчуч"
+      }
+    },
+    {
+      "id": "aghavnavank",
+      "sortOrder": 14,
+      "category": "church",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7224234,
+      "longitude": 45.0924224,
+      "nameLabels": {
+        "en": "Aghavnavank",
+        "hy": "Աղավնավանք",
+        "ru": "Ахавнаванк"
+      }
+    },
+    {
+      "id": "dilijan_fantastic_view",
+      "sortOrder": 15,
+      "category": "viewpoint",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7388,
+      "longitude": 44.87457,
+      "nameLabels": {
+        "en": "Fantastic View Overlook",
+        "hy": "Հրաշալի տեսարանի դիտակետ",
+        "ru": "Смотровая площадка Fantastic View"
+      }
+    },
+    {
+      "id": "tufenkian_old_dilijan",
+      "sortOrder": 16,
+      "category": "restaurant",
+      "city": "Dilijan",
+      "region": "Tavush",
+      "country": "AM",
+      "latitude": 40.7398,
+      "longitude": 44.8682,
+      "nameLabels": {
+        "en": "Tufenkian Old Dilijan Complex",
+        "hy": "Թուֆենկյան Հին Դիլիջան",
+        "ru": "Туфенкян Старый Дилижан"
+      }
     }
   ],
   "Sevan": [
@@ -150,12 +870,177 @@
       "city": "Sevan",
       "region": "Gegharkunik",
       "country": "AM",
-      "latitude": 40.5625,
-      "longitude": 45.0128,
+      "latitude": 40.56392,
+      "longitude": 45.01081,
       "nameLabels": {
         "en": "Sevanavank Monastery",
         "hy": "Սևանավանք",
         "ru": "Севанаванк"
+      }
+    },
+    {
+      "id": "sevan_writers_house",
+      "sortOrder": 3,
+      "category": "landmark",
+      "city": "Sevan",
+      "region": "Gegharkunik",
+      "country": "AM",
+      "latitude": 40.558,
+      "longitude": 45.015,
+      "nameLabels": {
+        "en": "Sevan Writers' House",
+        "hy": "Գրողների ստեղծագործական տուն",
+        "ru": "Дом творчества писателей"
+      }
+    },
+    {
+      "id": "sevan_public_beach",
+      "sortOrder": 4,
+      "category": "viewpoint",
+      "city": "Sevan",
+      "region": "Gegharkunik",
+      "country": "AM",
+      "latitude": 40.545,
+      "longitude": 45.005,
+      "nameLabels": {
+        "en": "Sevan N1 Public Beach",
+        "hy": "Սևանի հանրային լողափ",
+        "ru": "Общественный пляж Севана"
+      }
+    },
+    {
+      "id": "sevan_astvatsatsin",
+      "sortOrder": 5,
+      "category": "church",
+      "city": "Sevan",
+      "region": "Gegharkunik",
+      "country": "AM",
+      "latitude": 40.5485,
+      "longitude": 44.951,
+      "nameLabels": {
+        "en": "Holy Mother of God Church, Sevan",
+        "hy": "Սուրբ Աստվածածին եկեղեցի",
+        "ru": "Церковь Святой Богородицы"
+      }
+    },
+    {
+      "id": "sevan_botanical_garden",
+      "sortOrder": 6,
+      "category": "park",
+      "city": "Sevan",
+      "region": "Gegharkunik",
+      "country": "AM",
+      "latitude": 40.55,
+      "longitude": 44.96,
+      "nameLabels": {
+        "en": "Sevan Botanical Garden",
+        "hy": "Սևանի բուսաբանական այգի",
+        "ru": "Севанский ботанический сад"
+      }
+    },
+    {
+      "id": "hayravank",
+      "sortOrder": 7,
+      "category": "church",
+      "city": "Sevan",
+      "region": "Gegharkunik",
+      "country": "AM",
+      "latitude": 40.432728,
+      "longitude": 45.107869,
+      "nameLabels": {
+        "en": "Hayravank Monastery",
+        "hy": "Հայրավանք",
+        "ru": "Айраванк"
+      }
+    },
+    {
+      "id": "noratus_cemetery",
+      "sortOrder": 8,
+      "category": "landmark",
+      "city": "Sevan",
+      "region": "Gegharkunik",
+      "country": "AM",
+      "latitude": 40.3742913,
+      "longitude": 45.1817504,
+      "nameLabels": {
+        "en": "Noratus Cemetery",
+        "hy": "Նորատուսի գերեզմանոց",
+        "ru": "Кладбище Норатус"
+      }
+    },
+    {
+      "id": "vaskenian_academy",
+      "sortOrder": 9,
+      "category": "landmark",
+      "city": "Sevan",
+      "region": "Gegharkunik",
+      "country": "AM",
+      "latitude": 40.5615,
+      "longitude": 45.0085,
+      "nameLabels": {
+        "en": "Vaskenian Theological Academy",
+        "hy": "Վազգենյան հոգևոր ճեմարան",
+        "ru": "Вазгенянская духовная семинария"
+      }
+    },
+    {
+      "id": "berdkunk_fortress",
+      "sortOrder": 10,
+      "category": "landmark",
+      "city": "Sevan",
+      "region": "Gegharkunik",
+      "country": "AM",
+      "latitude": 40.4450144,
+      "longitude": 45.1116395,
+      "nameLabels": {
+        "en": "Berdkunk Fortress",
+        "hy": "Բերդկունքի ամրոց",
+        "ru": "Крепость Бердкунк"
+      }
+    },
+    {
+      "id": "lchashen",
+      "sortOrder": 11,
+      "category": "landmark",
+      "city": "Sevan",
+      "region": "Gegharkunik",
+      "country": "AM",
+      "latitude": 40.5183509,
+      "longitude": 44.9333111,
+      "nameLabels": {
+        "en": "Lchashen Archaeological Site",
+        "hy": "Լճաշեն",
+        "ru": "Лчашен"
+      }
+    },
+    {
+      "id": "shorzha_beach",
+      "sortOrder": 12,
+      "category": "viewpoint",
+      "city": "Sevan",
+      "region": "Gegharkunik",
+      "country": "AM",
+      "latitude": 40.5,
+      "longitude": 45.271,
+      "nameLabels": {
+        "en": "Shorzha Beach",
+        "hy": "Շորժայի լողափ",
+        "ru": "Пляж Шоржа"
+      }
+    },
+    {
+      "id": "artanish_beach",
+      "sortOrder": 13,
+      "category": "viewpoint",
+      "city": "Sevan",
+      "region": "Gegharkunik",
+      "country": "AM",
+      "latitude": 40.473,
+      "longitude": 45.367,
+      "nameLabels": {
+        "en": "Artanish Beach",
+        "hy": "Արտանիշի լողափ",
+        "ru": "Пляж Артаниш"
       }
     }
   ],
@@ -174,6 +1059,231 @@
         "hy": "Գորիսի կենտրոն",
         "ru": "Центр Гориса"
       }
+    },
+    {
+      "id": "goris_st_gregory",
+      "sortOrder": 2,
+      "category": "church",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.5105,
+      "longitude": 46.3385,
+      "nameLabels": {
+        "en": "Saint Gregory the Illuminator Church of Goris",
+        "hy": "Գորիսի Սուրբ Գրիգոր Լուսավորիչ եկեղեցի",
+        "ru": "Церковь Святого Григория Просветителя в Горисе"
+      }
+    },
+    {
+      "id": "goris_cave_dwellings",
+      "sortOrder": 3,
+      "category": "landmark",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.512,
+      "longitude": 46.345,
+      "nameLabels": {
+        "en": "Medieval Goris Cave Dwellings",
+        "hy": "Գորիսի քարայրեր (Հին Կորես)",
+        "ru": "Пещерные жилища Гориса"
+      }
+    },
+    {
+      "id": "goris_rock_forest",
+      "sortOrder": 4,
+      "category": "viewpoint",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.512,
+      "longitude": 46.347,
+      "nameLabels": {
+        "en": "Goris Rock Forest",
+        "hy": "Գորիսի քարե անտառ",
+        "ru": "Каменный лес Гориса"
+      }
+    },
+    {
+      "id": "bakunts_house_museum",
+      "sortOrder": 5,
+      "category": "museum",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.5112294,
+      "longitude": 46.3407972,
+      "nameLabels": {
+        "en": "Axel Bakunts House-Museum",
+        "hy": "Ակսել Բակունցի տուն-թանգարան",
+        "ru": "Дом-музей Акселя Бакунца"
+      }
+    },
+    {
+      "id": "goris_lore_museum",
+      "sortOrder": 6,
+      "category": "museum",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.5095,
+      "longitude": 46.339,
+      "nameLabels": {
+        "en": "Goris Local Lore Museum",
+        "hy": "Գորիսի երկրագիտական թանգարան",
+        "ru": "Краеведческий музей Гориса"
+      }
+    },
+    {
+      "id": "mirhav_restaurant",
+      "sortOrder": 7,
+      "category": "restaurant",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.5085,
+      "longitude": 46.3375,
+      "nameLabels": {
+        "en": "Mirhav Hotel Restaurant",
+        "hy": "Միրհավ ռեստորան",
+        "ru": "Ресторан Мирхав"
+      }
+    },
+    {
+      "id": "khoreayi_dzor",
+      "sortOrder": 8,
+      "category": "restaurant",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.51,
+      "longitude": 46.335,
+      "nameLabels": {
+        "en": "Khoreayi Dzor Restaurant",
+        "hy": "Խորեայի ձոր",
+        "ru": "Ресторан Хореайи Дзор"
+      }
+    },
+    {
+      "id": "goris_theatre",
+      "sortOrder": 9,
+      "category": "landmark",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.5092,
+      "longitude": 46.3385,
+      "nameLabels": {
+        "en": "Vagharsh Vagharshyan Drama Theatre",
+        "hy": "Վաղարշ Վաղարշյանի անվան թատրոն",
+        "ru": "Театр им. Вагарша Вагаршяна"
+      }
+    },
+    {
+      "id": "tea_museum_1870",
+      "sortOrder": 10,
+      "category": "museum",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.5088,
+      "longitude": 46.3372,
+      "nameLabels": {
+        "en": "Tea Museum 1870",
+        "hy": "Թեյի թանգարան 1870",
+        "ru": "Музей чая 1870"
+      }
+    },
+    {
+      "id": "khndzoresk",
+      "sortOrder": 11,
+      "category": "landmark",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.5015387,
+      "longitude": 46.4338305,
+      "nameLabels": {
+        "en": "Old Khndzoresk",
+        "hy": "Հին Խնձորեսկ",
+        "ru": "Старый Хндзореск"
+      }
+    },
+    {
+      "id": "khndzoresk_bridge",
+      "sortOrder": 12,
+      "category": "viewpoint",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.5007473,
+      "longitude": 46.4329817,
+      "nameLabels": {
+        "en": "Khndzoresk Swinging Bridge",
+        "hy": "Խնձորեսկի ճոճվող կամուրջ",
+        "ru": "Качающийся мост Хндзореска"
+      }
+    },
+    {
+      "id": "karahunj",
+      "sortOrder": 13,
+      "category": "landmark",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.47917,
+      "longitude": 46.35889,
+      "nameLabels": {
+        "en": "Karahunj (Zorats Karer)",
+        "hy": "Քարահունջ (Զորաց քարեր)",
+        "ru": "Караундж (Зорац-Карер)"
+      }
+    },
+    {
+      "id": "tatev_monastery",
+      "sortOrder": 14,
+      "category": "church",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.3794315,
+      "longitude": 46.2501314,
+      "nameLabels": {
+        "en": "Tatev Monastery",
+        "hy": "Տաթևի վանք",
+        "ru": "Монастырь Татев"
+      }
+    },
+    {
+      "id": "wings_of_tatev",
+      "sortOrder": 15,
+      "category": "viewpoint",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.437,
+      "longitude": 46.3595,
+      "nameLabels": {
+        "en": "Wings of Tatev",
+        "hy": "ՏաԹևեր ճոպանուղի",
+        "ru": "Крылья Татева"
+      }
+    },
+    {
+      "id": "vorotnavank",
+      "sortOrder": 16,
+      "category": "church",
+      "city": "Goris",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.4961941,
+      "longitude": 46.1211567,
+      "nameLabels": {
+        "en": "Vorotnavank",
+        "hy": "Որոտնավանք",
+        "ru": "Воротнаванк"
+      }
     }
   ],
   "Kapan": [
@@ -190,6 +1300,201 @@
         "en": "Kapan Town Center",
         "hy": "Կապանի կենտրոն",
         "ru": "Центр Капана"
+      }
+    },
+    {
+      "id": "vahanavank",
+      "sortOrder": 2,
+      "category": "church",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.2242158,
+      "longitude": 46.3265288,
+      "nameLabels": {
+        "en": "Vahanavank Monastery",
+        "hy": "Վահանավանք",
+        "ru": "Ваанаванк"
+      }
+    },
+    {
+      "id": "kapan_mashtots_church",
+      "sortOrder": 3,
+      "category": "church",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.2057655,
+      "longitude": 46.4051993,
+      "nameLabels": {
+        "en": "Mesrop Mashtots Church, Kapan",
+        "hy": "Մեսրոպ Մաշտոց եկեղեցի",
+        "ru": "Церковь Месропа Маштоца"
+      }
+    },
+    {
+      "id": "kapan_history_museum",
+      "sortOrder": 4,
+      "category": "museum",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.207,
+      "longitude": 46.406,
+      "nameLabels": {
+        "en": "Kapan History Museum",
+        "hy": "Կապանի պատմության թանգարան",
+        "ru": "Исторический музей Капана"
+      }
+    },
+    {
+      "id": "kapan_greek_church",
+      "sortOrder": 5,
+      "category": "church",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.2015,
+      "longitude": 46.408,
+      "nameLabels": {
+        "en": "Kapan Greek Church",
+        "hy": "Կապանի հունական եկեղեցի",
+        "ru": "Греческая церковь Капана"
+      }
+    },
+    {
+      "id": "khustup_viewpoint",
+      "sortOrder": 6,
+      "category": "viewpoint",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.14194,
+      "longitude": 46.33028,
+      "nameLabels": {
+        "en": "Mount Khustup Viewpoint",
+        "hy": "Խուստուփ",
+        "ru": "Гора Хуступ"
+      }
+    },
+    {
+      "id": "kapan_market",
+      "sortOrder": 7,
+      "category": "market",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.2065,
+      "longitude": 46.407,
+      "nameLabels": {
+        "en": "Kapan Central Market",
+        "hy": "Կապանի շուկա",
+        "ru": "Рынок Капана"
+      }
+    },
+    {
+      "id": "kapan_square",
+      "sortOrder": 8,
+      "category": "landmark",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.207,
+      "longitude": 46.4055,
+      "nameLabels": {
+        "en": "Kapan Central Square",
+        "hy": "Կապանի կենտրոնական հրապարակ",
+        "ru": "Центральная площадь Капана"
+      }
+    },
+    {
+      "id": "kapan_halidzor_fortress",
+      "sortOrder": 9,
+      "category": "landmark",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.206,
+      "longitude": 46.39,
+      "nameLabels": {
+        "en": "Halidzor Fortress",
+        "hy": "Հալիձորի բերդ",
+        "ru": "Крепость Алидзор"
+      }
+    },
+    {
+      "id": "baghaberd",
+      "sortOrder": 10,
+      "category": "landmark",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.21667,
+      "longitude": 46.27778,
+      "nameLabels": {
+        "en": "Baghaberd Fortress",
+        "hy": "Բաղաբերդ",
+        "ru": "Крепость Багаберд"
+      }
+    },
+    {
+      "id": "vokhchi_promenade",
+      "sortOrder": 11,
+      "category": "park",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.2055,
+      "longitude": 46.4065,
+      "nameLabels": {
+        "en": "Vokhchi River Promenade",
+        "hy": "Ողջի գետի զբոսայգի",
+        "ru": "Набережная реки Вохчи"
+      }
+    },
+    {
+      "id": "kapan_nzhdeh_memorial",
+      "sortOrder": 12,
+      "category": "memorial",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.2078,
+      "longitude": 46.4052,
+      "nameLabels": {
+        "en": "Garegin Nzhdeh Memorial",
+        "hy": "Գարեգին Նժդեհի հուշարձան",
+        "ru": "Памятник Гарегину Нжде"
+      }
+    },
+    {
+      "id": "davit_bek_monument",
+      "sortOrder": 13,
+      "category": "memorial",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.211,
+      "longitude": 46.41,
+      "nameLabels": {
+        "en": "Davit Bek Monument",
+        "hy": "Դավիթ Բեկի հուշարձան",
+        "ru": "Памятник Давиду Беку"
+      }
+    },
+    {
+      "id": "kapan_sosi_grove",
+      "sortOrder": 14,
+      "category": "park",
+      "city": "Kapan",
+      "region": "Syunik",
+      "country": "AM",
+      "latitude": 39.203,
+      "longitude": 46.412,
+      "nameLabels": {
+        "en": "Sosi Grove",
+        "hy": "Սոսի պուրակ",
+        "ru": "Роща Соси"
       }
     }
   ],
@@ -208,6 +1513,276 @@
         "hy": "Վանաձորի կենտրոն",
         "ru": "Центр Ванадзора"
       }
+    },
+    {
+      "id": "vanadzor_fine_arts",
+      "sortOrder": 2,
+      "category": "museum",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.8070413,
+      "longitude": 44.4963521,
+      "nameLabels": {
+        "en": "Vanadzor Fine Arts Museum",
+        "hy": "Վանաձորի կերպարվեստի թանգարան",
+        "ru": "Ванадзорский музей изобразительных искусств"
+      }
+    },
+    {
+      "id": "lori_pambak_museum",
+      "sortOrder": 3,
+      "category": "museum",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.8055,
+      "longitude": 44.4905,
+      "nameLabels": {
+        "en": "Lori-Pambak Regional Museum",
+        "hy": "Լոռի-Փամբակի երկրագիտական թանգարան",
+        "ru": "Лори-Памбакский краеведческий музей"
+      }
+    },
+    {
+      "id": "zoryan_house_museum",
+      "sortOrder": 4,
+      "category": "museum",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.8064385,
+      "longitude": 44.4882376,
+      "nameLabels": {
+        "en": "Stepan Zoryan House-Museum",
+        "hy": "Ստեփան Զորյանի տուն-թանգարան",
+        "ru": "Дом-музей Степана Зоряна"
+      }
+    },
+    {
+      "id": "narek_cathedral",
+      "sortOrder": 5,
+      "category": "church",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.8015,
+      "longitude": 44.4935,
+      "nameLabels": {
+        "en": "Saint Gregory of Narek Cathedral",
+        "hy": "Սուրբ Գրիգոր Նարեկացի մայր տաճար",
+        "ru": "Собор Святого Григория Нарекаци"
+      }
+    },
+    {
+      "id": "vanadzor_astvatsatsin",
+      "sortOrder": 6,
+      "category": "church",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.812,
+      "longitude": 44.493,
+      "nameLabels": {
+        "en": "Church of the Holy Mother of God",
+        "hy": "Սուրբ Աստվածածին եկեղեցի",
+        "ru": "Церковь Святой Богородицы"
+      }
+    },
+    {
+      "id": "hayk_square",
+      "sortOrder": 7,
+      "category": "landmark",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.8114568,
+      "longitude": 44.4853122,
+      "nameLabels": {
+        "en": "Hayk Square",
+        "hy": "Հայքի հրապարակ",
+        "ru": "Площадь Айка"
+      }
+    },
+    {
+      "id": "vanadzor_botanical_garden",
+      "sortOrder": 8,
+      "category": "park",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.80105,
+      "longitude": 44.49375,
+      "nameLabels": {
+        "en": "Vanadzor Botanical Garden",
+        "hy": "Վանաձորի բուսաբանական այգի",
+        "ru": "Ванадзорский ботанический сад"
+      }
+    },
+    {
+      "id": "vanadzor_central_park",
+      "sortOrder": 9,
+      "category": "park",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.8105,
+      "longitude": 44.4865,
+      "nameLabels": {
+        "en": "Vanadzor Central Park",
+        "hy": "Վանաձորի կենտրոնական զբոսայգի",
+        "ru": "Центральный парк Ванадзора"
+      }
+    },
+    {
+      "id": "vanadzor_market",
+      "sortOrder": 10,
+      "category": "market",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.808,
+      "longitude": 44.497,
+      "nameLabels": {
+        "en": "Vanadzor Market",
+        "hy": "Վանաձորի շուկա",
+        "ru": "Рынок Ванадзора"
+      }
+    },
+    {
+      "id": "aznavour_house_of_culture",
+      "sortOrder": 11,
+      "category": "landmark",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.8075,
+      "longitude": 44.493,
+      "nameLabels": {
+        "en": "Charles Aznavour House of Culture",
+        "hy": "Շառլ Ազնավուրի մշակույթի տուն",
+        "ru": "Дом культуры Шарля Азнавура"
+      }
+    },
+    {
+      "id": "alphabet_park",
+      "sortOrder": 12,
+      "category": "landmark",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.495,
+      "longitude": 44.3783,
+      "nameLabels": {
+        "en": "Armenian Alphabet Park",
+        "hy": "Հայոց այբուբենի պուրակ",
+        "ru": "Парк армянского алфавита"
+      }
+    },
+    {
+      "id": "sanahin",
+      "sortOrder": 13,
+      "category": "church",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 41.087146,
+      "longitude": 44.666269,
+      "nameLabels": {
+        "en": "Sanahin Monastery",
+        "hy": "Սանահին վանք",
+        "ru": "Монастырь Санаин"
+      }
+    },
+    {
+      "id": "haghpat",
+      "sortOrder": 14,
+      "category": "church",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 41.0937024,
+      "longitude": 44.7117719,
+      "nameLabels": {
+        "en": "Haghpat Monastery",
+        "hy": "Հաղպատավանք",
+        "ru": "Монастырь Ахпат"
+      }
+    },
+    {
+      "id": "odzun_church",
+      "sortOrder": 15,
+      "category": "church",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 41.05085,
+      "longitude": 44.616416,
+      "nameLabels": {
+        "en": "Odzun Church",
+        "hy": "Օձունի եկեղեցի",
+        "ru": "Одзунская церковь"
+      }
+    },
+    {
+      "id": "kobayr",
+      "sortOrder": 16,
+      "category": "church",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 41.0051151,
+      "longitude": 44.6348798,
+      "nameLabels": {
+        "en": "Kobayr Monastery",
+        "hy": "Քոբայր վանք",
+        "ru": "Монастырь Кобайр"
+      }
+    },
+    {
+      "id": "lori_berd",
+      "sortOrder": 17,
+      "category": "landmark",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 41.0022026,
+      "longitude": 44.4306767,
+      "nameLabels": {
+        "en": "Lori Berd",
+        "hy": "Լոռի Բերդ",
+        "ru": "Лори Берд"
+      }
+    },
+    {
+      "id": "pushkin_pass",
+      "sortOrder": 18,
+      "category": "viewpoint",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.9107079,
+      "longitude": 44.4319955,
+      "nameLabels": {
+        "en": "Pushkin Pass",
+        "hy": "Պուշկինի լեռնանցք",
+        "ru": "Перевал Пушкина"
+      }
+    },
+    {
+      "id": "stepanavan_dendropark",
+      "sortOrder": 19,
+      "category": "park",
+      "city": "Vanadzor",
+      "region": "Lori",
+      "country": "AM",
+      "latitude": 40.937425,
+      "longitude": 44.4800556,
+      "nameLabels": {
+        "en": "Stepanavan Dendropark",
+        "hy": "Ստեփանավանի դենդրոպարկ",
+        "ru": "Дендропарк Степанавана"
+      }
     }
   ],
   "Tsakhkadzor": [
@@ -222,8 +1797,128 @@
       "longitude": 44.7201,
       "nameLabels": {
         "en": "Tsaghkadzor Ski Resort",
-        "hy": "Ծաղկաձորի լեռնային օդանավակայան",
+        "hy": "Ծաղկաձորի լեռնադահուկային հանգստավայր",
         "ru": "Горнолыжный курорт Цахкадзор"
+      }
+    },
+    {
+      "id": "kecharis",
+      "sortOrder": 2,
+      "category": "church",
+      "city": "Tsaghkadzor",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.532358,
+      "longitude": 44.719644,
+      "nameLabels": {
+        "en": "Kecharis Monastery",
+        "hy": "Կեչառիս վանք",
+        "ru": "Монастырь Кечарис"
+      }
+    },
+    {
+      "id": "orbeli_museum",
+      "sortOrder": 3,
+      "category": "museum",
+      "city": "Tsaghkadzor",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.5325,
+      "longitude": 44.7185,
+      "nameLabels": {
+        "en": "Orbeli Brothers House-Museum",
+        "hy": "Օրբելի եղբայրների տուն-թանգարան",
+        "ru": "Дом-музей братьев Орбели"
+      }
+    },
+    {
+      "id": "tsaghkadzor_ropeway",
+      "sortOrder": 4,
+      "category": "viewpoint",
+      "city": "Tsaghkadzor",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.5315,
+      "longitude": 44.712,
+      "nameLabels": {
+        "en": "Tsaghkadzor Ropeway",
+        "hy": "Ծաղկաձորի ճոպանուղի",
+        "ru": "Канатная дорога Цахкадзора"
+      }
+    },
+    {
+      "id": "teghenis_summit",
+      "sortOrder": 5,
+      "category": "viewpoint",
+      "city": "Tsaghkadzor",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.548,
+      "longitude": 44.695,
+      "nameLabels": {
+        "en": "Mount Teghenis Viewpoint",
+        "hy": "Թեղենիս",
+        "ru": "Гора Тегенис"
+      }
+    },
+    {
+      "id": "royale_tsaghkadzor",
+      "sortOrder": 6,
+      "category": "landmark",
+      "city": "Tsaghkadzor",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.5295,
+      "longitude": 44.7205,
+      "nameLabels": {
+        "en": "Royale Entertainment Center",
+        "hy": "Royale զվարճանքի կենտրոն",
+        "ru": "Развлекательный центр Royale"
+      }
+    },
+    {
+      "id": "bjni_fortress",
+      "sortOrder": 7,
+      "category": "landmark",
+      "city": "Tsaghkadzor",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.4607761,
+      "longitude": 44.654187,
+      "nameLabels": {
+        "en": "Bjni Fortress",
+        "hy": "Բջնի բերդ",
+        "ru": "Крепость Бжни"
+      }
+    },
+    {
+      "id": "bjni_church",
+      "sortOrder": 8,
+      "category": "church",
+      "city": "Tsaghkadzor",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.4575,
+      "longitude": 44.6478,
+      "nameLabels": {
+        "en": "Bjni Holy Mother of God Church",
+        "hy": "Բջնիի Սուրբ Աստվածածին եկեղեցի",
+        "ru": "Церковь Святой Богородицы в Бжни"
+      }
+    },
+    {
+      "id": "hrazdan_gorge",
+      "sortOrder": 9,
+      "category": "viewpoint",
+      "city": "Tsaghkadzor",
+      "region": "Kotayk",
+      "country": "AM",
+      "latitude": 40.528,
+      "longitude": 44.755,
+      "nameLabels": {
+        "en": "Hrazdan Gorge",
+        "hy": "Հրազդանի կիրճ",
+        "ru": "Ущелье Раздан"
       }
     }
   ]

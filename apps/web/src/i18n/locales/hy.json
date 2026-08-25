@@ -1029,7 +1029,10 @@
         "museum": "Թանգարան",
         "park": "Պուրակ",
         "market": "Շուկա",
-        "memorial": "Հուշարձան"
+        "memorial": "Հուշարձան",
+        "church": "Եկեղեցի",
+        "viewpoint": "Դիտակետ",
+        "restaurant": "Ռեստորան"
       },
       "place_searching": "Որոնում…",
       "place_no_results": "Վայրեր չեն գտնվել",

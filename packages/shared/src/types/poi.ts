@@ -1,5 +1,18 @@
 export const MAX_FEATURED_POIS = 5;
 
+export const POI_DESTINATION_CATEGORIES = [
+  'landmark',
+  'museum',
+  'park',
+  'market',
+  'memorial',
+  'church',
+  'viewpoint',
+  'restaurant',
+] as const;
+
+export type PoiDestinationCategory = (typeof POI_DESTINATION_CATEGORIES)[number];
+
 export interface PoiNameLabels {
   en: string;
   hy: string;

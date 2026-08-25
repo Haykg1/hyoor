@@ -11,4 +11,5 @@ export type {
   PropertyFeaturedPoiView,
 } from '../types/poi';
 
-export { MAX_FEATURED_POIS } from '../types/poi';
+export { MAX_FEATURED_POIS, POI_DESTINATION_CATEGORIES } from '../types/poi';
+export type { PoiDestinationCategory } from '../types/poi';

@@ -4,8 +4,8 @@ describe('findDestinationPoiByQuery', () => {
   it('matches Republic Square in English', () => {
     const poi = findDestinationPoiByQuery('Republic Square');
     expect(poi?.id).toBe('republic_square');
-    expect(poi?.latitude).toBeCloseTo(40.1777, 3);
-    expect(poi?.longitude).toBeCloseTo(44.5128, 3);
+    expect(poi?.latitude).toBeCloseTo(40.17764, 4);
+    expect(poi?.longitude).toBeCloseTo(44.51139, 4);
   });
 
   it('matches Republic Square in Russian', () => {

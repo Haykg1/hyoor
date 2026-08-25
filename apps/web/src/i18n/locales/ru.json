@@ -1040,7 +1040,10 @@
         "museum": "Музей",
         "park": "Парк",
         "market": "Рынок",
-        "memorial": "Мемориал"
+        "memorial": "Мемориал",
+        "church": "Церковь",
+        "viewpoint": "Смотровая площадка",
+        "restaurant": "Ресторан"
       },
       "place_searching": "Поиск…",
       "place_no_results": "Места не найдены"

@@ -1,7 +1,18 @@
 'use client';
 
 import type { NearestMetroResponse, PropertyFeaturedPoiView, PropertyDetail } from '@repo/shared';
-import { Bus, Footprints, Landmark, MapPin, Mountain, Store, TreePine } from 'lucide-react';
+import {
+  Bus,
+  Church,
+  Eye,
+  Footprints,
+  Landmark,
+  MapPin,
+  Mountain,
+  Store,
+  TreePine,
+  UtensilsCrossed,
+} from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
@@ -24,6 +35,10 @@ function CategoryIcon({ category }: { category: string }): React.JSX.Element {
   if (category === 'museum' || category === 'memorial') {
     return <Landmark className="h-4 w-4 shrink-0" aria-hidden />;
   }
+  if (category === 'church') return <Church className="h-4 w-4 shrink-0" aria-hidden />;
+  if (category === 'viewpoint') return <Eye className="h-4 w-4 shrink-0" aria-hidden />;
+  if (category === 'restaurant')
+    return <UtensilsCrossed className="h-4 w-4 shrink-0" aria-hidden />;
   if (category === 'landmark') return <Mountain className="h-4 w-4 shrink-0" aria-hidden />;
   return <MapPin className="h-4 w-4 shrink-0" aria-hidden />;
 }
