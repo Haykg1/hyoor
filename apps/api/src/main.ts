@@ -25,7 +25,7 @@ async function bootstrap(): Promise<void> {
   );
   app.use(express.json({ limit: jsonBodyLimit }));
   app.use(express.urlencoded({ limit: jsonBodyLimit, extended: true }));
-  app.setGlobalPrefix('api/v1', { exclude: ['health'] });
+  app.setGlobalPrefix('api/v1', { exclude: ['health', 'mcp'] });
   app.enableCors({
     origin: config.get('frontend.url', { infer: true }),
     credentials: true,
@@ -44,6 +44,7 @@ async function bootstrap(): Promise<void> {
     .setVersion('1.0')
     .addBearerAuth()
     .addTag('health', 'Health checks')
+    .addTag('mcp', 'Public MCP tools for ChatGPT, Claude, and other AI assistants')
     .addTag('auth', 'Authentication & SSO')
     .addTag('users', 'User profiles')
     .addTag('host-profiles', 'Host management')

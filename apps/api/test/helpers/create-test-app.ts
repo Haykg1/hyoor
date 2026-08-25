@@ -43,7 +43,7 @@ export async function createTestApp(): Promise<TestAppContext> {
   app.use(
     helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'cross-origin' } }),
   );
-  app.setGlobalPrefix('api/v1', { exclude: ['health'] });
+  app.setGlobalPrefix('api/v1', { exclude: ['health', 'mcp'] });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

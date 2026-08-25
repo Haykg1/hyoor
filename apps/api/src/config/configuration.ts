@@ -72,6 +72,7 @@ export interface AppConfig {
       messagingLimit: number;
       geocodingLimit: number;
       aiSearchLimit: number;
+      mcpLimit: number;
     };
     trustProxy: boolean;
     jsonBodyLimit: string;
@@ -195,6 +196,7 @@ export default (): AppConfig => ({
       messagingLimit: parseInt(process.env.THROTTLE_MESSAGING_LIMIT ?? '60', 10),
       geocodingLimit: parseInt(process.env.THROTTLE_GEOCODING_LIMIT ?? '30', 10),
       aiSearchLimit: parseInt(process.env.THROTTLE_AI_SEARCH_LIMIT ?? '20', 10),
+      mcpLimit: parseInt(process.env.THROTTLE_MCP_LIMIT ?? '60', 10),
     },
     trustProxy: process.env.TRUST_PROXY === 'true',
     jsonBodyLimit: process.env.JSON_BODY_LIMIT ?? '10mb',

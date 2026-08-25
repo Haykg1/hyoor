@@ -32,6 +32,7 @@ export const validationSchema = Joi.object({
   THROTTLE_MESSAGING_LIMIT: Joi.number().integer().min(1).optional(),
   THROTTLE_GEOCODING_LIMIT: Joi.number().integer().min(1).optional(),
   THROTTLE_AI_SEARCH_LIMIT: Joi.number().integer().min(1).optional(),
+  THROTTLE_MCP_LIMIT: Joi.number().integer().min(1).optional(),
   OPENAI_API_KEY: Joi.string().allow('').optional(),
   OPENAI_MODEL: Joi.string().optional(),
   STRIPE_SECRET_KEY: Joi.string()

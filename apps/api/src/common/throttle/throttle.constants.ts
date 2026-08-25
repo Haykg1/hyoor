@@ -20,4 +20,5 @@ export const PAYMENTS_THROTTLE = buildThrottle('THROTTLE_PAYMENTS_LIMIT', 10);
 export const MESSAGING_THROTTLE = buildThrottle('THROTTLE_MESSAGING_LIMIT', 60);
 export const GEOCODING_THROTTLE = buildThrottle('THROTTLE_GEOCODING_LIMIT', 30);
 export const AI_SEARCH_THROTTLE = buildThrottle('THROTTLE_AI_SEARCH_LIMIT', 20);
+export const MCP_THROTTLE = buildThrottle('THROTTLE_MCP_LIMIT', 60);
 export const CONTACT_THROTTLE = buildThrottle('THROTTLE_CONTACT_LIMIT', 5);
