@@ -28,7 +28,7 @@ export function formatCurrencySymbolAmount(amount: number, currency: string): st
   return `${value} ${currency}`;
 }
 
-/** Formats Stripe minor units (cents) as major USD, e.g. 2000 → "20.00 USD". */
+/** Formats minor units (cents) as major USD, e.g. 2000 → "20.00 USD". */
 export function formatUsdFromMinor(amount: number): string {
   const major = amount / 100;
   const value = new Intl.NumberFormat('en-US', {

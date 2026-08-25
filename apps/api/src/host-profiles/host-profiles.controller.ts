@@ -34,7 +34,6 @@ import { CreateHostProfileDto } from './dto/create-host-profile.dto';
 import { UpdateHostProfileDto } from './dto/update-host-profile.dto';
 import {
   HostProfilesService,
-  type HostProfileCreateResult,
   type HostProfileWithUser,
   type PublicHostProfile,
 } from './host-profiles.service';
@@ -49,15 +48,12 @@ export class HostProfilesController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a host profile for the current user' })
-  @ApiCreatedResponse({
-    description:
-      'Host profile created; user role upgraded to HOST; Stripe Connect onboarding started',
-  })
+  @ApiCreatedResponse({ description: 'Host profile created; user role upgraded to HOST' })
   @ApiStandardErrors({ conflict: true })
   create(
     @CurrentUser() user: RequestUser,
     @Body() dto: CreateHostProfileDto,
-  ): Promise<HostProfileCreateResult> {
+  ): Promise<HostProfileWithUser> {
     return this.hostProfilesService.create(user.userId, dto);
   }
 
@@ -69,38 +65,6 @@ export class HostProfilesController {
   @ApiStandardErrors({ notFound: true })
   getMe(@CurrentUser() user: RequestUser): Promise<HostProfileWithUser> {
     return this.hostProfilesService.findByUserId(user.userId);
-  }
-
-  @Get('me/stripe-onboarding-link')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get a fresh Stripe Connect onboarding link to resume setup' })
-  @ApiOkResponse({ description: 'Single-use onboarding URL' })
-  @ApiStandardErrors({ notFound: true })
-  getStripeOnboardingLink(@CurrentUser() user: RequestUser): Promise<{ onboardingUrl: string }> {
-    return this.hostProfilesService.getStripeOnboardingLink(user.userId);
-  }
-
-  @Get('me/stripe-login-link')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get a Stripe Express dashboard login link (onboarded hosts only)' })
-  @ApiOkResponse({ description: 'Single-use Express dashboard URL' })
-  @ApiStandardErrors({ notFound: true })
-  getStripeLoginLink(@CurrentUser() user: RequestUser): Promise<{ loginUrl: string }> {
-    return this.hostProfilesService.getStripeLoginLink(user.userId);
-  }
-
-  @Post('me/stripe-refresh')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Re-sync Stripe onboarding/payouts status from Stripe instead of the webhook',
-  })
-  @ApiOkResponse({ description: 'Host profile with refreshed Stripe flags' })
-  @ApiStandardErrors({ notFound: true })
-  refreshStripeStatus(@CurrentUser() user: RequestUser): Promise<HostProfileWithUser> {
-    return this.hostProfilesService.refreshStripeStatus(user.userId);
   }
 
   @Patch('me')

@@ -33,16 +33,9 @@ export interface AppConfig {
   currency: { ratesApiUrl: string; fetchOnBoot: boolean };
   poi: { seedOnBoot: boolean };
   openai: { apiKey: string; model: string };
-  stripe: {
-    secretKey: string;
-    publishableKey: string;
-    webhookSecret: string;
-    connectDefaultCountry: string;
+  payments: {
     platformFeePercentDefault: number;
     paymentLockMinutes: number;
-    payoutDelayHours: number;
-    payoutRetryMinutes: number;
-    depositClaimWindowHours: number;
   };
   aiSearch: {
     guestLimit: number;
@@ -138,16 +131,9 @@ export default (): AppConfig => ({
     apiKey: process.env.OPENAI_API_KEY ?? '',
     model: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
   },
-  stripe: {
-    secretKey: process.env.STRIPE_SECRET_KEY ?? '',
-    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '',
-    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? '',
-    connectDefaultCountry: process.env.STRIPE_CONNECT_DEFAULT_COUNTRY ?? 'US',
-    platformFeePercentDefault: parseFloat(process.env.STRIPE_PLATFORM_FEE_PERCENT_DEFAULT ?? '10'),
-    paymentLockMinutes: parseInt(process.env.STRIPE_PAYMENT_LOCK_MINUTES ?? '15', 10),
-    payoutDelayHours: parseInt(process.env.STRIPE_PAYOUT_DELAY_HOURS ?? '24', 10),
-    payoutRetryMinutes: parseInt(process.env.STRIPE_PAYOUT_RETRY_MINUTES ?? '15', 10),
-    depositClaimWindowHours: parseInt(process.env.STRIPE_DEPOSIT_CLAIM_WINDOW_HOURS ?? '48', 10),
+  payments: {
+    platformFeePercentDefault: parseFloat(process.env.PLATFORM_FEE_PERCENT_DEFAULT ?? '10'),
+    paymentLockMinutes: parseInt(process.env.PAYMENT_LOCK_MINUTES ?? '15', 10),
   },
   aiSearch: {
     guestLimit: parseInt(process.env.AI_SEARCH_GUEST_LIMIT ?? '5', 10),

@@ -21,7 +21,6 @@ export default function AdminBookingsPage(): React.JSX.Element {
     total,
     status,
     paymentStatus,
-    payoutStatus,
     propertyId,
     guestId,
     hostId,
@@ -29,11 +28,9 @@ export default function AdminBookingsPage(): React.JSX.Element {
     to,
     searchQuery,
     isLoading,
-    actionId,
     setPage,
     setStatus,
     setPaymentStatus,
-    setPayoutStatus,
     setSearchQuery,
     setPropertyId,
     setGuestId,
@@ -41,8 +38,6 @@ export default function AdminBookingsPage(): React.JSX.Element {
     setFrom,
     setTo,
     resetFilters,
-    retryRentCapture,
-    retryPayout,
     fetchBookings,
   } = useAdminBookings();
 
@@ -78,7 +73,6 @@ export default function AdminBookingsPage(): React.JSX.Element {
         searchQuery={searchQuery}
         status={status}
         paymentStatus={paymentStatus}
-        payoutStatus={payoutStatus}
         propertyId={propertyId}
         guestId={guestId}
         hostId={hostId}
@@ -87,7 +81,6 @@ export default function AdminBookingsPage(): React.JSX.Element {
         onSearchChange={setSearchQuery}
         onStatusChange={setStatus}
         onPaymentStatusChange={setPaymentStatus}
-        onPayoutStatusChange={setPayoutStatus}
         onPropertyIdChange={setPropertyId}
         onGuestIdChange={setGuestId}
         onHostIdChange={setHostId}
@@ -101,11 +94,7 @@ export default function AdminBookingsPage(): React.JSX.Element {
         page={page}
         totalPages={totalPages}
         total={total}
-        actionId={actionId}
-        canRetryMoney={user.role === 'ADMIN'}
         onPageChange={setPage}
-        onRetryRentCapture={retryRentCapture}
-        onRetryPayout={retryPayout}
         onCancelled={() => {
           void fetchBookings();
         }}

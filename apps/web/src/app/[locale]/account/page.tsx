@@ -16,7 +16,6 @@ import {
 import { useLocale, useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 
-import { PayoutsPanel } from '@/components/dashboard/payouts-panel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -386,8 +385,6 @@ export default function AccountSettingsPage(): React.JSX.Element {
             </div>
           </SectionCard>
         ) : null}
-
-        {isHost ? <PayoutsPanel /> : null}
 
         {/* Language */}
         <SectionCard>

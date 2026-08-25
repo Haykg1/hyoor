@@ -1,12 +1,8 @@
-import type { AdminBooking, BookingStatus, PaymentStatus, PayoutStatus } from '@repo/shared';
+import type { AdminBooking, BookingStatus, PaymentStatus } from '@repo/shared';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import {
-  listAdminBookings,
-  retryAdminPayout,
-  retryAdminRentCapture,
-} from '@/lib/api/admin-bookings';
+import { listAdminBookings } from '@/lib/api/admin-bookings';
 
 interface AdminBookingsState {
   bookings: AdminBooking[];
@@ -16,7 +12,6 @@ interface AdminBookingsState {
   totalPages: number;
   status: BookingStatus | null;
   paymentStatus: PaymentStatus | null;
-  payoutStatus: PayoutStatus | null;
   propertyId: string;
   guestId: string;
   hostId: string;
@@ -33,7 +28,6 @@ interface AdminBookingsActions {
   setPage: (page: number) => void;
   setStatus: (status: BookingStatus | null) => void;
   setPaymentStatus: (paymentStatus: PaymentStatus | null) => void;
-  setPayoutStatus: (payoutStatus: PayoutStatus | null) => void;
   setSearchQuery: (query: string) => void;
   setPropertyId: (value: string) => void;
   setGuestId: (value: string) => void;
@@ -41,8 +35,6 @@ interface AdminBookingsActions {
   setFrom: (value: string) => void;
   setTo: (value: string) => void;
   resetFilters: () => void;
-  retryRentCapture: (id: string) => Promise<void>;
-  retryPayout: (id: string) => Promise<void>;
 }
 
 const PAGE_SIZE = 20;
@@ -57,7 +49,6 @@ export const useAdminBookingsStore = create<AdminBookingsState & AdminBookingsAc
       totalPages: 1,
       status: null,
       paymentStatus: null,
-      payoutStatus: null,
       propertyId: '',
       guestId: '',
       hostId: '',
@@ -73,7 +64,6 @@ export const useAdminBookingsStore = create<AdminBookingsState & AdminBookingsAc
           limit,
           status,
           paymentStatus,
-          payoutStatus,
           propertyId,
           guestId,
           hostId,
@@ -88,7 +78,6 @@ export const useAdminBookingsStore = create<AdminBookingsState & AdminBookingsAc
             limit,
             status: status ?? undefined,
             paymentStatus: paymentStatus ?? undefined,
-            payoutStatus: payoutStatus ?? undefined,
             propertyId: propertyId.trim() || undefined,
             guestId: guestId.trim() || undefined,
             hostId: hostId.trim() || undefined,
@@ -109,7 +98,6 @@ export const useAdminBookingsStore = create<AdminBookingsState & AdminBookingsAc
       setPage: (page) => set({ page }),
       setStatus: (status) => set({ status, page: 1 }),
       setPaymentStatus: (paymentStatus) => set({ paymentStatus, page: 1 }),
-      setPayoutStatus: (payoutStatus) => set({ payoutStatus, page: 1 }),
       setSearchQuery: (searchQuery) => set({ searchQuery, page: 1 }),
       setPropertyId: (propertyId) => set({ propertyId, page: 1 }),
       setGuestId: (guestId) => set({ guestId, page: 1 }),
@@ -120,7 +108,6 @@ export const useAdminBookingsStore = create<AdminBookingsState & AdminBookingsAc
         set({
           status: null,
           paymentStatus: null,
-          payoutStatus: null,
           propertyId: '',
           guestId: '',
           hostId: '',
@@ -129,24 +116,6 @@ export const useAdminBookingsStore = create<AdminBookingsState & AdminBookingsAc
           searchQuery: '',
           page: 1,
         }),
-      retryRentCapture: async (id) => {
-        set({ actionId: id });
-        try {
-          await retryAdminRentCapture(id);
-          await get().fetchBookings();
-        } finally {
-          set({ actionId: null });
-        }
-      },
-      retryPayout: async (id) => {
-        set({ actionId: id });
-        try {
-          await retryAdminPayout(id);
-          await get().fetchBookings();
-        } finally {
-          set({ actionId: null });
-        }
-      },
     }),
     { name: 'admin-bookings-store' },
   ),

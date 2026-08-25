@@ -1,9 +1,4 @@
-import {
-  COMPANY,
-  DEPOSIT_CLAIM_WINDOW_HOURS,
-  PAYOUT_DELAY_HOURS,
-  PLATFORM_FEE_PERCENT_DEFAULT,
-} from '@repo/shared';
+import { COMPANY, PLATFORM_FEE_PERCENT_DEFAULT } from '@repo/shared';
 
 /**
  * Maps legal markdown `[TOKEN]`s to {@link COMPANY} and shared product defaults.
@@ -19,8 +14,6 @@ export const LEGAL_PLACEHOLDER_VALUES = {
   'PRIVACY EMAIL': COMPANY.privacyEmail,
   PHONE: COMPANY.phone,
   DATE: '2026-09-14',
-  '48': String(DEPOSIT_CLAIM_WINDOW_HOURS),
-  '24': String(PAYOUT_DELAY_HOURS),
   '10': String(PLATFORM_FEE_PERCENT_DEFAULT),
   /** Fee-change notice, account-deletion window, and rights-response deadline (days). */
   '30': '30',

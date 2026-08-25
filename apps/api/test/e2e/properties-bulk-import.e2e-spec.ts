@@ -9,14 +9,10 @@ import { HttpExceptionFilter } from '../../src/common/filters/http-exception.fil
 import { PrismaService } from '../../src/database/prisma.service';
 import { GeocodingService } from '../../src/geocoding/geocoding.service';
 import { MailerService } from '../../src/mail/mailer.service';
-import { StripeCheckoutService } from '../../src/payments/stripe/stripe-checkout.service';
-import { StripeConnectService } from '../../src/payments/stripe/stripe-connect.service';
 import { RedisService } from '../../src/redis/redis.service';
 import { StorageService } from '../../src/storage/storage.service';
 import { MockRedisService } from '../helpers/mock-redis.service';
 import { MockStorageService } from '../helpers/mock-storage.service';
-import { MockStripeCheckoutService } from '../helpers/mock-stripe-checkout.service';
-import { MockStripeConnectService } from '../helpers/mock-stripe-connect.service';
 import { registerHostUser, sampleProperty } from '../helpers/property-test.helper';
 import type { RegisteredHostUser } from '../helpers/property-test.helper';
 import { resetE2eDatabase } from '../helpers/reset-database';
@@ -106,10 +102,6 @@ describe('Properties bulk import (e2e)', () => {
       .useValue(mockGeocoding)
       .overrideProvider(MailerService)
       .useValue(mockMailer)
-      .overrideProvider(StripeConnectService)
-      .useClass(MockStripeConnectService)
-      .overrideProvider(StripeCheckoutService)
-      .useClass(MockStripeCheckoutService)
       .compile();
 
     app = module.createNestApplication();

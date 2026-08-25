@@ -50,8 +50,8 @@ bind that company.
   amounts, and cancellation policy within the options the platform provides.
 - Hosts must honor confirmed bookings. Repeated Host cancellations may lead to penalties,
   reduced visibility, or suspension.
-- To receive payouts, Hosts must complete onboarding with our payment provider (Stripe
-  Connect), which includes identity verification required by Stripe and applicable law.
+- To receive payouts, Hosts must complete the onboarding steps required by [WEBSITE NAME] and
+  applicable law before payouts can be made.
 
 ## 5. Bookings
 
@@ -69,24 +69,19 @@ bind that company.
 
 ## 6. Payments, deposits, and payouts
 
-- Card payments are processed by **Stripe**. [WEBSITE NAME] does not store your card details.
-- **Authorization at booking:** when you book with a card, [WEBSITE NAME] places an authorization
-  hold on your card for the rent (and a separate hold for the security deposit, if the listing
-  requires one). No money is captured at this point.
-- **Capture at check-in:** the rent is captured (charged) on or around the check-in day.
-- **Security deposit:** the deposit is a hold, not a charge. After checkout it is
-  automatically released, unless the Host submits a damage claim within the claim window
-  (currently **[48] hours** after checkout). Claims are reviewed by [WEBSITE NAME]; if a claim is
-  approved, the approved amount (up to the deposit) is charged and the remainder released; if
-  declined, the full hold is released. Guests are notified of the outcome by email and in-app.
+- Online card payment is not yet available on [WEBSITE NAME]. The payment methods offered at
+  checkout for a given listing are shown before you confirm a booking; where a listing does not
+  yet support a live payment method, payment is arranged directly between Guest and Host.
 - **Cash payment:** where offered, Guests may select payment in cash to the Host at check-in.
   For cash bookings, [WEBSITE NAME] does not process the payment, and any deposit arrangements are
   handled directly between Guest and Host.
-- **Host payouts:** payouts are made to the Host's connected Stripe account after check-in,
-  subject to a processing delay (currently approximately **[24] hours**) and to Stripe's own
-  settlement times. [WEBSITE NAME] deducts a platform service fee (Section 7) before payout.
-- If a card authorization or capture fails, we may retry, ask you to provide another payment
-  method, or cancel the booking.
+- **Security deposit:** if a listing includes a security deposit, the deposit amount is shown
+  in the price breakdown at checkout. Until online deposit holds are available, deposit terms
+  and any damage claims are handled directly between Guest and Host.
+- **Host payouts:** payouts are made to the Host once a booking's payment has been confirmed,
+  minus the platform service fee (Section 7). Payout timing depends on the payment method used.
+- If a payment fails or cannot be completed, we may ask you to provide another payment method
+  or cancel the booking.
 
 ## 7. [WEBSITE NAME] service fee
 

@@ -36,14 +36,11 @@ If the listing is **not** Non-refundable, you may cancel through your [WEBSITE N
 while the booking is still before check-in **and** before the listing’s cancellation
 deadline.
 
-On a valid guest cancellation after payment:
-
-- the listing’s **cancellation fee is calculated on the stay subtotal** — the accommodation
-  price plus any cleaning fee — and **never on the security deposit**;
-- the **remainder of the stay payment** is released or refunded;
-- if the Host set the fee to **zero**, the **full stay payment** is released or refunded;
-- the **security-deposit hold is always released in full** — the deposit is never used to
-  pay a cancellation fee.
+Online card payment is not yet available on [WEBSITE NAME], so no stay payment is currently
+captured or held through the platform. The listing's cancellation fee and deposit terms
+still apply as the agreed basis for the stay, and any refund or fee is arranged directly
+between Guest and Host once a payment method is agreed for the booking. This section will be
+updated to describe automatic refunds once online payments launch.
 
 **After the deadline has passed**, self-service cancellation is no longer available. Message
 the Host on the platform or contact **[SUPPORT EMAIL]**; the Host may agree to cancel on
@@ -56,27 +53,23 @@ payment. For exceptional circumstances, contact the Host or **[SUPPORT EMAIL]**.
 
 ## 4. Host cancellations
 
-- If a Host cancels a confirmed booking **on their own initiative**, the Guest receives a
-  **full refund**: the stay payment is returned and the deposit hold is released in full.
-- If a Host cancels **at the Guest’s request** after the Guest’s own cancel window has
-  closed, the listing’s cancellation fee **may** be applied as if the Guest had cancelled.
-  Fee claims of this kind are subject to **[WEBSITE NAME] admin review** before any fee is kept.
+- If a Host cancels a confirmed booking, the Guest is notified and the booking is cancelled.
+  Since online payment is not yet captured through the platform, any refund is arranged
+  directly between Guest and Host based on the payment method agreed for the booking.
 
 ## 5. Timing and how money is returned
 
 - Bookings can only be cancelled **before check-in**.
-- Exact fee and refund amounts are shown **before you confirm** a cancellation in the app.
-- Refunds of captured payments return to the **original payment method**. Release of an
-  authorization hold usually appears within a few business days, depending on your bank.
-- Currency: you are charged in the **listing’s currency**. Other currencies shown in the UI
+- Currency: prices are shown in the **listing’s currency**. Other currencies shown in the UI
   are estimates only.
+- Once online payments launch, refunds will return to the original payment method and this
+  section will describe the applicable timing.
 
 ## 6. What the cancellation fee is calculated on
 
-Cancellation fees are calculated on the **stay subtotal** — the accommodation price plus
-any cleaning fee — exactly as shown in the refund preview before you confirm a
-cancellation. The **security deposit is never part of the fee base** and is never used to
-pay cancellation fees.
+When a Host applies a cancellation fee, it is calculated on the **stay subtotal** — the
+accommodation price plus any cleaning fee, as shown on the listing. The **security deposit
+is never part of the fee base**.
 
 ## 7. Changes to this policy
 

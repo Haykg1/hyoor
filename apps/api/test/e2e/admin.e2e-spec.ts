@@ -294,8 +294,6 @@ describe('Admin (e2e)', () => {
       nightlyBreakdown: Array<{ date: string; amount: number }>;
       propertyTitle: string;
       guestName: string;
-      canRetryRentCapture: boolean;
-      canRetryPayout: boolean;
     };
     expect(row.status).toBe('PENDING');
     expect(row.checkIn).toBe('2025-07-10');
@@ -303,8 +301,6 @@ describe('Admin (e2e)', () => {
     expect(row.nightlyBreakdown).toHaveLength(3);
     expect(row.propertyTitle).toBeTruthy();
     expect(row.guestName).toBeTruthy();
-    expect(row.canRetryRentCapture).toBe(false);
-    expect(row.canRetryPayout).toBe(false);
   });
 
   it('filters bookings by booking id in search', async () => {
@@ -453,42 +449,6 @@ describe('Admin (e2e)', () => {
       .expect(403);
   });
 
-  it('rejects staff retrying rent capture', async () => {
-    const staff = await registerUser(app, { email: uniqueEmail('staff') });
-    const prisma = app.get(PrismaService);
-    await prisma.user.update({ where: { id: staff.userId }, data: { role: 'STAFF' } });
-    const login = await request(app.getHttpServer())
-      .post('/api/v1/auth/login')
-      .send({ email: staff.email, password: staff.password })
-      .expect(201);
-    const accessToken = login.body.data.accessToken as string;
-    await request(app.getHttpServer())
-      .post('/api/v1/admin/bookings/any-id/retry-rent-capture')
-      .set(authHeader(accessToken))
-      .expect(403);
-  });
-
-  it('rejects rent capture retry when booking is ineligible', async () => {
-    const admin = await registerAdmin(app);
-    const host = await registerHostUser(app);
-    const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const property = await createActiveHostProperty(app, host);
-    const created = await request(app.getHttpServer())
-      .post('/api/v1/bookings')
-      .set(authHeader(guest.accessToken))
-      .send({
-        propertyId: property.id,
-        checkIn: '2025-08-01',
-        checkOut: '2025-08-03',
-        guestCount: 1,
-      })
-      .expect(201);
-    await request(app.getHttpServer())
-      .post(`/api/v1/admin/bookings/${created.body.data.id}/retry-rent-capture`)
-      .set(authHeader(admin.accessToken))
-      .expect(400);
-  });
-
   it('rejects guest access to admin routes', async () => {
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
     await request(app.getHttpServer())
@@ -576,13 +536,7 @@ describe('Admin (e2e)', () => {
   });
 
   describe('manual cron triggers', () => {
-    const endpoints = [
-      'cron/release-expired-deposit-holds',
-      'cron/send-guest-instructions',
-      'cron/capture-todays-checkins',
-      'cron/sweep-expired-payment-locks',
-      'cron/run-scheduled-payouts',
-    ];
+    const endpoints = ['cron/send-guest-instructions', 'cron/sweep-expired-payment-locks'];
 
     it.each(endpoints)('runs %s for an admin', async (endpoint) => {
       const admin = await registerAdmin(app);

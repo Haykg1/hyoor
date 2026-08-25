@@ -101,12 +101,9 @@ of the site (such as sign-in) from working.
 
 ## 4. Third parties
 
-Payment card data is handled by **Stripe** on Stripe-controlled pages/components; Stripe may
-set its own cookies when you interact with Stripe Checkout or Connect. Those cookies are
-governed by [Stripe’s cookie/privacy documentation](https://stripe.com/privacy). We do not
-control Stripe’s cookies.
-
-We do not currently inject other third-party marketing trackers.
+We do not currently inject third-party marketing trackers. Online card payment is not yet
+available on [WEBSITE NAME]; if a third-party payment processor is introduced in the future,
+this policy will be updated to describe any cookies it sets.
 
 ## 5. International users
 

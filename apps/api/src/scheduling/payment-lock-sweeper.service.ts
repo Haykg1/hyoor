@@ -4,7 +4,6 @@ import { Cron } from '@nestjs/schedule';
 import { AvailabilityService } from '../availability/availability.service';
 import { PrismaService } from '../database/prisma.service';
 import { PaymentFailuresService } from '../payment-failures/payment-failures.service';
-import { StripeCheckoutService } from '../payments/stripe/stripe-checkout.service';
 import { PromotionsService } from '../promotions/promotions.service';
 
 @Injectable()
@@ -13,7 +12,6 @@ export class PaymentLockSweeperService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly stripeCheckout: StripeCheckoutService,
     private readonly availability: AvailabilityService,
     private readonly promotions: PromotionsService,
     private readonly paymentFailures: PaymentFailuresService,
@@ -30,7 +28,6 @@ export class PaymentLockSweeperService {
     let sweptCount = 0;
     for (const booking of expired) {
       try {
-        await this.stripeCheckout.expirePaymentLock(booking);
         await this.prisma.$transaction(async (tx) => {
           await tx.booking.update({
             where: { id: booking.id },

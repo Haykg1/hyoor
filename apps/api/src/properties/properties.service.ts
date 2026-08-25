@@ -1291,7 +1291,7 @@ export class PropertiesService {
       this.prisma.booking.aggregate({
         where: {
           property: { hostId: hostProfile.id },
-          payoutStatus: 'PAID',
+          paymentStatus: 'PAID',
         },
         _sum: { hostPayoutAmount: true },
       }),
@@ -1821,7 +1821,7 @@ export class PropertiesService {
     if (propertyIds.length === 0) return result;
     const groups = await this.prisma.booking.groupBy({
       by: ['propertyId'],
-      where: { propertyId: { in: propertyIds }, payoutStatus: 'PAID' },
+      where: { propertyId: { in: propertyIds }, paymentStatus: 'PAID' },
       _sum: { hostPayoutAmount: true },
     });
     for (const group of groups) {

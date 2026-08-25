@@ -29,11 +29,9 @@ the draft banner as an HTML comment near the top).
 
 ## Numbers that already match the code — confirm and unbracket
 
-| Done | Placeholder                       | Where  | Source of truth                                    |
-| ---- | --------------------------------- | ------ | -------------------------------------------------- |
-| ☐    | `[48] hours` deposit claim window | ToS 76 | `STRIPE_DEPOSIT_CLAIM_WINDOW_HOURS` (default 48)   |
-| ☐    | `[24] hours` payout delay         | ToS 83 | `STRIPE_PAYOUT_DELAY_HOURS` (default 24)           |
-| ☐    | `[10]%` platform fee              | ToS 91 | `STRIPE_PLATFORM_FEE_PERCENT_DEFAULT` (default 10) |
+| Done | Placeholder          | Where  | Source of truth                             |
+| ---- | -------------------- | ------ | ------------------------------------------- |
+| ☐    | `[10]%` platform fee | ToS 91 | `PLATFORM_FEE_PERCENT_DEFAULT` (default 10) |
 
 ## Business / legal decisions — owner + lawyer choose
 

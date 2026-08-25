@@ -4,7 +4,6 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import type { HostProfile, HostType, UserProfile } from '@repo/database/client';
@@ -12,7 +11,6 @@ import type { PublicHostProfile } from '@repo/shared';
 import { MAX_UPLOAD_BYTES, S3_PRESIGNED_URL_EXPIRES } from '@repo/shared/constants';
 
 import { PrismaService } from '../database/prisma.service';
-import { StripeConnectService } from '../payments/stripe/stripe-connect.service';
 import { StorageService } from '../storage/storage.service';
 
 import { CreateHostProfileDto } from './dto/create-host-profile.dto';
@@ -24,23 +22,16 @@ export type HostProfileWithUser = HostProfile & {
   user: { email: string; profile: UserProfile | null };
 };
 
-export interface HostProfileCreateResult extends HostProfileWithUser {
-  stripeOnboardingUrl: string | null;
-}
-
 export type { PublicHostProfile } from '@repo/shared';
 
 @Injectable()
 export class HostProfilesService {
-  private readonly logger = new Logger(HostProfilesService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
-    private readonly stripeConnect: StripeConnectService,
   ) {}
 
-  async create(userId: string, dto: CreateHostProfileDto): Promise<HostProfileCreateResult> {
+  async create(userId: string, dto: CreateHostProfileDto): Promise<HostProfileWithUser> {
     const existing = await this.prisma.hostProfile.findUnique({ where: { userId } });
     if (existing) {
       throw new ConflictException('Host profile already exists');
@@ -67,21 +58,7 @@ export class HostProfilesService {
         },
       });
     });
-    const stripeOnboardingUrl = await this.tryCreateOnboardingLink(hostProfile);
-    return { ...hostProfile, stripeOnboardingUrl };
-  }
-
-  private async tryCreateOnboardingLink(hostProfile: HostProfileWithUser): Promise<string | null> {
-    try {
-      const { onboardingUrl } =
-        await this.stripeConnect.createAccountAndOnboardingLink(hostProfile);
-      return onboardingUrl;
-    } catch (error) {
-      this.logger.error(
-        `Failed to create Stripe Connect account for host ${hostProfile.id}: ${String(error)}`,
-      );
-      return null;
-    }
+    return hostProfile;
   }
 
   async findByUserId(userId: string): Promise<HostProfileWithUser> {
@@ -93,29 +70,6 @@ export class HostProfilesService {
       throw new NotFoundException('Host profile not found');
     }
     return hostProfile;
-  }
-
-  async getStripeOnboardingLink(userId: string): Promise<{ onboardingUrl: string }> {
-    const hostProfile = await this.findByUserId(userId);
-    if (!hostProfile.stripeAccountId) {
-      return this.stripeConnect.createAccountAndOnboardingLink(hostProfile);
-    }
-    return this.stripeConnect.createFreshOnboardingLink(hostProfile);
-  }
-
-  async getStripeLoginLink(userId: string): Promise<{ loginUrl: string }> {
-    const hostProfile = await this.findByUserId(userId);
-    if (!hostProfile.stripePayoutsEnabled) {
-      throw new BadRequestException('Stripe onboarding is not complete yet');
-    }
-    return this.stripeConnect.createLoginLink(hostProfile);
-  }
-
-  /** Actively re-syncs onboarding/payouts flags from Stripe instead of waiting on the webhook. */
-  async refreshStripeStatus(userId: string): Promise<HostProfileWithUser> {
-    const hostProfile = await this.findByUserId(userId);
-    await this.stripeConnect.refreshAccountStatus(hostProfile);
-    return this.findByUserId(userId);
   }
 
   async update(userId: string, dto: UpdateHostProfileDto): Promise<HostProfileWithUser> {

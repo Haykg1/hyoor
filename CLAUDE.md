@@ -76,13 +76,13 @@ apps/
     app.module.ts           # root module, imports every feature module
     common/                 # filters/, guards/, interceptors/, decorators/
     config/configuration.ts # maps env vars to nested keys, read via ConfigService
-    database/               # DatabaseModule (@Global) — exports PRISMA token
+    database/               # DatabaseModule (@Global) — exports PrismaService
     storage/                # StorageService — the only place S3 calls happen
     <feature>/              # one folder per domain (see below), each with module/controller/service/dto
 
 packages/
   database/               # THE ONLY place Prisma lives
-    prisma/schema/          # multi-file schema (prismaSchemaFolder): base, identity, host, property, booking, messaging, review, notification
+    prisma/schema/          # multi-file schema (prismaSchemaFolder): base, identity, host, property, booking, messaging, review, notification, promotion
     prisma/seed.ts          # MUST stay in sync with schema changes (upsert-based, idempotent)
     scripts/docker-init.sh  # migrate deploy + seed, runs on Docker API startup
     src/index.ts            # exports PrismaClient singleton + generated types
@@ -91,17 +91,17 @@ packages/
   eslint-config/, prettier-config/, tsconfig/  # shared tooling config
 ```
 
-Feature domains currently in `apps/api/src/`: `admin`, `ai-search`, `auth`, `availability`, `bookings`, `compare-share`, `favorites`, `geocoding`, `health`, `host-profiles`, `mail`, `messaging`, `notifications`, `payments`, `poi`, `promotions`, `properties`, `redis`, `reviews`, `scheduling`, `users`.
+Feature domains currently in `apps/api/src/`: `admin`, `ai-search`, `auth`, `availability`, `bookings`, `compare-share`, `contact`, `currency`, `favorites`, `geocoding`, `health`, `host-analytics`, `host-profiles`, `mail`, `messaging`, `notifications`, `payment-failures`, `payments`, `poi`, `promotions`, `properties`, `redis`, `reviews`, `scheduling`, `users`.
 
-Core Prisma domains: Identity (`User`, `UserProfile`, `OAuthAccount`), Hosts (`HostProfile`), Listings (`Property`, `PropertyPhoto`, `PropertyAmenity`), Calendar (`Availability`), Bookings (`Booking` — external payment refs, no in-app payments), Messaging (`Conversation`, `Message`), Reviews (bidirectional guest ↔ property/host), Notifications.
+Core Prisma domains: Identity (`User`, `UserProfile`, `OAuthAccount`), Hosts (`HostProfile`), Listings (`Property`, `PropertyPhoto`, `PropertyAmenity`), Calendar (`Availability`), Bookings (`Booking` — external payment refs via cash/idram/arca; `PaymentFailure`), Messaging (`Conversation`, `Message`), Reviews (bidirectional guest ↔ property/host), Notifications, Promotions (`PropertyPromotion`).
 
 ### Conventions that don't show up from a single file
 
 - **Prices** are stored in minor currency units (e.g. AMD/USD cents) everywhere.
 - **S3**: only the object key is ever persisted (e.g. `users/abc123/avatar.jpg`) — never a full URL. Presigned read URLs are generated at request time via `StorageService`. All S3 calls go through `apps/api/src/storage/storage.service.ts`; never call the AWS SDK directly from a feature service.
-- **Prisma access in NestJS**: inject the `PRISMA` token from `DatabaseModule`, not a `PrismaService` class:
+- **Prisma access in NestJS**: inject `PrismaService` from `DatabaseModule` (global) — not a `PRISMA` token:
   ```ts
-  constructor(@Inject(PRISMA) private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaService) {}
   ```
 - **Frontend never imports Prisma** and never talks to the database directly — everything goes through `apps/web/src/lib/api.ts`.
 - **No duplicated types** between `web` and `api` — shared shapes belong in `packages/shared/src/types`.
@@ -128,8 +128,26 @@ Always create all four: `<feature>.module.ts`, `<feature>.controller.ts`, `<feat
 - Use `createTestApp()` (mirrors production pipes/filters/interceptors, mocks `StorageService`); reset with `resetE2eDatabase()` in `beforeEach`; build test data with helpers (`registerUser`, `uniqueEmail`) rather than raw Prisma or the seed script.
 - Cover happy path + main error cases (401, 409, 400) per endpoint. Add/update specs in the same change as any API route/auth/validation change.
 
+### Legal & policy sync
+
+When a change affects what guests, hosts, or regulators must be told, update the **live** markdown under `apps/web/src/content/legal/` in the same change (`en` / `hy` / `ru`). Cursor rule: `.cursor/rules/legal-policy-sync.mdc`.
+
+| Topic                  | Files                                                       |
+| ---------------------- | ----------------------------------------------------------- |
+| Terms                  | `terms-of-service.{en,hy,ru}.md`                            |
+| Privacy                | `privacy-policy.{en,hy,ru}.md`                              |
+| Cancellation / refunds | `cancellation-refund-policy.{en,hy,ru}.md`                  |
+| Cookies / consent      | `cookie-policy.{en,hy,ru}.md`, consent UI, `cookies.*` i18n |
+
+Identity placeholders stay `[SQUARE BRACKETS]` in markdown; fill values in `packages/shared/src/constants/company.ts` (rendered via `apps/web/src/lib/legal/placeholders.ts`). Triggers include cookies/localStorage, payments/fees/payouts, cancellations, auth/identity, and new personal data.
+
+### SEO — public pages
+
+New **public, indexable** pages must be added to `STATIC_PATHS` in `apps/web/src/app/sitemap.ts` in the same change, with `generateMetadata` via `buildPageMetadata`. Private prefixes go in `apps/web/src/app/robots.ts` (`PRIVATE_PATH_PREFIXES`). Cursor rule: `.cursor/rules/seo-sitemap.mdc`. Do not sitemap `/admin`, `/dashboard`, `/auth`, `/host`, compare-share tokens, or query-only URLs.
+
 ## Code style
 
+- English only for code and documentation.
 - Early returns over nested conditionals; no blank lines inside function bodies.
 - Comments only for non-obvious business logic or deep technical details — code should read on its own. JSDoc only for public methods/complex logic.
 - NestJS: `kebab-case` filenames (`user-profile.service.ts`), `PascalCase` classes, `camelCase` methods, constructor injection with `private readonly`.

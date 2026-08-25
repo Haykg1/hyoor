@@ -33,7 +33,6 @@ async function createBookingWithFailure(
   app: INestApplication,
   host: RegisteredHostUser,
   guest: RegisteredUser,
-  category: 'RENT_CAPTURE_FAILED' | 'PAYOUT_TRANSFER_FAILED' = 'PAYOUT_TRANSFER_FAILED',
 ): Promise<{ bookingId: string; propertyId: string; failureId: string }> {
   const property = await createActivePropertyDirect(app, host);
   const prisma = app.get(PrismaService);
@@ -41,7 +40,7 @@ async function createBookingWithFailure(
     data: {
       propertyId: property.id,
       guestId: guest.userId,
-      status: 'CONFIRMED',
+      status: 'AWAITING_PAYMENT',
       checkIn: new Date('2025-08-10'),
       checkOut: new Date('2025-08-13'),
       guestCount: 2,
@@ -49,15 +48,13 @@ async function createBookingWithFailure(
       nightlyRate: 25000,
       nightsCount: 3,
       totalAmount: 75000,
-      payoutStatus: 'FAILED',
     },
   });
   const failure = await prisma.paymentFailure.create({
     data: {
       bookingId: booking.id,
-      category,
-      message: 'Stripe test failure for e2e',
-      stripeErrorCode: 'balance_insufficient',
+      category: 'PAYMENT_LOCK_SWEEP_FAILED',
+      message: 'Payment lock sweep test failure for e2e',
     },
   });
   return { bookingId: booking.id, propertyId: property.id, failureId: failure.id };
@@ -153,11 +150,11 @@ describe('Admin payment failures (e2e)', () => {
     const admin = await registerAdmin(app);
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    await createBookingWithFailure(app, host, guest, 'RENT_CAPTURE_FAILED');
+    await createBookingWithFailure(app, host, guest);
 
     const byCategory = await request(app.getHttpServer())
       .get('/api/v1/admin/payment-failures')
-      .query({ category: 'RENT_CAPTURE_FAILED' })
+      .query({ category: 'PAYMENT_LOCK_SWEEP_FAILED' })
       .set(authHeader(admin.accessToken))
       .expect(200);
     expect(byCategory.body.data.data).toHaveLength(1);
@@ -199,8 +196,8 @@ describe('Admin payment failures (e2e)', () => {
     const admin = await registerAdmin(app);
     const host = await registerHostUser(app);
     const guest = await registerUser(app, { email: uniqueEmail('guest') });
-    const first = await createBookingWithFailure(app, host, guest, 'RENT_CAPTURE_FAILED');
-    const second = await createBookingWithFailure(app, host, guest, 'PAYOUT_TRANSFER_FAILED');
+    const first = await createBookingWithFailure(app, host, guest);
+    const second = await createBookingWithFailure(app, host, guest);
 
     const response = await request(app.getHttpServer())
       .patch('/api/v1/admin/payment-failures/resolve')

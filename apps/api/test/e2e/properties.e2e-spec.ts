@@ -3,6 +3,7 @@ import request from 'supertest';
 
 import { PrismaService } from '../../src/database/prisma.service';
 import { createTestApp, type TestAppContext } from '../helpers/create-test-app';
+import { payBookingWithCash } from '../helpers/pay-booking';
 import {
   createActivePropertyDirect,
   createCompletedGuestBooking,
@@ -559,11 +560,7 @@ describe('Properties (e2e)', () => {
         guestCount: 2,
       })
       .expect(201);
-    await request(app.getHttpServer())
-      .post(`/api/v1/bookings/${create.body.data.id}/payment/confirm`)
-      .set(authHeader(guest.accessToken))
-      .send({ paymentMethodId: 'pm_mock_test' })
-      .expect(200);
+    await payBookingWithCash(app, guest.accessToken, create.body.data.id as string);
     const response = await request(app.getHttpServer())
       .get('/api/v1/properties/my')
       .set(authHeader(host.accessToken))

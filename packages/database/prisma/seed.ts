@@ -57,11 +57,11 @@ function monthRangeLabel(from: Date, to: Date): string {
 }
 
 /**
- * Backfills Stripe payment/payout fields for demo COMPLETED bookings (seeded
+ * Backfills payment/payout fields for demo COMPLETED bookings (seeded
  * directly, without going through the real checkout/capture/payout flow), so
  * host dashboards show realistic earnings instead of 0.
  */
-function completedStripeFields(
+function completedPaymentFields(
   id: string,
   checkIn: Date,
   totalAmount: number,
@@ -70,19 +70,13 @@ function completedStripeFields(
   const rentAmount = totalAmount - securityDeposit;
   const platformFeeAmount = Math.round(rentAmount * 0.1);
   return {
-    paymentProvider: 'STRIPE' as const,
-    paymentStatus: 'CAPTURED' as const,
+    paymentProvider: 'CASH' as const,
+    paymentStatus: 'PAID' as const,
     paymentInitiatedAt: checkIn,
     paymentCompletedAt: checkIn,
     capturedAt: checkIn,
-    stripePaymentIntentId: `pi_seed_${id}`,
-    depositStatus: securityDeposit > 0 ? ('RELEASED' as const) : ('NONE' as const),
-    stripeDepositPaymentIntentId: securityDeposit > 0 ? `pi_seed_deposit_${id}` : null,
     platformFeeAmount,
     hostPayoutAmount: rentAmount - platformFeeAmount,
-    payoutStatus: 'PAID' as const,
-    payoutScheduledAt: checkIn,
-    stripeTransferId: `tr_seed_${id}`,
   };
 }
 
@@ -372,22 +366,11 @@ async function main(): Promise<void> {
   }
 
   // ── Host Profiles ────────────────────────────────────────────────────────
-  // Placeholder Connect status so seeded hosts can accept bookings locally without
-  // walking through real Stripe onboarding. Payouts to these fake account IDs will
-  // fail (logged, non-fatal) — only real onboarding produces payable accounts.
-  const SEED_STRIPE_FIELDS = {
-    stripeDetailsSubmitted: true,
-    stripeChargesEnabled: true,
-    stripePayoutsEnabled: true,
-  };
-
   const hp1 = await prisma.hostProfile.upsert({
     where: { userId: host1.id },
     update: {
       description:
         'Local host with 5+ years of experience welcoming guests to Yerevan. I love sharing tips on food, culture, and hidden gems.',
-      stripeAccountId: 'acct_seed_armen',
-      ...SEED_STRIPE_FIELDS,
     },
     create: {
       userId: host1.id,
@@ -398,8 +381,6 @@ async function main(): Promise<void> {
       payoutEmail: 'armen@rentstar.am',
       description:
         'Local host with 5+ years of experience welcoming guests to Yerevan. I love sharing tips on food, culture, and hidden gems.',
-      stripeAccountId: 'acct_seed_armen',
-      ...SEED_STRIPE_FIELDS,
     },
   });
 
@@ -407,8 +388,6 @@ async function main(): Promise<void> {
     where: { userId: host2.id },
     update: {
       description: 'Passionate about hospitality and making every stay comfortable and memorable.',
-      stripeAccountId: 'acct_seed_nare',
-      ...SEED_STRIPE_FIELDS,
     },
     create: {
       userId: host2.id,
@@ -418,8 +397,6 @@ async function main(): Promise<void> {
       responseTimeHours: 4,
       payoutEmail: 'nare@rentstar.am',
       description: 'Passionate about hospitality and making every stay comfortable and memorable.',
-      stripeAccountId: 'acct_seed_nare',
-      ...SEED_STRIPE_FIELDS,
     },
   });
 
@@ -429,8 +406,6 @@ async function main(): Promise<void> {
       companyLogoKey: SEED_LOGO_KEY,
       description:
         'RentStar Hospitality manages premium short-term rentals across Armenia with 24/7 guest support.',
-      stripeAccountId: 'acct_seed_company',
-      ...SEED_STRIPE_FIELDS,
     },
     create: {
       userId: host3.id,
@@ -445,8 +420,6 @@ async function main(): Promise<void> {
       payoutEmail: 'finance@rentstar.am',
       description:
         'RentStar Hospitality manages premium short-term rentals across Armenia with 24/7 guest support.',
-      stripeAccountId: 'acct_seed_company',
-      ...SEED_STRIPE_FIELDS,
     },
   });
 
@@ -1313,7 +1286,7 @@ async function main(): Promise<void> {
     where: { id: 'seed-booking-completed' },
     update: {
       nightlyBreakdown: completedBooking1Breakdown,
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed',
         completedBooking1CheckIn,
         completedBooking1TotalAmount,
@@ -1336,7 +1309,7 @@ async function main(): Promise<void> {
       securityDeposit: propertyFees.p1.securityDeposit,
       totalAmount: completedBooking1TotalAmount,
       externalPaymentRef: 'BANK-TRX-001',
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed',
         completedBooking1CheckIn,
         completedBooking1TotalAmount,
@@ -1431,7 +1404,7 @@ async function main(): Promise<void> {
   const completedBooking2 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-2' },
     update: {
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-2',
         completedBooking2CheckIn,
         completedBooking2TotalAmount,
@@ -1452,7 +1425,7 @@ async function main(): Promise<void> {
       cleaningFee: propertyFees.p1.cleaningFee,
       securityDeposit: propertyFees.p1.securityDeposit,
       totalAmount: completedBooking2TotalAmount,
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-2',
         completedBooking2CheckIn,
         completedBooking2TotalAmount,
@@ -1468,7 +1441,7 @@ async function main(): Promise<void> {
   const completedBooking3 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-3' },
     update: {
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-3',
         completedBooking3CheckIn,
         completedBooking3TotalAmount,
@@ -1489,7 +1462,7 @@ async function main(): Promise<void> {
       cleaningFee: propertyFees.p2.cleaningFee,
       securityDeposit: propertyFees.p2.securityDeposit,
       totalAmount: completedBooking3TotalAmount,
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-3',
         completedBooking3CheckIn,
         completedBooking3TotalAmount,
@@ -1505,7 +1478,7 @@ async function main(): Promise<void> {
   const completedBooking4 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-4' },
     update: {
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-4',
         completedBooking4CheckIn,
         completedBooking4TotalAmount,
@@ -1526,7 +1499,7 @@ async function main(): Promise<void> {
       cleaningFee: propertyFees.p3.cleaningFee,
       securityDeposit: propertyFees.p3.securityDeposit,
       totalAmount: completedBooking4TotalAmount,
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-4',
         completedBooking4CheckIn,
         completedBooking4TotalAmount,
@@ -1542,7 +1515,7 @@ async function main(): Promise<void> {
   const completedBooking5 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-5' },
     update: {
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-5',
         completedBooking5CheckIn,
         completedBooking5TotalAmount,
@@ -1563,7 +1536,7 @@ async function main(): Promise<void> {
       cleaningFee: propertyFees.p3.cleaningFee,
       securityDeposit: propertyFees.p3.securityDeposit,
       totalAmount: completedBooking5TotalAmount,
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-5',
         completedBooking5CheckIn,
         completedBooking5TotalAmount,
@@ -1579,7 +1552,7 @@ async function main(): Promise<void> {
   const completedBooking6 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-6' },
     update: {
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-6',
         completedBooking6CheckIn,
         completedBooking6TotalAmount,
@@ -1600,7 +1573,7 @@ async function main(): Promise<void> {
       cleaningFee: propertyFees.p4.cleaningFee,
       securityDeposit: propertyFees.p4.securityDeposit,
       totalAmount: completedBooking6TotalAmount,
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-6',
         completedBooking6CheckIn,
         completedBooking6TotalAmount,
@@ -1616,7 +1589,7 @@ async function main(): Promise<void> {
   const completedBooking7 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-7' },
     update: {
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-7',
         completedBooking7CheckIn,
         completedBooking7TotalAmount,
@@ -1637,7 +1610,7 @@ async function main(): Promise<void> {
       cleaningFee: propertyFees.p5.cleaningFee,
       securityDeposit: propertyFees.p5.securityDeposit,
       totalAmount: completedBooking7TotalAmount,
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-7',
         completedBooking7CheckIn,
         completedBooking7TotalAmount,
@@ -1653,7 +1626,7 @@ async function main(): Promise<void> {
   const completedBooking8 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-8' },
     update: {
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-8',
         completedBooking8CheckIn,
         completedBooking8TotalAmount,
@@ -1674,7 +1647,7 @@ async function main(): Promise<void> {
       cleaningFee: propertyFees.p5.cleaningFee,
       securityDeposit: propertyFees.p5.securityDeposit,
       totalAmount: completedBooking8TotalAmount,
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-8',
         completedBooking8CheckIn,
         completedBooking8TotalAmount,
@@ -1690,7 +1663,7 @@ async function main(): Promise<void> {
   const completedBooking9 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-9' },
     update: {
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-9',
         completedBooking9CheckIn,
         completedBooking9TotalAmount,
@@ -1711,7 +1684,7 @@ async function main(): Promise<void> {
       cleaningFee: propertyFees.p6.cleaningFee,
       securityDeposit: propertyFees.p6.securityDeposit,
       totalAmount: completedBooking9TotalAmount,
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-9',
         completedBooking9CheckIn,
         completedBooking9TotalAmount,
@@ -1727,7 +1700,7 @@ async function main(): Promise<void> {
   const completedBooking10 = await prisma.booking.upsert({
     where: { id: 'seed-booking-completed-10' },
     update: {
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-10',
         completedBooking10CheckIn,
         completedBooking10TotalAmount,
@@ -1748,7 +1721,7 @@ async function main(): Promise<void> {
       cleaningFee: propertyFees.p6.cleaningFee,
       securityDeposit: propertyFees.p6.securityDeposit,
       totalAmount: completedBooking10TotalAmount,
-      ...completedStripeFields(
+      ...completedPaymentFields(
         'seed-booking-completed-10',
         completedBooking10CheckIn,
         completedBooking10TotalAmount,

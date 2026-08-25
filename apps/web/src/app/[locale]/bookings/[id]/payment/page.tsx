@@ -2,21 +2,17 @@
 
 import type { BookingDetail } from '@repo/shared';
 import { getLocalizedTitle, PaymentProviders } from '@repo/shared';
-import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { CreditCard, Loader2 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { useEffect, useState } from 'react';
 
 import { CancellationPolicyNotice } from '@/components/bookings/cancellation-policy-notice';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { ApiError } from '@/lib/api';
-import { confirmStripePayment, createStripeSetupIntent, getBookingById } from '@/lib/api/bookings';
+import { getBookingById } from '@/lib/api/bookings';
 import { formatStoredMoney as formatPrice } from '@/lib/format/money';
-import { getStripe } from '@/lib/stripe';
 
 function useCountdown(deadline: string | null): number | null {
   const [remainingMs, setRemainingMs] = useState<number | null>(null);
@@ -43,80 +39,6 @@ function formatCountdown(ms: number): string {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-interface StripeCheckoutFormProps {
-  bookingId: string;
-  onSuccess: () => void;
-}
-
-function StripeCheckoutForm({ bookingId, onSuccess }: StripeCheckoutFormProps): React.JSX.Element {
-  const t = useTranslations('payment');
-  const stripe = useStripe();
-  const elements = useElements();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    if (!stripe || !elements) return;
-    setIsSubmitting(true);
-    try {
-      const { error: setupError, setupIntent } = await stripe.confirmSetup({
-        elements,
-        redirect: 'if_required',
-      });
-      if (setupError || !setupIntent) {
-        toast.error(setupError?.message ?? t('error_generic'));
-        return;
-      }
-      const paymentMethodId =
-        typeof setupIntent.payment_method === 'string'
-          ? setupIntent.payment_method
-          : setupIntent.payment_method?.id;
-      if (!paymentMethodId) {
-        toast.error(t('error_generic'));
-        return;
-      }
-      let result = await confirmStripePayment(bookingId, paymentMethodId);
-      if (result.status === 'REQUIRES_ACTION' && result.clientSecret) {
-        const { error: actionError } = await stripe.confirmCardPayment(result.clientSecret);
-        if (actionError) {
-          toast.error(actionError.message ?? t('error_generic'));
-          return;
-        }
-        result = await confirmStripePayment(bookingId, paymentMethodId);
-      }
-      if (result.status === 'CONFIRMED') {
-        onSuccess();
-        return;
-      }
-      toast.error(t('error_generic'));
-    } catch (err: unknown) {
-      if (err instanceof ApiError) {
-        toast.error(err.message);
-      } else {
-        toast.error(t('error_generic'));
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <PaymentElement options={{ wallets: { link: 'never' } }} />
-      <Button type="submit" className="w-full" disabled={!stripe || isSubmitting}>
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {t('paying')}
-          </>
-        ) : (
-          t('pay_button')
-        )}
-      </Button>
-    </form>
-  );
-}
-
 export default function BookingPaymentPage(): React.JSX.Element {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -125,8 +47,6 @@ export default function BookingPaymentPage(): React.JSX.Element {
   const tBooking = useTranslations('booking');
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const stripePromise = useMemo(() => getStripe(), []);
   const remainingMs = useCountdown(booking?.paymentLockExpiresAt ?? null);
 
   useEffect(() => {
@@ -146,19 +66,6 @@ export default function BookingPaymentPage(): React.JSX.Element {
         setError(err instanceof Error ? err.message : 'Failed to load booking');
       });
   }, [id, router, locale]);
-
-  useEffect(() => {
-    if (!booking || remainingMs === 0) return;
-    createStripeSetupIntent(booking.id)
-      .then((res) => setClientSecret(res.clientSecret))
-      .catch(() => setError(t('error_generic')));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [booking?.id]);
-
-  const handleSuccess = (): void => {
-    toast.success(t('success_toast'));
-    router.push(`/${locale}/bookings/${id}`);
-  };
 
   if (error) {
     return (
@@ -244,36 +151,19 @@ export default function BookingPaymentPage(): React.JSX.Element {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2">
-            {PaymentProviders.map((provider) => {
-              const isStripe = provider === 'STRIPE';
-              return (
-                <div
-                  key={provider}
-                  className={`flex items-center justify-between rounded-lg border px-4 py-3 text-sm ${
-                    isStripe
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border text-muted-foreground opacity-60'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4" />
-                    {t(`method.${provider}`)}
-                  </span>
-                  {!isStripe && <span className="text-xs">{t('coming_soon')}</span>}
-                </div>
-              );
-            })}
+            {PaymentProviders.map((provider) => (
+              <div
+                key={provider}
+                className="flex items-center justify-between rounded-lg border border-border px-4 py-3 text-sm text-muted-foreground opacity-60"
+              >
+                <span className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  {t(`method.${provider}`)}
+                </span>
+                <span className="text-xs">{t('coming_soon')}</span>
+              </div>
+            ))}
           </div>
-
-          {clientSecret ? (
-            <Elements stripe={stripePromise} options={{ clientSecret }}>
-              <StripeCheckoutForm bookingId={booking.id} onSuccess={handleSuccess} />
-            </Elements>
-          ) : (
-            <div className="flex justify-center py-6">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

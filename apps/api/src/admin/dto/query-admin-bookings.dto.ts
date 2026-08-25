@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { BookingStatuses, DepositStatuses, PaymentStatuses, PayoutStatuses } from '@repo/shared';
+import { BookingStatuses, PaymentStatuses } from '@repo/shared';
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '@repo/shared/constants';
 import { Type } from 'class-transformer';
 import { IsDateString, IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
@@ -14,16 +14,6 @@ export class QueryAdminBookingsDto {
   @IsOptional()
   @IsIn(PaymentStatuses)
   paymentStatus?: (typeof PaymentStatuses)[number];
-
-  @ApiPropertyOptional({ enum: PayoutStatuses })
-  @IsOptional()
-  @IsIn(PayoutStatuses)
-  payoutStatus?: (typeof PayoutStatuses)[number];
-
-  @ApiPropertyOptional({ enum: DepositStatuses })
-  @IsOptional()
-  @IsIn(DepositStatuses)
-  depositStatus?: (typeof DepositStatuses)[number];
 
   @ApiPropertyOptional({ example: 'clxyz123property456' })
   @IsOptional()
