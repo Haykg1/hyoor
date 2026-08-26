@@ -8,7 +8,7 @@ placeholders.
 Locale files: privacy-policy.{en,hy,ru}.md — keep all three aligned.
 -->
 
-_Last updated: 05-08-2026_
+_Last updated: 25-08-2026_
 
 ## 1. Who is responsible for your data
 
@@ -36,7 +36,10 @@ write and receive, notifications, correspondence with our support, and messages 
 through the public contact form (name, email, role, topic, and message body).
 
 **Search data.** Search queries, including free-text queries you type into AI-assisted
-search (see Section 4 — these are processed by an AI provider).
+search (see Section 4 — these are processed by an AI provider). If you connect a third-party
+AI assistant (for example ChatGPT or Claude) to [WEBSITE NAME], that assistant sends listing
+search parameters (such as location, dates, and guest count) to our public listing tools; we
+return public listing information. We do not receive the rest of your chat with that assistant.
 
 **Usage and technical data.** Favorites, listing-comparison selections, IP address, and
 standard server logs collected when you use the site.
@@ -50,6 +53,7 @@ standard server logs collected when you use the site.
 | Email verification, booking and deposit notifications, password reset | account, booking                            | performance of a contract                                            |
 | Reviewing damage claims and payment failures                          | booking, communications, evidence submitted | performance of a contract; legitimate interest in dispute resolution |
 | AI-assisted search and suggestions                                    | search queries                              | legitimate interest / consent [LAWYER TO CONFIRM]                    |
+| Public listing tools used by third-party AI assistants                | search parameters, public listing data      | legitimate interest                                                  |
 | Responding to public contact-form messages                            | name, email, role, topic, message           | legitimate interest                                                  |
 | Security, fraud prevention, rate limiting, logs                       | technical data                              | legitimate interest                                                  |
 | Complying with tax, accounting, AML obligations                       | booking and payment data                    | legal obligation                                                     |
@@ -64,6 +68,10 @@ We do not use your data for third-party advertising and we do not sell it.
   and deposit emails) and forwarding public contact-form messages to our support inboxes.
 - **OpenAI** — free-text AI search queries are sent to OpenAI to interpret them. Do not
   include sensitive personal information in search queries.
+- **Third-party AI assistants (ChatGPT, Claude, and similar)** — only if you connect them to
+  our public listing tools. Those providers send search parameters to us and receive public
+  listing data. Your conversation with the assistant is governed by that provider's privacy
+  policy.
 - **Google / Apple** — only if you choose to sign in with them.
 - **Other users** — Hosts see the booking Guest's name, profile photo and message content;
   Guests see Host/listing information; reviews are public.

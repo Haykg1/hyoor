@@ -23,6 +23,7 @@ const config: Config = {
           paths: {
             '@repo/database/client': ['../../packages/database/src/generated/client'],
             '@repo/shared/constants': ['../../packages/shared/src/constants/index.ts'],
+            '@repo/shared/utils': ['../../packages/shared/src/utils/index.ts'],
             '@repo/shared/data/poi-datasets': ['../../packages/shared/src/data/poi-datasets.ts'],
             '@repo/shared': ['../../packages/shared/src/index.ts'],
           },

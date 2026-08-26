@@ -8,7 +8,7 @@ lawyer (Armenian law + data-protection counsel) before publication. Items in
 Locale files: terms-of-service.{en,hy,ru}.md — keep all three aligned.
 -->
 
-_Last updated: 05-08-2026_
+_Last updated: 25-08-2026_
 
 ## 1. Who we are
 
@@ -139,8 +139,9 @@ cleaning fee, and never includes the security deposit.
 ## 10. Prohibited conduct
 
 You must not: (a) use the platform for unlawful purposes; (b) list a property you have no
-right to rent; (c) make fraudulent bookings or damage claims; (d) misuse the AI search or any
-other feature to abuse, overload, or probe the platform; (e) scrape or harvest data; (f)
+right to rent; (c) make fraudulent bookings or damage claims; (d) misuse the AI search, the
+public listing tools exposed to third-party AI assistants, or any other feature to abuse,
+overload, or probe the platform; (e) scrape or harvest data; (f)
 attempt to access other users' accounts or non-public areas of the systems; (g) circumvent
 fees or payment flows.
 

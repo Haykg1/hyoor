@@ -25,6 +25,7 @@ import { HealthController } from './health/health.controller';
 import { HostAnalyticsModule } from './host-analytics/host-analytics.module';
 import { HostProfilesModule } from './host-profiles/host-profiles.module';
 import { MailModule } from './mail/mail.module';
+import { McpModule } from './mcp/mcp.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
@@ -72,6 +73,7 @@ const isTestEnv = process.env.NODE_ENV === 'test';
     CurrencyModule,
     GeocodingModule,
     AiSearchModule,
+    McpModule,
     PoiModule,
     AvailabilityModule,
     PaymentsModule,
