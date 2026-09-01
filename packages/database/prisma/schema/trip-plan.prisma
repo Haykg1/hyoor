@@ -1,0 +1,136 @@
+// Guest trip planner
+
+enum TripPlanStatus {
+  DRAFT
+  GENERATING
+  READY
+  FAILED
+  INTERVIEW
+  PLANNED
+}
+
+enum TripPlanItemKind {
+  sight
+  meal
+  activity
+  transfer
+  rest
+}
+
+enum TripPlanVerificationStatus {
+  verified
+  adjusted
+  unverified
+  rejected
+}
+
+model TripPlan {
+  id             String         @id @default(cuid())
+  userId         String
+  city           String
+  citySlug       String
+  checkIn        DateTime       @db.Date
+  checkOut       DateTime       @db.Date
+  bookingId      String?
+  guestCount     Int?
+  preferences    Json           @default("{}")
+  budgetProfile  Json           @default("{}")
+  staySnapshot   Json?
+  itinerary      Json?
+  summary        String?        @db.Text
+  rawModelOutput Json?
+  locale         String         @default("en")
+  status         TripPlanStatus @default(DRAFT)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  booking  Booking?          @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  messages TripPlanMessage[]
+  days     TripPlanDay[]
+
+  @@index([userId])
+  @@index([bookingId])
+  @@index([userId, createdAt])
+  @@map("trip_plans")
+}
+
+model TripPlanMessage {
+  id        String   @id @default(cuid())
+  planId    String
+  role      String
+  content   String   @db.Text
+  payload   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plan TripPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@index([planId, createdAt])
+  @@map("trip_plan_messages")
+}
+
+model TripPlanDay {
+  id        String   @id @default(cuid())
+  planId    String
+  date      DateTime @db.Date
+  theme     String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  plan  TripPlan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  items TripPlanItem[]
+
+  @@index([planId])
+  @@index([planId, date])
+  @@map("trip_plan_days")
+}
+
+model TripPlanItem {
+  id                 String                     @id @default(cuid())
+  dayId              String
+  tempId             String?
+  kind               TripPlanItemKind
+  placeId            String?
+  nameLabels         Json
+  startTime          String
+  endTime            String
+  address            String?
+  latitude           Decimal                    @db.Decimal(10, 7)
+  longitude          Decimal                    @db.Decimal(10, 7)
+  openingHours       String?
+  pricePerPerson     Json?
+  bookingRequired    Boolean                    @default(false)
+  description        String                     @db.Text
+  whyThisFits        String
+  photos             Json                       @default("[]")
+  verificationStatus TripPlanVerificationStatus @default(unverified)
+  adjustments        Json                       @default("[]")
+  sourceRefs         Json                       @default("[]")
+  sortOrder          Int                        @default(0)
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+
+  day           TripPlanDay            @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  verifications TripPlanVerification[]
+
+  @@index([dayId])
+  @@index([placeId])
+  @@map("trip_plan_items")
+}
+
+model TripPlanVerification {
+  id              String   @id @default(cuid())
+  itemId          String
+  checkName       String
+  result          String
+  providerPayload Json?
+  ranAt           DateTime @default(now())
+
+  item TripPlanItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId])
+  @@map("trip_plan_verifications")
+}

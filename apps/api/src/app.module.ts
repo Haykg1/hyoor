@@ -35,6 +35,7 @@ import { RedisModule } from './redis/redis.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { SchedulingModule } from './scheduling/scheduling.module';
 import { StorageModule } from './storage/storage.module';
+import { TripPlannerModule } from './trip-planner/trip-planner.module';
 import { UsersModule } from './users/users.module';
 
 const isTestEnv = process.env.NODE_ENV === 'test';
@@ -43,7 +44,7 @@ const isTestEnv = process.env.NODE_ENV === 'test';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: ['.env', '../../.env'],
       load: [configuration],
       validationSchema,
       validationOptions: {
@@ -85,6 +86,7 @@ const isTestEnv = process.env.NODE_ENV === 'test';
     ContactModule,
     AdminModule,
     SchedulingModule,
+    TripPlannerModule,
   ],
   controllers: [HealthController],
   providers: [

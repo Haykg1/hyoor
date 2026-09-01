@@ -29,6 +29,7 @@ import { formatStoredMoney } from '@/lib/format/money';
 
 const PAYABLE_STATUS = 'AWAITING_PAYMENT';
 const CANCELLED_STATUSES = new Set(['CANCELLED_BY_GUEST', 'CANCELLED_BY_HOST']);
+const PLAN_STATUSES = new Set(['AWAITING_PAYMENT', 'PENDING', 'CONFIRMED']);
 
 /** Rent kept by the host on cancellation; only meaningful after a fee was captured. */
 function resolveCancellationFee(booking: BookingDetail): number {
@@ -76,6 +77,7 @@ export function BookingConfirmationView({
 }: BookingConfirmationViewProps): React.JSX.Element {
   const t = useTranslations('booking.confirmation');
   const tBooking = useTranslations('booking');
+  const tPlanner = useTranslations('trip_planner');
   const tPolicy = useTranslations('booking.cancellation_policy');
   const locale = useLocale();
   const { formatMoney } = useDisplayMoney();
@@ -244,6 +246,11 @@ export function BookingConfirmationView({
       <div className="mt-6 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground">
         {t('booking_status')} <StatusBadge status={booking.status} namespace="booking" />
       </div>
+      {!isHost && PLAN_STATUSES.has(booking.status) ? (
+        <Button className="mt-6 w-full" variant="secondary" asChild>
+          <Link href={`/trips/planner?bookingId=${booking.id}`}>{tPlanner('plan_this_trip')}</Link>
+        </Button>
+      ) : null}
       {!isHost && booking.status === PAYABLE_STATUS && onContinuePayment ? (
         <Button className="mt-6 w-full" onClick={onContinuePayment}>
           {t('continue_payment')}

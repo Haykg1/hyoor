@@ -46,7 +46,8 @@ coverage/
 postgres_data/
 localstack-data/
 
-# Local scrape script output / secrets
+# Local scrape / enrich script output
+poi-photos/
 scraped-property.json
 [0-9]*-*.webp
 [0-9]*-*.jpg

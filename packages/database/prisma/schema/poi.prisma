@@ -1,0 +1,67 @@
+// Curated destination POIs (landmarks, F&B, venues)
+
+enum PoiStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum PoiPhotoStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model Poi {
+  id                String    @id
+  city              String
+  region            String
+  country           String    @default("AM")
+  citySlug          String
+  latitude          Decimal   @db.Decimal(10, 7)
+  longitude         Decimal   @db.Decimal(10, 7)
+  category          String
+  tags              String[]  @default([])
+  nameLabels        Json
+  descriptionLabels Json
+  wikipediaTitle    String?
+  wikipediaUrl      String?
+  wikidataId        String?
+  attributes        Json      @default("{}")
+  status            PoiStatus @default(DRAFT)
+  usableInPlanner   Boolean   @default(false)
+  lastVerifiedAt    DateTime?
+  sortOrder         Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  photos PoiPhoto[]
+
+  @@index([citySlug])
+  @@index([status])
+  @@index([category])
+  @@index([usableInPlanner])
+  @@index([citySlug, status])
+  @@index([citySlug, status, usableInPlanner])
+  @@index([tags], type: Gin)
+  @@map("pois")
+}
+
+model PoiPhoto {
+  id          String         @id @default(cuid())
+  poiId       String
+  key         String
+  attribution String?
+  license     String?
+  sourceUrl   String?
+  status      PoiPhotoStatus @default(PENDING_REVIEW)
+  reviewedAt  DateTime?
+  sortOrder   Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  poi Poi @relation(fields: [poiId], references: [id], onDelete: Cascade)
+
+  @@index([poiId])
+  @@index([poiId, status])
+  @@map("poi_photos")
+}

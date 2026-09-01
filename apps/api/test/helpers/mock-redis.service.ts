@@ -108,11 +108,15 @@ export class MockRedisService {
   }
 
   async decr(key: string): Promise<number> {
+    return this.decrBy(key, 1);
+  }
+
+  async decrBy(key: string, amount: number): Promise<number> {
     const entry = this.kvEntries.get(key);
     if (!entry || entry.expiresAt <= Date.now()) {
       return 0;
     }
-    const next = Math.max(0, Number.parseInt(entry.value, 10) - 1);
+    const next = Math.max(0, Number.parseInt(entry.value, 10) - amount);
     entry.value = String(next);
     return next;
   }

@@ -1,3 +1,5 @@
+export const YEREVAN_NEARBY_CITY_SLUGS = ['abovyan', 'vagharshapat'] as const;
+
 const YEREVAN_CITY_ALIASES = new Set(['yerevan', 'երևան', 'եռևան', 'ереван']);
 const YEREVAN_REGION_ALIASES = new Set(['yerevan', 'երևան', 'ереван']);
 
@@ -90,6 +92,17 @@ function slugifyCity(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, '-');
 }
 
+export function toPoiCitySlug(city: string, region?: string | null): string {
+  return normalizePoiCitySlug(city, region) ?? slugifyCity(city);
+}
+
+export function redisDestinationCitySlugs(citySlug: string): string[] {
+  if ((YEREVAN_NEARBY_CITY_SLUGS as readonly string[]).includes(citySlug)) {
+    return [citySlug, 'yerevan'];
+  }
+  return [citySlug];
+}
+
 function resolveSlugFromToken(token: string): string | null {
   if (!token) return null;
   const alias = CITY_SLUG_ALIASES[token];
@@ -136,4 +149,8 @@ export function buildDestinationGeoKey(citySlug: string): string {
 
 export function buildDestinationMetaKey(citySlug: string): string {
   return `poi:destinations:${citySlug}:meta`;
+}
+
+export function buildPlannerCandidateVersionKey(citySlug: string): string {
+  return `trip-planner:candidates:ver:${citySlug}`;
 }

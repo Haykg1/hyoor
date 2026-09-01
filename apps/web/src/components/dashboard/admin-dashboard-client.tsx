@@ -69,6 +69,12 @@ export function AdminDashboardClient({
             {t('admin.hosts_link')}
           </Link>
           <Link
+            href="/admin/pois"
+            className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent"
+          >
+            {t('admin.pois_link')}
+          </Link>
+          <Link
             href="/admin/bookings"
             className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent"
           >

@@ -115,4 +115,12 @@ describe('POI (e2e)', () => {
     expect(body.citySlug).toBeNull();
     expect(body.pois).toEqual([]);
   });
+
+  it('lists published destination cities', async () => {
+    const response = await request(app.getHttpServer()).get('/api/v1/poi/cities').expect(200);
+    const body = response.body.data as { citySlug: string; city: string }[];
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.length).toBeGreaterThan(0);
+    expect(body.some((item) => item.citySlug === 'yerevan' || item.city === 'Yerevan')).toBe(true);
+  });
 });

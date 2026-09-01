@@ -136,11 +136,24 @@ cleaning fee, and never includes the security deposit.
   reproduce it for operating and promoting the platform.
 - You must not upload content that infringes third-party rights or applicable law.
 
+### Third-party content and attributions
+
+- The trip planner and destination pages show points of interest, maps, and images sourced
+  from third parties, including OpenStreetMap contributors and Wikimedia Commons. Map tiles
+  are © OpenStreetMap contributors (Open Database License). Destination images are used under
+  their respective licenses (for example Creative Commons Attribution or Attribution-ShareAlike,
+  or public domain) and are shown with the author and licence credit provided by the source.
+- This third-party information is provided for general guidance only. Opening hours, prices,
+  and availability of places outside the platform can change, and [WEBSITE NAME] does not
+  guarantee its accuracy or endorse any place shown.
+- If you believe an image or attribution is incorrect or infringes your rights, contact us
+  (Section 16) and we will review and, where appropriate, correct or remove it.
+
 ## 10. Prohibited conduct
 
 You must not: (a) use the platform for unlawful purposes; (b) list a property you have no
-right to rent; (c) make fraudulent bookings or damage claims; (d) misuse the AI search or any
-other feature to abuse, overload, or probe the platform; (e) scrape or harvest data; (f)
+right to rent; (c) make fraudulent bookings or damage claims; (d) misuse the AI search, trip
+planner, or any other feature to abuse, overload, or probe the platform; (e) scrape or harvest data; (f)
 attempt to access other users' accounts or non-public areas of the systems; (g) circumvent
 fees or payment flows.
 

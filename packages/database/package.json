@@ -8,6 +8,7 @@
     "studio": "prisma studio",
     "seed": "ts-node --project tsconfig.seed.json prisma/seed.ts",
     "backfill:stay-fee-rules": "ts-node --project tsconfig.seed.json scripts/backfill-stay-fee-rules.ts",
+    "backfill:poi-photos": "ts-node --project tsconfig.seed.json scripts/backfill-poi-photos.ts",
     "format": "prettier --write 'prisma/**/*.{prisma,ts}' 'scripts/**/*.ts'",
     "format:check": "prettier --check 'prisma/**/*.{prisma,ts}' 'scripts/**/*.ts'"
   },

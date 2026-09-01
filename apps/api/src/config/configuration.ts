@@ -31,8 +31,9 @@ export interface AppConfig {
   yandex: { mapsApiKey: string };
   redis: { url: string };
   currency: { ratesApiUrl: string; fetchOnBoot: boolean };
-  poi: { seedOnBoot: boolean };
+  poi: { seedOnBoot: boolean; photoCdnBaseUrl: string };
   openai: { apiKey: string; model: string };
+  firecrawl: { apiKey: string };
   payments: {
     platformFeePercentDefault: number;
     paymentLockMinutes: number;
@@ -54,6 +55,16 @@ export interface AppConfig {
     hostCalendarSuggestionsRangeDays: number;
     bulkImportLimit: number;
     bulkImportTtlSeconds: number;
+  };
+  tripPlanner: {
+    dailyPlanLimit: number;
+    jobTtlSeconds: number;
+    maxCompletionTokens: number;
+    model: string;
+    candidateLimit: number;
+    candidateCacheTtlSeconds: number;
+    minCatalogPoisPerCity: number;
+    useTemplates: boolean;
   };
   security: {
     throttle: {
@@ -126,10 +137,14 @@ export default (): AppConfig => ({
   },
   poi: {
     seedOnBoot: process.env.POI_SEED_ON_BOOT === 'true',
+    photoCdnBaseUrl: (process.env.POI_PHOTO_CDN_BASE_URL ?? '').replace(/\/+$/, ''),
   },
   openai: {
     apiKey: process.env.OPENAI_API_KEY ?? '',
     model: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
+  },
+  firecrawl: {
+    apiKey: process.env.FIRECRAWL_API_KEY ?? '',
   },
   payments: {
     platformFeePercentDefault: parseFloat(process.env.PLATFORM_FEE_PERCENT_DEFAULT ?? '10'),
@@ -170,6 +185,16 @@ export default (): AppConfig => ({
     ),
     bulkImportLimit: parseInt(process.env.AI_SEARCH_BULK_IMPORT_LIMIT ?? '5', 10),
     bulkImportTtlSeconds: parseInt(process.env.AI_SEARCH_BULK_IMPORT_TTL_SECONDS ?? '86400', 10),
+  },
+  tripPlanner: {
+    dailyPlanLimit: parseInt(process.env.TRIP_PLANNER_DAILY_PLAN_LIMIT ?? '4', 10),
+    jobTtlSeconds: parseInt(process.env.TRIP_PLANNER_JOB_TTL_SECONDS ?? '900', 10),
+    maxCompletionTokens: parseInt(process.env.TRIP_PLANNER_MAX_COMPLETION_TOKENS ?? '1200', 10),
+    model: process.env.TRIP_PLANNER_MODEL ?? process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
+    candidateLimit: parseInt(process.env.TRIP_PLANNER_CANDIDATE_LIMIT ?? '50', 10),
+    candidateCacheTtlSeconds: parseInt(process.env.TRIP_PLANNER_CANDIDATE_CACHE_TTL ?? '21600', 10),
+    minCatalogPoisPerCity: parseInt(process.env.TRIP_PLANNER_MIN_CATALOG_POIS ?? '12', 10),
+    useTemplates: process.env.TRIP_PLANNER_USE_TEMPLATES === 'true',
   },
   security: {
     throttle: {

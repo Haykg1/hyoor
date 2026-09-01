@@ -73,6 +73,7 @@ model Booking {
   promotion       PropertyPromotion? @relation(fields: [promotionId], references: [id], onDelete: SetNull)
   reviews         Review[]
   paymentFailures PaymentFailure[]
+  tripPlans       TripPlan[]
 
   @@index([propertyId])
   @@index([propertyId, checkIn])

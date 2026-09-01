@@ -1,15 +1,34 @@
 export type {
+  AdminPoi,
   DestinationDataset,
   NearbyPoiItem,
   NearbyPoisResponse,
   NearestMetroResponse,
   NearestMetroStation,
+  PoiAttributeField,
+  PoiAttributes,
+  PoiCityOption,
   PoiDataset,
+  PoiDescriptionLabels,
   PoiDestination,
   PoiNameLabels,
+  PoiPhotoStatus,
+  PoiPhotoView,
+  PoiPlannerTag,
+  PoiPriceBand,
   PoiStation,
+  PoiStatus,
   PropertyFeaturedPoiView,
 } from '../types/poi';
 
-export { MAX_FEATURED_POIS, POI_DESTINATION_CATEGORIES } from '../types/poi';
+export {
+  MAX_FEATURED_POIS,
+  POI_DESTINATION_CATEGORIES,
+  POI_PHOTO_STATUSES,
+  POI_PLANNER_TAGS,
+  POI_PRICE_BANDS,
+  POI_STATUSES,
+  poiAttributeFieldVisible,
+  prunePoiAttributes,
+} from '../types/poi';
 export type { PoiDestinationCategory } from '../types/poi';

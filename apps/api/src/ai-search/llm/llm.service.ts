@@ -58,6 +58,10 @@ export abstract class LlmService {
     messages: AiSearchMessage[],
     context: HostCalendarLlmContext,
   ): Promise<HostCalendarLlmResult>;
+  abstract completeGeneratedTripPlan(prompt: {
+    system: string;
+    user: string;
+  }): Promise<{ json: unknown; usage: LlmTokenUsage }>;
   abstract generateHostCalendarSuggestions(
     context: HostCalendarSuggestionsLlmContext,
   ): Promise<HostCalendarSuggestionsLlmResult>;

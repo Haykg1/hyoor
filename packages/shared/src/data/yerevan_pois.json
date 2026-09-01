@@ -8,13 +8,15 @@
     "country": "AM",
     "wikipediaTitle": "Republic Square, Yerevan",
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Republic_Square,_Yerevan",
-    "latitude": 40.17764,
-    "longitude": 44.51139,
+    "latitude": 40.178515,
+    "longitude": 44.515628,
     "nameLabels": {
       "en": "Republic Square",
       "hy": "Հանրապետության հրապարակ",
       "ru": "Площадь Республики"
-    }
+    },
+    "wikidataId": "Q3390443",
+    "geoConfidence": "low"
   },
   {
     "id": "cascade",
@@ -25,13 +27,14 @@
     "country": "AM",
     "wikipediaTitle": "Yerevan Cascade",
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Yerevan_Cascade",
-    "latitude": 40.19111,
-    "longitude": 44.51556,
+    "latitude": 40.190831,
+    "longitude": 44.514195,
     "nameLabels": {
       "en": "Cascade",
       "hy": "Կասկադ",
       "ru": "Каскад"
-    }
+    },
+    "geoConfidence": "high"
   },
   {
     "id": "matenadaran",
@@ -42,13 +45,15 @@
     "country": "AM",
     "wikipediaTitle": "Matenadaran",
     "wikipediaUrl": "https://en.wikipedia.org/wiki/Matenadaran",
-    "latitude": 40.19207,
-    "longitude": 44.52113,
+    "latitude": 40.19232,
+    "longitude": 44.52173,
     "nameLabels": {
       "en": "Matenadaran",
       "hy": "Մատենադարան",
       "ru": "Матенадаран"
-    }
+    },
+    "wikidataId": "Q1322278",
+    "geoConfidence": "high"
   },
   {
     "id": "opera_house",
@@ -57,13 +62,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.18472,
-    "longitude": 44.51472,
+    "latitude": 40.185758,
+    "longitude": 44.515075,
     "nameLabels": {
       "en": "Yerevan Opera House",
       "hy": "Օպերայի և բալետի ազգային ակադեմիական թատրոն",
       "ru": "Ереванский оперный театр"
-    }
+    },
+    "wikidataId": "Q2373326",
+    "geoConfidence": "high"
   },
   {
     "id": "vernisage",
@@ -72,13 +79,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.17694,
-    "longitude": 44.51472,
+    "latitude": 40.17586,
+    "longitude": 44.518357,
     "nameLabels": {
       "en": "Vernissage Market",
       "hy": "Վերնիսաժ",
       "ru": "Вернисаж"
-    }
+    },
+    "wikidataId": "Q15982040",
+    "geoConfidence": "high"
   },
   {
     "id": "tsitsernakaberd",
@@ -87,13 +96,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.18583,
-    "longitude": 44.49028,
+    "latitude": 40.18571,
+    "longitude": 44.489189,
     "nameLabels": {
       "en": "Tsitsernakaberd Memorial",
       "hy": "Ծիծեռնակաբերդ",
       "ru": "Цицернакаберд"
-    }
+    },
+    "wikidataId": "Q154775",
+    "geoConfidence": "high"
   },
   {
     "id": "northern_avenue",
@@ -102,13 +113,14 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1812,
-    "longitude": 44.5141,
+    "latitude": 40.180984,
+    "longitude": 44.514775,
     "nameLabels": {
       "en": "Northern Avenue",
       "hy": "Հյուսիսային պողոտա",
       "ru": "Северный проспект"
-    }
+    },
+    "geoConfidence": "high"
   },
   {
     "id": "victory_park",
@@ -117,13 +129,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.19583,
-    "longitude": 44.51972,
+    "latitude": 40.196344,
+    "longitude": 44.52307,
     "nameLabels": {
       "en": "Victory Park",
       "hy": "Հաղթանակի պուրակ",
       "ru": "Парк Победы"
-    }
+    },
+    "wikidataId": "Q3364237",
+    "geoConfidence": "high"
   },
   {
     "id": "blue_mosque",
@@ -132,13 +146,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.17806,
+    "latitude": 40.177861,
     "longitude": 44.50556,
     "nameLabels": {
       "en": "Blue Mosque",
       "hy": "Կապույտ մզկիթ",
       "ru": "Голубая мечеть"
-    }
+    },
+    "wikidataId": "Q1979112",
+    "geoConfidence": "high"
   },
   {
     "id": "saint_gregory_cathedral",
@@ -147,13 +163,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.17194,
-    "longitude": 44.51694,
+    "latitude": 40.172053,
+    "longitude": 44.516868,
     "nameLabels": {
       "en": "Saint Gregory the Illuminator Cathedral",
       "hy": "Սուրբ Գրիգոր Լուսավորիչ մայր տաճար",
       "ru": "Собор Святого Григория Просветителя"
-    }
+    },
+    "wikidataId": "Q2942349",
+    "geoConfidence": "high"
   },
   {
     "id": "history_museum",
@@ -162,13 +180,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.17772,
-    "longitude": 44.51322,
+    "latitude": 40.178514,
+    "longitude": 44.513861,
     "nameLabels": {
       "en": "History Museum of Armenia",
       "hy": "Հայաստանի պատմության թանգարան",
       "ru": "Музей истории Армении"
-    }
+    },
+    "wikidataId": "Q1138228",
+    "geoConfidence": "high"
   },
   {
     "id": "cascade_complex",
@@ -177,13 +197,14 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1905,
-    "longitude": 44.5152,
+    "latitude": 40.191424,
+    "longitude": 44.515562,
     "nameLabels": {
       "en": "Cafesjian Center for the Arts",
       "hy": "Կաֆեսճյան արվեստի կենտրոն",
       "ru": "Центр искусств Кафесджяна"
-    }
+    },
+    "geoConfidence": "high"
   },
   {
     "id": "mashtots_avenue",
@@ -192,13 +213,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1815,
-    "longitude": 44.5125,
+    "latitude": 40.1825,
+    "longitude": 44.509722,
     "nameLabels": {
       "en": "Mashtots Avenue",
       "hy": "Մաշտոցի պողոտա",
       "ru": "Проспект Маштоца"
-    }
+    },
+    "wikidataId": "Q2873785",
+    "geoConfidence": "low"
   },
   {
     "id": "lovers_park",
@@ -207,13 +230,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.19139,
-    "longitude": 44.51222,
+    "latitude": 40.191265,
+    "longitude": 44.506483,
     "nameLabels": {
       "en": "Lovers' Park",
       "hy": "Սիրահարների պուրակ",
       "ru": "Парк влюблённых"
-    }
+    },
+    "wikidataId": "Q13054738",
+    "geoConfidence": "high"
   },
   {
     "id": "zoravor_church",
@@ -222,13 +247,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1765,
-    "longitude": 44.5182,
+    "latitude": 40.186098,
+    "longitude": 44.509504,
     "nameLabels": {
       "en": "Zoravor Surp Astvatsatsin Church",
       "hy": "Զորավոր Սուրբ Աստվածածին եկեղեցի",
       "ru": "Церковь Зоравор Сурб Аствацацин"
-    }
+    },
+    "wikidataId": "Q42805960",
+    "geoConfidence": "low"
   },
   {
     "id": "hrazdan_stadium",
@@ -237,13 +264,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1818,
-    "longitude": 44.5051,
+    "latitude": 40.180278,
+    "longitude": 44.494444,
     "nameLabels": {
       "en": "Hrazdan Stadium",
       "hy": "Հրազդան մարզադաշտ",
       "ru": "Стадион Раздан"
-    }
+    },
+    "wikidataId": "Q683493",
+    "geoConfidence": "medium"
   },
   {
     "id": "komitas_museum",
@@ -252,13 +281,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1942,
-    "longitude": 44.5087,
+    "latitude": 40.162404,
+    "longitude": 44.502424,
     "nameLabels": {
       "en": "Komitas Museum-Institute",
       "hy": "Կոմիտասի թանգարան-ինստիտուտ",
       "ru": "Музей-институт Комитаса"
-    }
+    },
+    "wikidataId": "Q20516936",
+    "geoConfidence": "high"
   },
   {
     "id": "sasuntsi_davit",
@@ -267,13 +298,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1968,
-    "longitude": 44.5095,
+    "latitude": 40.155278,
+    "longitude": 44.509444,
     "nameLabels": {
       "en": "Sasuntsi Davit Statue",
       "hy": "Սասունցի Դավիթ արձան",
       "ru": "Памятник Сасунцi Давиду"
-    }
+    },
+    "wikidataId": "Q16364238",
+    "geoConfidence": "medium"
   },
   {
     "id": "yerevan_brandy",
@@ -282,13 +315,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1682,
-    "longitude": 44.5021,
+    "latitude": 40.169241,
+    "longitude": 44.506675,
     "nameLabels": {
       "en": "Yerevan Brandy Company",
       "hy": "Երևանի կոնյակի գործարան",
       "ru": "Ереванский коньячный завод"
-    }
+    },
+    "wikidataId": "Q21658193",
+    "geoConfidence": "low"
   },
   {
     "id": "arabkir_park",
@@ -297,13 +332,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.2051,
-    "longitude": 44.5089,
+    "latitude": 40.21057,
+    "longitude": 44.498518,
     "nameLabels": {
       "en": "Arabkir Park",
       "hy": "Արաբկիրի պուրակ",
       "ru": "Парк Арабкир"
-    }
+    },
+    "wikidataId": "Q29480092",
+    "geoConfidence": "high"
   },
   {
     "id": "dalma_garden",
@@ -312,13 +349,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.2012,
-    "longitude": 44.5215,
+    "latitude": 40.1794,
+    "longitude": 44.488001,
     "nameLabels": {
       "en": "Dalma Garden Mall",
       "hy": "Դալմա Գարդեն",
       "ru": "ТРЦ Dalma Garden"
-    }
+    },
+    "wikidataId": "Q15212627",
+    "geoConfidence": "high"
   },
   {
     "id": "erebuni_fortress",
@@ -327,13 +366,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1406,
-    "longitude": 44.5381,
+    "latitude": 40.140364,
+    "longitude": 44.537902,
     "nameLabels": {
       "en": "Erebuni Fortress",
       "hy": "Էրեբունի ամրոց",
       "ru": "Крепость Эребуни"
-    }
+    },
+    "wikidataId": "Q733610",
+    "geoConfidence": "high"
   },
   {
     "id": "shengavit",
@@ -342,13 +383,14 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1558,
-    "longitude": 44.4682,
+    "latitude": 40.156444,
+    "longitude": 44.476889,
     "nameLabels": {
       "en": "Shengavit Settlement",
       "hy": "Շենգավիթ",
       "ru": "Шенгавит"
-    }
+    },
+    "geoConfidence": "high"
   },
   {
     "id": "zoravar_andranik",
@@ -357,13 +399,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1745,
-    "longitude": 44.5098,
+    "latitude": 40.172374,
+    "longitude": 44.514734,
     "nameLabels": {
       "en": "Andranik Statue",
       "hy": "Անդրանիկի արձան",
       "ru": "Памятник Андранику"
-    }
+    },
+    "wikidataId": "Q15961904",
+    "geoConfidence": "high"
   },
   {
     "id": "yerevan_zoo",
@@ -372,13 +416,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1925,
-    "longitude": 44.5012,
+    "latitude": 40.196,
+    "longitude": 44.5505,
     "nameLabels": {
       "en": "Yerevan Zoo",
       "hy": "Երևանի կենդանաբանական այգի",
       "ru": "Ереванский зоопарк"
-    }
+    },
+    "wikidataId": "Q3108672",
+    "geoConfidence": "low"
   },
   {
     "id": "national_gallery",
@@ -387,13 +433,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.17789,
-    "longitude": 44.51322,
+    "latitude": 40.17875,
+    "longitude": 44.514167,
     "nameLabels": {
       "en": "National Gallery of Armenia",
       "hy": "Հայաստանի ազգային պատկերասրահ",
       "ru": "Национальная галерея Армении"
-    }
+    },
+    "wikidataId": "Q2087788",
+    "geoConfidence": "low"
   },
   {
     "id": "swan_lake",
@@ -402,13 +450,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.18556,
-    "longitude": 44.51361,
+    "latitude": 40.184487,
+    "longitude": 44.515748,
     "nameLabels": {
       "en": "Swan Lake",
       "hy": "Կարապի լիճ",
       "ru": "Лебединое озеро"
-    }
+    },
+    "wikidataId": "Q20515955",
+    "geoConfidence": "high"
   },
   {
     "id": "katoghike_church",
@@ -417,13 +467,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1843414,
-    "longitude": 44.5189985,
+    "latitude": 40.184331,
+    "longitude": 44.518998,
     "nameLabels": {
       "en": "Katoghike Holy Mother of God Church",
       "hy": "Կաթողիկե Սուրբ Աստվածածին եկեղեցի",
       "ru": "Церковь Катогике"
-    }
+    },
+    "wikidataId": "Q13053205",
+    "geoConfidence": "high"
   },
   {
     "id": "saint_sarkis_cathedral",
@@ -432,13 +484,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.18528,
-    "longitude": 44.50389,
+    "latitude": 40.153477,
+    "longitude": 44.439834,
     "nameLabels": {
       "en": "Saint Sarkis Cathedral",
       "hy": "Սուրբ Սարգիս եկեղեցի",
       "ru": "Собор Святого Саркиса"
-    }
+    },
+    "wikidataId": "Q20508538",
+    "geoConfidence": "low"
   },
   {
     "id": "mother_armenia",
@@ -447,13 +501,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1951553,
-    "longitude": 44.5246737,
+    "latitude": 40.195155,
+    "longitude": 44.524674,
     "nameLabels": {
       "en": "Mother Armenia Monument",
       "hy": "Մայր Հայաստան",
       "ru": "Мать-Армения"
-    }
+    },
+    "wikidataId": "Q2389195",
+    "geoConfidence": "high"
   },
   {
     "id": "gum_market",
@@ -462,13 +518,14 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1673966,
-    "longitude": 44.5149408,
+    "latitude": 40.167208,
+    "longitude": 44.515022,
     "nameLabels": {
       "en": "GUM Market",
       "hy": "ԳՈՒՄ շուկա",
       "ru": "Рынок ГУМ"
-    }
+    },
+    "geoConfidence": "medium"
   },
   {
     "id": "parajanov_museum",
@@ -477,13 +534,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1788968,
+    "latitude": 40.178897,
     "longitude": 44.50007,
     "nameLabels": {
       "en": "Sergei Parajanov Museum",
       "hy": "Սերգեյ Փարաջանովի թանգարան",
       "ru": "Музей Сергея Параджанова"
-    }
+    },
+    "wikidataId": "Q7453721",
+    "geoConfidence": "high"
   },
   {
     "id": "saryan_house_museum",
@@ -492,13 +551,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1868663,
-    "longitude": 44.5093293,
+    "latitude": 40.18687,
+    "longitude": 44.509329,
     "nameLabels": {
       "en": "Martiros Saryan House-Museum",
       "hy": "Մարտիրոս Սարյանի տուն-թանգարան",
       "ru": "Дом-музей Мартироса Сарьяна"
-    }
+    },
+    "wikidataId": "Q13054028",
+    "geoConfidence": "high"
   },
   {
     "id": "dolmama",
@@ -507,13 +568,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1805383,
-    "longitude": 44.5158512,
+    "latitude": 40.182951,
+    "longitude": 44.516322,
     "nameLabels": {
       "en": "Dolmama Restaurant",
       "hy": "Դոլմամա ռեստորան",
       "ru": "Ресторан Долмама"
-    }
+    },
+    "wikidataId": "Q53175552",
+    "geoConfidence": "low"
   },
   {
     "id": "lavash_restaurant",
@@ -522,13 +585,15 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.18083,
-    "longitude": 44.51472,
+    "latitude": 40.182951,
+    "longitude": 44.516322,
     "nameLabels": {
       "en": "Lavash Restaurant",
       "hy": "Լավաշ ռեստորան",
       "ru": "Ресторан Лаваш"
-    }
+    },
+    "wikidataId": "Q53175552",
+    "geoConfidence": "low"
   },
   {
     "id": "sherep",
@@ -537,12 +602,13 @@
     "city": "Yerevan",
     "region": "Yerevan",
     "country": "AM",
-    "latitude": 40.1783851,
-    "longitude": 44.5111142,
+    "latitude": 40.169648,
+    "longitude": 44.508416,
     "nameLabels": {
       "en": "Sherep Restaurant",
       "hy": "Շերեփ ռեստորան",
       "ru": "Ресторан Шереп"
-    }
+    },
+    "geoConfidence": "medium"
   }
 ]

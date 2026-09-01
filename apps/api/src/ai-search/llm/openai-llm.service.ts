@@ -167,6 +167,45 @@ export class OpenAiLlmService extends LlmService {
     return { kind: 'clarify', message: clarifyMessage, usage: emptyUsage };
   }
 
+  async completeGeneratedTripPlan(prompt: {
+    system: string;
+    user: string;
+  }): Promise<{ json: unknown; usage: LlmTokenUsage }> {
+    if (!this.client) {
+      throw new ServiceUnavailableException('AI trip planner is not configured');
+    }
+    const model = this.config.get('tripPlanner.model', { infer: true });
+    const maxCompletionTokens = this.config.get('tripPlanner.maxCompletionTokens', {
+      infer: true,
+    });
+    const completion = await this.client.chat.completions.create({
+      model,
+      messages: [
+        { role: 'system', content: prompt.system },
+        { role: 'user', content: prompt.user },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.2,
+      max_tokens: maxCompletionTokens,
+    });
+    const choice = completion.choices[0];
+    const content = choice?.message.content?.trim();
+    if (!content) {
+      throw new ServiceUnavailableException('AI provider returned an empty trip plan');
+    }
+    let json: unknown;
+    try {
+      json = JSON.parse(content) as unknown;
+    } catch {
+      throw new ServiceUnavailableException('AI provider returned invalid trip plan JSON');
+    }
+    const usage = this.toTokenUsage(completion.usage);
+    return {
+      json,
+      usage: usage ?? { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+    };
+  }
+
   async generateHostCalendarSuggestions(
     context: HostCalendarSuggestionsLlmContext,
   ): Promise<HostCalendarSuggestionsLlmResult> {

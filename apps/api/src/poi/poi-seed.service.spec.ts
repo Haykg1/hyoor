@@ -2,6 +2,7 @@ import { ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { AppConfig } from '../config/configuration';
+import { PrismaService } from '../database/prisma.service';
 import { RedisService } from '../redis/redis.service';
 
 import { PoiSeedService } from './poi-seed.service';
@@ -30,6 +31,7 @@ describe('PoiSeedService', () => {
     service = new PoiSeedService(
       redis as unknown as RedisService,
       config as unknown as ConfigService<AppConfig, true>,
+      { poi: { findMany: jest.fn().mockResolvedValue([]) } } as unknown as PrismaService,
     );
   });
 

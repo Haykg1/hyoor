@@ -47,13 +47,14 @@ the `Secure` flag on HTTPS.
 
 These are not login cookies. They improve convenience and normally stay on your device:
 
-| Key / technology                                                 | Purpose                                  |
-| ---------------------------------------------------------------- | ---------------------------------------- |
-| Theme preference (`next-themes` / local storage)                 | Light / dark / system appearance         |
-| `hyoor-host-display-currency` (local storage)                    | Preferred display currency for prices    |
-| Listing wizard draft (session storage)                           | Temporary draft while creating a listing |
-| AI search / host-calendar chat drafts (session or local storage) | Temporary chat UI state                  |
-| Minor UI flags (local storage)                                   | e.g. dismissing an in-app notice         |
+| Key / technology                                                 | Purpose                                                                          |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Theme preference (`next-themes` / local storage)                 | Light / dark / system appearance                                                 |
+| `hyoor-host-display-currency` (local storage)                    | Preferred display currency for prices                                            |
+| Listing wizard draft (session storage)                           | Temporary draft while creating a listing                                         |
+| AI search / host-calendar chat drafts (session or local storage) | Temporary chat UI state                                                          |
+| Trip planner                                                     | Plans are stored on your account; generation progress is not kept in the browser |
+| Minor UI flags (local storage)                                   | e.g. dismissing an in-app notice                                                 |
 
 If you choose **Necessary only** in the banner, we treat optional preference persistence as
 declined for future non-essential use. Core browsing and sign-in still work. Language

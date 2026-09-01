@@ -11,6 +11,7 @@ export interface RegisterInput {
   lastName: string;
   wantsToHost?: boolean;
   spokenLanguages?: string[];
+  dateOfBirth: string;
 }
 
 export interface LoginInput {

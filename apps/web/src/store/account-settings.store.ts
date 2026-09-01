@@ -17,6 +17,7 @@ export interface ProfileForm {
   fullName: string;
   phone: string;
   bio: string;
+  dateOfBirth: string;
 }
 
 export interface PasswordForm {
@@ -65,7 +66,7 @@ interface AccountSettingsActions {
   reset: () => void;
 }
 
-const EMPTY_PROFILE_FORM: ProfileForm = { fullName: '', phone: '', bio: '' };
+const EMPTY_PROFILE_FORM: ProfileForm = { fullName: '', phone: '', bio: '', dateOfBirth: '' };
 const EMPTY_PASSWORD_FORM: PasswordForm = {
   currentPassword: '',
   newPassword: '',
@@ -79,6 +80,11 @@ let passwordSuccessTimer: ReturnType<typeof setTimeout> | null = null;
 let hostDescriptionSuccessTimer: ReturnType<typeof setTimeout> | null = null;
 let spokenLanguagesSuccessTimer: ReturnType<typeof setTimeout> | null = null;
 
+function toDateInput(value: string | null | undefined): string {
+  if (!value) return '';
+  return value.slice(0, 10);
+}
+
 function profileFormFromApi(profile: MyProfile): ProfileForm {
   const first = profile.profile?.firstName ?? '';
   const last = profile.profile?.lastName ?? '';
@@ -86,6 +92,7 @@ function profileFormFromApi(profile: MyProfile): ProfileForm {
     fullName: [first, last].filter(Boolean).join(' '),
     phone: profile.profile?.phone ?? '',
     bio: profile.profile?.bio ?? '',
+    dateOfBirth: toDateInput(profile.profile?.dateOfBirth),
   };
 }
 
@@ -183,6 +190,7 @@ export const useAccountSettingsStore = create<AccountSettingsState & AccountSett
             lastName,
             phone: profileForm.phone.trim() || undefined,
             bio: profileForm.bio.trim() || undefined,
+            dateOfBirth: profileForm.dateOfBirth || undefined,
           });
           set({
             profile: updated,

@@ -19,3 +19,4 @@ process.env.GOOGLE_CLIENT_ID = 'e2e-google-client-id';
 process.env.GOOGLE_CLIENT_SECRET = 'e2e-google-client-secret';
 process.env.REDIS_URL = 'redis://localhost:6379';
 process.env.POI_SEED_ON_BOOT = 'true';
+process.env.FIRECRAWL_API_KEY = '';

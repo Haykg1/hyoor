@@ -22,6 +22,7 @@ interface RegisterFormValues {
   confirmPassword: string;
   wantsToHost: boolean;
   spokenLanguages: string[];
+  dateOfBirth: string;
 }
 
 export function RegisterForm(): React.JSX.Element {
@@ -43,6 +44,16 @@ export function RegisterForm(): React.JSX.Element {
       confirmPassword: z.string().min(1, te('required')),
       wantsToHost: z.boolean(),
       spokenLanguages: z.array(z.string()),
+      dateOfBirth: z
+        .string()
+        .min(1, te('required'))
+        .refine((value) => {
+          const parsed = Date.parse(`${value}T00:00:00.000Z`);
+          if (!Number.isFinite(parsed)) return false;
+          const ageMs = Date.now() - parsed;
+          const years = ageMs / (365.25 * 24 * 60 * 60 * 1000);
+          return years >= 13 && years <= 120;
+        }, te('invalid_date_of_birth')),
     })
     .refine((d) => d.password === d.confirmPassword, {
       message: te('passwords_match'),
@@ -59,6 +70,7 @@ export function RegisterForm(): React.JSX.Element {
       confirmPassword: '',
       wantsToHost: false,
       spokenLanguages: [],
+      dateOfBirth: '',
     },
   });
 
@@ -93,6 +105,7 @@ export function RegisterForm(): React.JSX.Element {
         lastName: values.lastName,
         wantsToHost: values.wantsToHost,
         spokenLanguages: values.spokenLanguages.length > 0 ? values.spokenLanguages : undefined,
+        dateOfBirth: values.dateOfBirth,
       });
       router.push(values.wantsToHost ? '/dashboard' : '/trips');
     } catch (err) {
@@ -197,6 +210,22 @@ export function RegisterForm(): React.JSX.Element {
           />
           {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
         </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <label htmlFor="reg-dob" className="text-sm font-medium">
+          {t('date_of_birth')}
+        </label>
+        <input
+          id="reg-dob"
+          type="date"
+          autoComplete="bday"
+          className={inputClass}
+          {...register('dateOfBirth')}
+        />
+        {errors.dateOfBirth && (
+          <p className="text-xs text-destructive">{errors.dateOfBirth.message}</p>
+        )}
       </div>
 
       <div className="space-y-1.5">

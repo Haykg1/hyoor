@@ -1,4 +1,4 @@
-import type { NearbyPoisResponse, NearestMetroResponse } from '@repo/shared';
+import type { NearbyPoisResponse, NearestMetroResponse, PoiCityOption } from '@repo/shared';
 
 import { api } from '@/lib/api';
 
@@ -42,6 +42,14 @@ export async function fetchNearbyDestinations(
     });
   nearbyDestinationsInflight.set(key, request);
   return request;
+}
+
+export async function listPoiCities(): Promise<PoiCityOption[]> {
+  return api.get<PoiCityOption[]>('/poi/cities');
+}
+
+export async function listPlannerCities(): Promise<PoiCityOption[]> {
+  return api.get<PoiCityOption[]>('/poi/planner-cities');
 }
 
 function poiCacheKey(input: FetchPoiLocationInput): string {

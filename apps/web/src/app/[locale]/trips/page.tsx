@@ -1,7 +1,7 @@
 'use client';
 
 import type { BookingDetail } from '@repo/shared';
-import { getLocalizedTitle } from '@repo/shared';
+import { getLocalizedTitle, toPoiCitySlug } from '@repo/shared';
 import { Calendar, CheckCircle2, House, Loader2, Star } from 'lucide-react';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Link, useRouter } from '@/i18n/navigation';
 import { ApiError } from '@/lib/api';
 import { listMyBookings } from '@/lib/api/bookings';
+import { listPlannerCities } from '@/lib/api/poi';
 import { getMyProfile, type MyProfile } from '@/lib/api/users';
 import { canGuestCancelBooking, toCancelBookingPreview } from '@/lib/bookings/cancellation';
 import { formatBookingDate } from '@/lib/format/booking-date';
@@ -22,6 +23,7 @@ type BookingTab = 'upcoming' | 'past' | 'cancelled';
 
 const STATUS_UPCOMING = new Set(['CONFIRMED']);
 const STATUS_CANCELLED = new Set(['CANCELLED_BY_GUEST', 'CANCELLED_BY_HOST']);
+const PLAN_STATUSES = new Set(['AWAITING_PAYMENT', 'PENDING', 'CONFIRMED']);
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Pending',
@@ -54,12 +56,15 @@ function StatusBadge({ status }: { status: string }): React.JSX.Element {
 function BookingCard({
   booking,
   onCancelled,
+  plannerCitySlugs,
 }: {
   booking: BookingDetail;
   onCancelled: () => void;
+  plannerCitySlugs: Set<string>;
 }): React.JSX.Element {
   const locale = useLocale();
   const tBooking = useTranslations('booking');
+  const tPlanner = useTranslations('trip_planner');
   const [cancelOpen, setCancelOpen] = useState(false);
   const localizedTitle = getLocalizedTitle(
     booking.property.titleLabels,
@@ -69,6 +74,8 @@ function BookingCard({
   const cancelPreview = toCancelBookingPreview(booking);
   const showCancel = canGuestCancelBooking(cancelPreview);
   const showPolicy = STATUS_UPCOMING.has(booking.status) && new Date(booking.checkIn) > new Date();
+  const canPlan =
+    PLAN_STATUSES.has(booking.status) && plannerCitySlugs.has(toPoiCitySlug(booking.property.city));
   return (
     <div className="rounded-2xl border border-border bg-card p-4 transition-shadow hover:shadow-md">
       <Link href={`/bookings/${booking.id}`} className="flex gap-4">
@@ -119,13 +126,28 @@ function BookingCard({
             checkIn={booking.checkIn}
             audience="guest"
           />
-          {showCancel ? (
-            <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            {canPlan ? (
+              <Button type="button" size="sm" variant="secondary" asChild>
+                <Link href={`/trips/planner/new?bookingId=${booking.id}`}>
+                  {tPlanner('plan_this_trip')}
+                </Link>
+              </Button>
+            ) : null}
+            {showCancel ? (
               <Button type="button" size="sm" variant="outline" onClick={() => setCancelOpen(true)}>
                 {tBooking('cancel')}
               </Button>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
+        </div>
+      ) : canPlan ? (
+        <div className="mt-3 flex justify-end border-t border-border pt-3">
+          <Button type="button" size="sm" variant="secondary" asChild>
+            <Link href={`/trips/planner/new?bookingId=${booking.id}`}>
+              {tPlanner('plan_this_trip')}
+            </Link>
+          </Button>
         </div>
       ) : null}
       <CancelBookingDialog
@@ -165,17 +187,20 @@ function EmptyState({ tab }: { tab: BookingTab }): React.JSX.Element {
 
 export default function TripsPage(): React.JSX.Element {
   const t = useTranslations('trips');
+  const tPlanner = useTranslations('trip_planner');
   const router = useRouter();
   const [bookings, setBookings] = useState<BookingDetail[]>([]);
   const [profile, setProfile] = useState<MyProfile | null>(null);
+  const [plannerCitySlugs, setPlannerCitySlugs] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<BookingTab>('upcoming');
 
   useEffect(() => {
-    Promise.all([listMyBookings({ limit: 100 }), getMyProfile()])
-      .then(([bookingsRes, profileRes]) => {
+    Promise.all([listMyBookings({ limit: 100 }), getMyProfile(), listPlannerCities()])
+      .then(([bookingsRes, profileRes, plannerCities]) => {
         setBookings(bookingsRes.data);
         setProfile(profileRes);
+        setPlannerCitySlugs(new Set(plannerCities.map((option) => option.citySlug)));
       })
       .catch((err: unknown) => {
         if (err instanceof ApiError && err.status === 401) {
@@ -212,11 +237,19 @@ export default function TripsPage(): React.JSX.Element {
 
   return (
     <main className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold">{t('title')}</h1>
-        {displayName && (
-          <p className="text-muted-foreground mt-1">{t('welcome', { name: displayName })}</p>
-        )}
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">{t('title')}</h1>
+          {displayName && (
+            <p className="text-muted-foreground mt-1">{t('welcome', { name: displayName })}</p>
+          )}
+        </div>
+        <Link
+          href="/trips/planner"
+          className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90"
+        >
+          {tPlanner('title')}
+        </Link>
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-8">
@@ -268,6 +301,7 @@ export default function TripsPage(): React.JSX.Element {
             <BookingCard
               key={booking.id}
               booking={booking}
+              plannerCitySlugs={plannerCitySlugs}
               onCancelled={() => {
                 void listMyBookings({ limit: 100 }).then((res) => setBookings(res.data));
               }}

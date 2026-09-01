@@ -35,6 +35,7 @@ describe('Host calendar AI (e2e)', () => {
   const mockLlm = {
     complete: jest.fn(),
     completeHostCalendar: jest.fn(),
+    completeGeneratedTripPlan: jest.fn(),
     generateHostCalendarSuggestions: jest.fn(),
   };
 

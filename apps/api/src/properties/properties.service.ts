@@ -34,7 +34,6 @@ import {
   AddressLocales,
   MAX_CANCELLATION_DEADLINE_DAYS,
   MAX_CANCELLATION_FEE_PERCENT,
-  MAX_FEATURED_POIS,
   MIN_CANCELLATION_DEADLINE_DAYS,
   StayFeeRulesValidationCodes,
   findCatchAllRule,
@@ -49,13 +48,7 @@ import {
   MAX_UPLOAD_BYTES,
   S3_PRESIGNED_URL_EXPIRES,
 } from '@repo/shared/constants';
-import { findPoiById, getDestinationDataset } from '@repo/shared/data/poi-datasets';
-import {
-  computeDistanceKm,
-  computeDistanceMeters,
-  resolveDestinationCitySlug,
-  slugify,
-} from '@repo/shared/utils';
+import { computeDistanceKm, slugify } from '@repo/shared/utils';
 
 import { sanitizeGuestInstructionsHtml } from '../common/utils/sanitize-html';
 import type { CurrencyRates } from '../currency/currency.service';
@@ -66,6 +59,7 @@ import {
   HostProfilesService,
   type PublicHostProfile,
 } from '../host-profiles/host-profiles.service';
+import { PoiService } from '../poi/poi.service';
 import { StorageService } from '../storage/storage.service';
 
 import { AmenityDto } from './dto/amenity.dto';
@@ -139,6 +133,7 @@ export class PropertiesService {
     private readonly hostProfilesService: HostProfilesService,
     private readonly geocoding: GeocodingService,
     private readonly currencyService: CurrencyService,
+    private readonly poiService: PoiService,
   ) {}
 
   /** Minor units per major unit (100 for cent-based currencies, 1 for whole-unit ones like AMD). */
@@ -193,7 +188,7 @@ export class PropertiesService {
     options: { status: 'DRAFT' | 'PENDING_REVIEW' } = { status: 'PENDING_REVIEW' },
   ): Promise<Property> {
     this.validateHouseAddress(dto);
-    this.validateFeaturedPoiIds(dto.featuredPoiIds, dto.city, dto.region);
+    await this.poiService.assertFeaturedPoiIds(dto.featuredPoiIds);
     const hostProfile = await this.hostProfilesService.findByUserId(hostUserId);
     await this.assertNotDuplicateAddress(hostProfile.id, dto);
     const slug = await this.generateUniqueSlug(dto.title);
@@ -268,67 +263,6 @@ export class PropertiesService {
       await persistStayFeeRules(tx, property.id, mode, rules);
       return property;
     });
-  }
-
-  private validateFeaturedPoiIds(
-    poiIds: string[] | undefined,
-    city: string,
-    region?: string | null,
-  ): void {
-    if (!poiIds || poiIds.length === 0) return;
-    if (poiIds.length > MAX_FEATURED_POIS) {
-      throw new BadRequestException(`At most ${MAX_FEATURED_POIS} featured POIs are allowed`);
-    }
-    const uniqueIds = new Set(poiIds);
-    if (uniqueIds.size !== poiIds.length) {
-      throw new BadRequestException('Featured POI ids must be unique');
-    }
-    const citySlug = resolveDestinationCitySlug(city, region);
-    if (!citySlug) {
-      throw new BadRequestException('No destination POI catalog is available for this city');
-    }
-    const dataset = getDestinationDataset(citySlug);
-    if (!dataset) {
-      throw new BadRequestException('No destination POI catalog is available for this city');
-    }
-    const catalogIds = new Set(dataset.destinations.map((destination) => destination.id));
-    for (const poiId of poiIds) {
-      if (!catalogIds.has(poiId) && !findPoiById(poiId)) {
-        throw new BadRequestException(`Unknown featured POI id: ${poiId}`);
-      }
-    }
-  }
-
-  private buildFeaturedPois(
-    poiIds: string[],
-    latitude: number | null,
-    longitude: number | null,
-  ): PropertyFeaturedPoiView[] {
-    if (!poiIds.length) return [];
-    const results: PropertyFeaturedPoiView[] = [];
-    poiIds.forEach((poiId, index) => {
-      const poi = findPoiById(poiId);
-      if (!poi) return;
-      const distanceMeters =
-        latitude !== null && longitude !== null
-          ? computeDistanceMeters(latitude, longitude, poi.latitude, poi.longitude)
-          : 0;
-      const distanceKm =
-        latitude !== null && longitude !== null
-          ? computeDistanceKm(latitude, longitude, poi.latitude, poi.longitude)
-          : 0;
-      results.push({
-        id: poi.id,
-        sortOrder: index + 1,
-        category: poi.category,
-        nameLabels: poi.nameLabels,
-        latitude: poi.latitude,
-        longitude: poi.longitude,
-        distanceMeters,
-        distanceKm,
-      });
-    });
-    return results;
   }
 
   private buildBaseWhere(): Prisma.PropertyWhereInput {
@@ -1184,6 +1118,7 @@ export class PropertiesService {
     const latitude = property.latitude !== null ? Number(property.latitude) : null;
     const longitude = property.longitude !== null ? Number(property.longitude) : null;
     const rates = displayCurrency ? await this.currencyService.getRates() : null;
+    const featuredDestinations = await this.poiService.findByIds(property.featuredPoiIds);
     return {
       ...propertyRest,
       cleaningFee: fees.cleaningFee,
@@ -1195,7 +1130,7 @@ export class PropertiesService {
       reviewCount,
       addressLabels: this.parseAddressLabels(rawAddressLabels),
       titleLabels: this.parseTitleLabels(rawTitleLabels),
-      featuredPois: this.buildFeaturedPois(property.featuredPoiIds, latitude, longitude),
+      featuredPois: this.poiService.buildFeaturedPois(featuredDestinations, latitude, longitude),
       displayPrice: this.buildDisplayPrice(
         property.pricePerNight,
         property.currency,
@@ -1317,11 +1252,7 @@ export class PropertiesService {
   async update(id: string, hostUserId: string, dto: UpdatePropertyDto): Promise<Property> {
     const property = await this.getOwnedProperty(id, hostUserId);
     if (dto.featuredPoiIds !== undefined) {
-      this.validateFeaturedPoiIds(
-        dto.featuredPoiIds,
-        dto.city ?? property.city,
-        dto.region ?? property.region,
-      );
+      await this.poiService.assertFeaturedPoiIds(dto.featuredPoiIds);
     }
     const hasAddressUpdate =
       dto.placeKind !== undefined ||

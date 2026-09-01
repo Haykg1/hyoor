@@ -5,6 +5,7 @@ import { AuthModule } from '../auth/auth.module';
 import { CurrencyModule } from '../currency/currency.module';
 import { GeocodingModule } from '../geocoding/geocoding.module';
 import { HostProfilesModule } from '../host-profiles/host-profiles.module';
+import { PoiModule } from '../poi/poi.module';
 import { StorageModule } from '../storage/storage.module';
 
 import { BulkImportJobStore } from './bulk-import/bulk-import-job.store';
@@ -21,6 +22,7 @@ import { PropertiesService } from './properties.service';
     StorageModule,
     GeocodingModule,
     CurrencyModule,
+    PoiModule,
     forwardRef(() => AiSearchModule),
   ],
   controllers: [PropertiesController, PropertyBulkImportController],

@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import type { NearbyPoisResponse, NearestMetroResponse } from '@repo/shared';
+import type { NearbyPoisResponse, NearestMetroResponse, PoiCityOption } from '@repo/shared';
 
 import { ApiStandardErrors } from '../common/swagger/api-responses.decorator';
 import { GEOCODING_THROTTLE } from '../common/throttle/throttle.constants';
@@ -15,6 +15,22 @@ import { PoiService } from './poi.service';
 @Throttle(GEOCODING_THROTTLE)
 export class PoiController {
   constructor(private readonly poiService: PoiService) {}
+
+  @Get('cities')
+  @ApiOperation({ summary: 'List destination cities with published POIs' })
+  @ApiOkResponse({ description: 'City options for trip planning and filters' })
+  @ApiStandardErrors({ auth: false, throttle: true })
+  listCities(): Promise<PoiCityOption[]> {
+    return this.poiService.listPublishedCities();
+  }
+
+  @Get('planner-cities')
+  @ApiOperation({ summary: 'List cities the trip planner can generate itineraries for' })
+  @ApiOkResponse({ description: 'Cities with enough curated planner POIs' })
+  @ApiStandardErrors({ auth: false, throttle: true })
+  listPlannerCities(): Promise<PoiCityOption[]> {
+    return this.poiService.listPlannerCities();
+  }
 
   @Get('nearest-metro')
   @ApiOperation({ summary: 'Find nearest metro station to a coordinate in Armenia' })

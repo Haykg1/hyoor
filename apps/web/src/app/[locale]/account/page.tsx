@@ -313,6 +313,17 @@ export default function AccountSettingsPage(): React.JSX.Element {
             </div>
 
             <div className="space-y-1.5">
+              <Label htmlFor="dateOfBirth">{t('personal.date_of_birth')}</Label>
+              <Input
+                id="dateOfBirth"
+                type="date"
+                value={profileForm.dateOfBirth}
+                onChange={(e) => setProfileForm({ dateOfBirth: e.target.value })}
+                className="h-12 rounded-xl"
+              />
+            </div>
+
+            <div className="space-y-1.5">
               <Label htmlFor="bio">{t('personal.bio')}</Label>
               <Textarea
                 id="bio"

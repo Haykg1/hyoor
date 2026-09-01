@@ -1,5 +1,7 @@
+export * from './budget-profile';
 export * from './poi-city';
 export * from './poi-match';
+export * from './poi-attributes';
 export * from './geo-distance';
 export * from './search-dates';
 export * from './property-type';

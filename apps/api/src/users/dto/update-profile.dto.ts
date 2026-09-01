@@ -1,6 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { SPOKEN_LANGUAGES } from '@repo/shared';
-import { IsArray, IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsArray,
+  IsDateString,
+  IsIn,
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 
 export class UpdateProfileDto {
   @ApiPropertyOptional({ example: 'Anna', maxLength: 100 })
@@ -52,4 +60,10 @@ export class UpdateProfileDto {
   @IsArray()
   @IsIn(SPOKEN_LANGUAGES.map((l) => l.code), { each: true })
   spokenLanguages?: string[];
+
+  @ApiPropertyOptional({ example: '1994-06-12' })
+  @IsOptional()
+  @IsDateString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  dateOfBirth?: string;
 }

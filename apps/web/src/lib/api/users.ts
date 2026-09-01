@@ -14,6 +14,7 @@ export interface MyProfile {
     avatarKey: string | null;
     bio: string | null;
     spokenLanguages: string[];
+    dateOfBirth: string | null;
   } | null;
 }
 
@@ -30,6 +31,7 @@ export async function updateMyProfile(data: {
   bio?: string;
   preferredLang?: string;
   spokenLanguages?: string[];
+  dateOfBirth?: string;
 }): Promise<MyProfile> {
   return api.patch<MyProfile>('/users/me', data);
 }

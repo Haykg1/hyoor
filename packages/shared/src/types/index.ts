@@ -614,3 +614,32 @@ export interface AdminHost {
   effectivePlatformFeePercent: number;
   createdAt: string;
 }
+
+export type {
+  AdminPoi,
+  PoiAttributeField,
+  PoiAttributes,
+  PoiCityOption,
+  PoiDescriptionLabels,
+  PoiPhotoStatus,
+  PoiPhotoView,
+  PoiPlannerTag,
+  PoiPriceBand,
+  PoiStatus,
+} from './poi';
+export type {
+  TripPlanDayView,
+  TripPlanDetail,
+  TripPlanGenerateResponse,
+  TripPlanItemKind,
+  TripPlanItemView,
+  TripPlanPreferences,
+  TripPlanPriceBand,
+  TripPlanProgressEvent,
+  TripPlanProgressType,
+  TripPlanStaySnapshot,
+  TripPlanStatus,
+  TripPlanSummary,
+  TripPlanVerificationStatus,
+  TripPlannerQuotaView,
+} from './trip-planner';

@@ -56,12 +56,14 @@ describe('Users (e2e)', () => {
         bio: 'E2E bio',
         nationality: 'AM',
         phone: '+37491111222',
+        dateOfBirth: '1994-06-12',
       })
       .expect(200);
     expect(response.body.data.profile).toMatchObject({
       bio: 'E2E bio',
       nationality: 'AM',
       phone: '+37491111222',
+      dateOfBirth: expect.stringContaining('1994-06-12'),
     });
   });
 

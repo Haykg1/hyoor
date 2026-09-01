@@ -165,6 +165,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return this.getClient().decr(key);
   }
 
+  async decrBy(key: string, amount: number): Promise<number> {
+    return this.getClient().decrby(key, amount);
+  }
+
   async ttl(key: string): Promise<number> {
     return this.getClient().ttl(key);
   }

@@ -8,7 +8,7 @@ placeholders.
 Locale files: privacy-policy.{en,hy,ru}.md — keep all three aligned.
 -->
 
-_Last updated: 05-08-2026_
+_Last updated: 26-08-2026_
 
 ## 1. Who is responsible for your data
 
@@ -21,7 +21,7 @@ The data controller is **[LEGAL ENTITY NAME]**, [ADDRESS], Republic of Armenia
 (guest/host/admin), email-verification status. If you sign in with Google or Apple, we
 receive your provider account identifier and email address from that provider.
 
-**Profile data (provided by you).** First and last name, phone number, profile photo,
+**Profile data (provided by you).** First and last name, date of birth, phone number, profile photo,
 short bio, nationality, preferred language, spoken languages.
 
 **Host data.** Host type (individual or company), company name and description where
@@ -36,23 +36,27 @@ write and receive, notifications, correspondence with our support, and messages 
 through the public contact form (name, email, role, topic, and message body).
 
 **Search data.** Search queries, including free-text queries you type into AI-assisted
-search (see Section 4 — these are processed by an AI provider).
+search, and trip-planner intake answers (pace, alcohol interest, historical vs modern,
+nature/food/culture/adventure/shopping) plus the generated itinerary. Date of birth is used
+only as an age band (for example adult vs minor) when building a plan. Trip plans are stored
+on your account so you can reopen them. Suggested places, hours, and prices come from the
+model and are labelled unverified until a later geocoder check.
 
 **Usage and technical data.** Favorites, listing-comparison selections, IP address, and
 standard server logs collected when you use the site.
 
 ## 3. Why we process it (purposes and legal bases)
 
-| Purpose                                                               | Data                                        | Legal basis                                                          |
-| --------------------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------- |
-| Providing accounts, listings, bookings, messaging, reviews            | account, profile, booking, communications   | performance of a contract                                            |
-| Processing payments, deposits, payouts                                | booking and payment data                    | performance of a contract; legal obligations                         |
-| Email verification, booking and deposit notifications, password reset | account, booking                            | performance of a contract                                            |
-| Reviewing damage claims and payment failures                          | booking, communications, evidence submitted | performance of a contract; legitimate interest in dispute resolution |
-| AI-assisted search and suggestions                                    | search queries                              | legitimate interest / consent [LAWYER TO CONFIRM]                    |
-| Responding to public contact-form messages                            | name, email, role, topic, message           | legitimate interest                                                  |
-| Security, fraud prevention, rate limiting, logs                       | technical data                              | legitimate interest                                                  |
-| Complying with tax, accounting, AML obligations                       | booking and payment data                    | legal obligation                                                     |
+| Purpose                                                               | Data                                                          | Legal basis                                                          |
+| --------------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Providing accounts, listings, bookings, messaging, reviews            | account, profile, booking, communications                     | performance of a contract                                            |
+| Processing payments, deposits, payouts                                | booking and payment data                                      | performance of a contract; legal obligations                         |
+| Email verification, booking and deposit notifications, password reset | account, booking                                              | performance of a contract                                            |
+| Reviewing damage claims and payment failures                          | booking, communications, evidence submitted                   | performance of a contract; legitimate interest in dispute resolution |
+| AI-assisted search, trip planning, and suggestions                    | search queries, trip preferences, saved itineraries, age band | legitimate interest / consent [LAWYER TO CONFIRM]                    |
+| Responding to public contact-form messages                            | name, email, role, topic, message                             | legitimate interest                                                  |
+| Security, fraud prevention, rate limiting, logs                       | technical data                                                | legitimate interest                                                  |
+| Complying with tax, accounting, AML obligations                       | booking and payment data                                      | legal obligation                                                     |
 
 We do not use your data for third-party advertising and we do not sell it.
 
@@ -62,8 +66,11 @@ We do not use your data for third-party advertising and we do not sell it.
   **[eu-central-1 / REGION]**.
 - **Resend** — sending transactional emails (verification codes, password resets, booking
   and deposit emails) and forwarding public contact-form messages to our support inboxes.
-- **OpenAI** — free-text AI search queries are sent to OpenAI to interpret them. Do not
-  include sensitive personal information in search queries.
+- **OpenAI** — free-text AI search queries and trip-planner intake (preference answers,
+  destination, dates, guest count, stay budget band, and an age band derived from date of
+  birth) are sent to OpenAI so it can draft a day-by-day itinerary. Suggested places are
+  model-claimed and shown as unverified. Do not include extra sensitive personal information
+  in other AI features. Saved itineraries stay in your account.
 - **Google / Apple** — only if you choose to sign in with them.
 - **Other users** — Hosts see the booking Guest's name, profile photo and message content;
   Guests see Host/listing information; reviews are public.
@@ -100,6 +107,10 @@ display currency) may be stored in your browser's local storage and never leave 
   accounting purposes, even after account closure.
 - **Messages and reviews:** for the life of the account; reviews may be retained in
   anonymized form after account deletion because counterpart users rely on them.
+- **Trip plans:** stored with your account and deleted or anonymized with
+  account closure (same **[30] day** window as other account data), unless a linked booking
+  record must be retained longer. In-progress generation jobs are held briefly in cache and
+  expire within hours.
 - **Verification codes and password-reset tokens:** short-lived and deleted after use or
   expiry.
 - **Server logs:** up to **[90] days**.

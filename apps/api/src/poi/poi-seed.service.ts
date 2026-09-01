@@ -3,13 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import {
   buildDestinationGeoKey,
   buildDestinationMetaKey,
+  buildPlannerCandidateVersionKey,
   buildPoiGeoKey,
   buildPoiMetaKey,
+  YEREVAN_NEARBY_CITY_SLUGS,
 } from '@repo/shared';
 import { DESTINATION_DATASETS, METRO_POI_DATASETS } from '@repo/shared/data/poi-datasets';
 
 import type { AppConfig } from '../config/configuration';
+import { PrismaService } from '../database/prisma.service';
 import { RedisService } from '../redis/redis.service';
+
+import { redisMetaFromPoi, type PoiRecord } from './poi-mapper';
 
 export interface PoiSeedResult {
   metroDatasets: number;
@@ -24,6 +29,7 @@ export class PoiSeedService implements OnModuleInit {
   constructor(
     private readonly redis: RedisService,
     private readonly config: ConfigService<AppConfig, true>,
+    private readonly prisma: PrismaService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -44,11 +50,34 @@ export class PoiSeedService implements OnModuleInit {
     }
   }
 
-  /**
-   * Force-reseed all curated POI GEO indexes in Redis (admin use).
-   */
   async forceSeed(): Promise<PoiSeedResult> {
     return this.seedAll({ force: true });
+  }
+
+  async syncCity(citySlug: string): Promise<void> {
+    if (!this.redis.isConfigured) return;
+    const slugs = new Set<string>([citySlug]);
+    if ((YEREVAN_NEARBY_CITY_SLUGS as readonly string[]).includes(citySlug)) {
+      slugs.add('yerevan');
+    }
+    if (citySlug === 'yerevan') {
+      for (const nearby of YEREVAN_NEARBY_CITY_SLUGS) slugs.add(nearby);
+    }
+    for (const slug of slugs) {
+      await this.seedDestinationCity(slug, true);
+      await this.bumpPlannerCandidateVersion(slug);
+    }
+  }
+
+  /** Invalidates the trip-planner candidate cache for a city after a catalog change. */
+  private async bumpPlannerCandidateVersion(citySlug: string): Promise<void> {
+    if (!this.redis.isConfigured) return;
+    try {
+      await this.redis.incrWithTtl(buildPlannerCandidateVersionKey(citySlug), 60 * 60 * 24 * 30);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.warn(`Failed to bump planner candidate version for ${citySlug}: ${message}`);
+    }
   }
 
   async seedAll(options: { force: boolean }): Promise<PoiSeedResult> {
@@ -69,24 +98,87 @@ export class PoiSeedService implements OnModuleInit {
         options.force,
       );
     }
-    for (const dataset of DESTINATION_DATASETS) {
-      seededEntries += await this.seedGeoDataset(
-        buildDestinationGeoKey(dataset.citySlug),
-        buildDestinationMetaKey(dataset.citySlug),
-        dataset.destinations.map((destination) => ({
-          id: destination.id,
-          longitude: destination.longitude,
-          latitude: destination.latitude,
-          meta: JSON.stringify(destination),
-        })),
-        options.force,
-      );
+    const dbPois = await this.loadPublishedPois();
+    const citySlugs =
+      dbPois.length > 0
+        ? [...new Set(dbPois.map((poi) => poi.citySlug))]
+        : DESTINATION_DATASETS.map((dataset) => dataset.citySlug);
+    for (const citySlug of citySlugs) {
+      seededEntries += await this.seedDestinationCity(citySlug, options.force, dbPois);
+    }
+    if (dbPois.length > 0 && !citySlugs.includes('yerevan')) {
+      seededEntries += await this.seedDestinationCity('yerevan', options.force, dbPois);
     }
     return {
       metroDatasets: METRO_POI_DATASETS.length,
-      destinationDatasets: DESTINATION_DATASETS.length,
+      destinationDatasets: citySlugs.length,
       seededEntries,
     };
+  }
+
+  private async loadPublishedPois(): Promise<PoiRecord[]> {
+    const rows = await this.prisma.poi.findMany({
+      where: { status: 'PUBLISHED' },
+      orderBy: [{ citySlug: 'asc' }, { sortOrder: 'asc' }],
+    });
+    return rows as unknown as PoiRecord[];
+  }
+
+  private async seedDestinationCity(
+    citySlug: string,
+    force: boolean,
+    allPois?: PoiRecord[],
+  ): Promise<number> {
+    const pois = allPois ?? (await this.loadPublishedPois());
+    const entries =
+      pois.length > 0
+        ? this.destinationEntriesFromDb(citySlug, pois)
+        : this.destinationEntriesFromJson(citySlug);
+    return this.seedGeoDataset(
+      buildDestinationGeoKey(citySlug),
+      buildDestinationMetaKey(citySlug),
+      entries,
+      force,
+    );
+  }
+
+  private destinationEntriesFromDb(
+    citySlug: string,
+    pois: PoiRecord[],
+  ): { id: string; longitude: number; latitude: number; meta: string }[] {
+    const includeNearby = citySlug === 'yerevan';
+    return pois
+      .filter((poi) => {
+        if (poi.citySlug === citySlug) return true;
+        return (
+          includeNearby && (YEREVAN_NEARBY_CITY_SLUGS as readonly string[]).includes(poi.citySlug)
+        );
+      })
+      .map((poi) => {
+        const destination = JSON.parse(redisMetaFromPoi(poi)) as {
+          longitude: number;
+          latitude: number;
+        };
+        return {
+          id: poi.id,
+          longitude: destination.longitude,
+          latitude: destination.latitude,
+          meta: redisMetaFromPoi(poi),
+        };
+      });
+  }
+
+  private destinationEntriesFromJson(
+    citySlug: string,
+  ): { id: string; longitude: number; latitude: number; meta: string }[] {
+    const dataset = DESTINATION_DATASETS.find((entry) => entry.citySlug === citySlug);
+    if (!dataset) return [];
+    return dataset.destinations.map((destination) => ({
+      id: destination.id,
+      longitude: destination.longitude,
+      latitude: destination.latitude,
+      meta: JSON.stringify(destination),
+    }));
   }
 
   private async seedGeoDataset(
@@ -105,6 +197,7 @@ export class PoiSeedService implements OnModuleInit {
       await this.redis.del(geoKey);
       await this.redis.del(metaKey);
     }
+    if (entries.length === 0) return 0;
     await this.redis.geoAdd(
       geoKey,
       entries.map((entry) => ({

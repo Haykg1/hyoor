@@ -81,6 +81,7 @@ describe('Properties bulk import (e2e)', () => {
   const mockLlm = {
     complete: jest.fn(),
     completeHostCalendar: jest.fn(),
+    completeGeneratedTripPlan: jest.fn(),
     generateHostCalendarSuggestions: jest.fn(),
     normalizeBulkPropertyRows: jest.fn().mockRejectedValue(new Error('LLM not mocked')),
   };

@@ -1748,7 +1748,12 @@ async function main(): Promise<void> {
 
   // ── Messages (guest ↔ host) ──────────────────────────────────────────────
   await prisma.message.upsert({
-    where: { id: 'seed-msg-property-card-p1' },
+    where: {
+      conversationId_propertyId: {
+        conversationId: guestHostConversation.id,
+        propertyId: p1.id,
+      },
+    },
     update: {},
     create: {
       id: 'seed-msg-property-card-p1',
@@ -2113,6 +2118,9 @@ async function main(): Promise<void> {
     await prisma.notification.upsert({ where: { id: n.id }, update: {}, create: n });
   }
 
+  const { seedCatalogPois } = await import('./seed-pois');
+  const poiCount = await seedCatalogPois(prisma);
+
   console.log('');
   console.log('✅ Seed complete.');
   console.log('');
@@ -2130,6 +2138,7 @@ async function main(): Promise<void> {
   console.log('Properties seeded: 6 ACTIVE (5 Yerevan + 1 Dilijan) + 1 DRAFT');
   console.log('Bookings: 10 COMPLETED · 2 CONFIRMED · 1 PENDING');
   console.log('Reviews: 10 property reviews across all 6 active properties');
+  console.log(`POIs: ${poiCount} catalog destinations`);
 }
 
 main()

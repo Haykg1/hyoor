@@ -31,6 +31,14 @@ function omitPasswordHash(user: UserWithProfile): SafeUserWithProfile {
   return safeUser;
 }
 
+function parseDateOnly(value: string | undefined): Date | null | undefined {
+  if (value === undefined) return undefined;
+  if (!value) return null;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime())) throw new BadRequestException('Invalid date of birth');
+  return parsed;
+}
+
 export interface PublicUserProfile {
   id: string;
   firstName: string;
@@ -68,6 +76,7 @@ export class UsersService {
     lastName: string;
     role?: 'GUEST' | 'HOST';
     spokenLanguages?: string[];
+    dateOfBirth?: string;
   }): Promise<UserWithProfile> {
     const existing = await this.findByEmail(data.email);
     if (existing) {
@@ -83,6 +92,7 @@ export class UsersService {
             firstName: data.firstName,
             lastName: data.lastName,
             spokenLanguages: data.spokenLanguages ?? [],
+            dateOfBirth: parseDateOnly(data.dateOfBirth),
           },
         },
       },
@@ -113,7 +123,16 @@ export class UsersService {
     }
     await this.prisma.userProfile.update({
       where: { userId },
-      data: dto,
+      data: {
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        phone: dto.phone,
+        bio: dto.bio,
+        nationality: dto.nationality,
+        preferredLang: dto.preferredLang,
+        spokenLanguages: dto.spokenLanguages,
+        ...(dto.dateOfBirth !== undefined ? { dateOfBirth: parseDateOnly(dto.dateOfBirth) } : {}),
+      },
     });
     return this.getMe(userId);
   }

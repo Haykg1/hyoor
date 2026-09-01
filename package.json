@@ -18,6 +18,7 @@
     "fetch:yerevan-metro": "node scripts/fetch-yerevan-metro-stations.mjs",
     "fetch:yerevan-metro:wikipedia": "node scripts/fetch-yerevan-metro-from-wikipedia.mjs",
     "scrape:property": "tsx scrape-property-data.ts",
+    "enrich:pois": "tsx enrich-pois.ts",
     "prepare": "husky"
   },
   "devDependencies": {
