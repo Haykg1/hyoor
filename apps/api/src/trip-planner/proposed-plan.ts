@@ -19,6 +19,12 @@ export interface ResolvedPlan {
 
 /** Trips shorter than this get unique eating places across the whole trip. */
 const UNIQUE_MEALS_UNDER_NIGHTS = 5;
+/** A day only gets a second eating place once it has more sights than this. */
+const TWO_MEALS_MIN_SIGHTS = 4;
+/** Hard ceiling on eating places per day, regardless of sight count. */
+const MAX_MEALS_PER_DAY = 2;
+/** A single day may not send the traveller across more than this many cities. */
+const MAX_CITIES_PER_DAY = 2;
 const NOON_MINUTES = 12 * 60;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 const SLOTS: [string, string][] = [
@@ -27,8 +33,20 @@ const SLOTS: [string, string][] = [
   ['12:30', '14:00'],
   ['14:30', '16:00'],
   ['16:15', '17:45'],
-  ['19:00', '20:30'],
+  ['18:00', '19:15'],
+  ['19:45', '21:00'],
 ];
+
+/** Eating places allowed on a day with `sightCount` non-meal stops. */
+function mealCapForSights(sightCount: number): number {
+  return sightCount > TWO_MEALS_MIN_SIGHTS ? MAX_MEALS_PER_DAY : 1;
+}
+
+/** True when adding this candidate would push the day past its city ceiling. */
+function introducesCity(candidate: CompactCandidate, dayCities: Set<string>): boolean {
+  if (!candidate.citySlug || dayCities.has(candidate.citySlug)) return false;
+  return dayCities.size >= MAX_CITIES_PER_DAY;
+}
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -88,6 +106,7 @@ export function parseProposedPlan(
         ? dayRecord.items
         : [];
     const usedToday = new Set<string>();
+    const dayCities = new Set<string>();
     const picks: ResolvedPick[] = [];
     for (const rawPick of rawPicks) {
       const pickRecord = asRecord(rawPick);
@@ -95,12 +114,14 @@ export function parseProposedPlan(
       const candidate = resolveCandidate(pickRecord, byNumber, byId);
       if (!candidate || !notBlocked(candidate)) continue;
       if (usedToday.has(candidate.poiId)) continue; // no place twice on one day
+      if (introducesCity(candidate, dayCities)) continue; // at most two cities a day
       if (candidate.isMeal && strictMeals && usedMeals.has(candidate.poiId)) continue;
       const startTime = asString(pickRecord.startTime);
       const endTime = asString(pickRecord.endTime);
       if (!TIME.test(startTime) || !TIME.test(endTime)) continue;
       if (toMinutes(endTime) <= toMinutes(startTime)) continue;
       usedToday.add(candidate.poiId);
+      if (candidate.citySlug) dayCities.add(candidate.citySlug);
       if (candidate.isMeal) usedMeals.add(candidate.poiId);
       picks.push({
         poiId: candidate.poiId,
@@ -110,45 +131,101 @@ export function parseProposedPlan(
       });
     }
     picks.sort((left, right) => toMinutes(left.startTime) - toMinutes(right.startTime));
-    days.push({ theme, picks: picks.slice(0, maxStops) });
+    // Keep one extra pick over the base ceiling so a busy day can still land a second meal.
+    days.push({ theme, picks: picks.slice(0, maxStops + 1) });
   }
 
   while (days.length < nights) days.push({ theme: 'Day plan', picks: [] });
 
   let sightCursor = 0;
+  const isMeal = (poiId: string): boolean => byId.get(poiId)?.isMeal ?? false;
+  const cityOf = (poiId: string): string => byId.get(poiId)?.citySlug ?? '';
   for (const day of days) {
     const usedToday = new Set(day.picks.map((pick) => pick.poiId));
-    // Fill sparse days with sights, leaving one slot for a meal.
-    const target = Math.max(1, maxStops - 1);
-    for (let guard = 0; day.picks.length < target && guard < sightPool.length * 2; guard += 1) {
+    const dayCities = new Set(day.picks.map((pick) => cityOf(pick.poiId)).filter(Boolean));
+    const sightsOn = (): ResolvedPick[] => day.picks.filter((pick) => !isMeal(pick.poiId));
+    // Keep a second eating place only when the model itself planned a sight-heavy
+    // day (more than four non-meal picks); otherwise a day gets a single meal.
+    const mealCap = mealCapForSights(sightsOn().length);
+    trimMeals(day, mealCap, isMeal, usedMeals);
+    // Fill sparse days with sights, always leaving one slot for the day's meal,
+    // and never crossing into a third city.
+    const sightTarget = Math.max(1, maxStops - 1);
+    for (
+      let guard = 0;
+      sightsOn().length < sightTarget && guard < sightPool.length * 2;
+      guard += 1
+    ) {
       const candidate = sightPool[sightCursor % sightPool.length];
       sightCursor += 1;
       if (!candidate || usedToday.has(candidate.poiId)) continue;
+      if (introducesCity(candidate, dayCities)) continue;
       usedToday.add(candidate.poiId);
+      if (candidate.citySlug) dayCities.add(candidate.citySlug);
       day.picks.push({ poiId: candidate.poiId, startTime: '', endTime: '', whyThisFits: '' });
     }
-    // Every day needs at least one eating place.
-    const hasMeal = day.picks.some((pick) => byId.get(pick.poiId)?.isMeal);
-    if (!hasMeal) {
-      let meal = mealPool.find(
-        (candidate) => !usedToday.has(candidate.poiId) && !usedMeals.has(candidate.poiId),
-      );
-      if (!meal && !strictMeals) {
-        meal = mealPool.find((candidate) => !usedToday.has(candidate.poiId));
-      }
+    // A two-meal day may run one stop longer than the base ceiling.
+    const slotBudget = Math.min(SLOTS.length, maxStops + mealCap - 1);
+    let meals = day.picks.filter((pick) => isMeal(pick.poiId));
+    if (meals.length === 0) {
+      const meal = findDayMeal(mealPool, usedToday, usedMeals, dayCities);
       if (meal) {
         usedMeals.add(meal.poiId);
-        if (day.picks.length >= maxStops) day.picks.pop();
-        day.picks.push({ poiId: meal.poiId, startTime: '', endTime: '', whyThisFits: '' });
+        if (meal.citySlug) dayCities.add(meal.citySlug);
+        meals = [{ poiId: meal.poiId, startTime: '', endTime: '', whyThisFits: '' }];
       }
     }
-    assignTimes(day, byId, maxStops);
+    const keptSights = sightsOn().slice(0, Math.max(1, slotBudget - meals.length));
+    day.picks = [...keptSights, ...meals];
+    assignTimes(day, byId, slotBudget);
   }
 
   const totalPicks = days.reduce((sum, day) => sum + day.picks.length, 0);
   if (totalPicks === 0) return null;
 
   return { summary: asString(root.summary), days };
+}
+
+/**
+ * Finds an eating place for a day that has none. Prefers a fresh place in one of
+ * the day's cities, then relaxes uniqueness, then the city limit, so a day always
+ * ends up with somewhere to eat even when the pool is thin.
+ */
+function findDayMeal(
+  mealPool: CompactCandidate[],
+  usedToday: Set<string>,
+  usedMeals: Set<string>,
+  dayCities: Set<string>,
+): CompactCandidate | null {
+  const free = (c: CompactCandidate): boolean => !usedToday.has(c.poiId);
+  const fresh = (c: CompactCandidate): boolean => !usedMeals.has(c.poiId);
+  const inCity = (c: CompactCandidate): boolean =>
+    dayCities.size === 0 || !c.citySlug || dayCities.has(c.citySlug);
+  return (
+    mealPool.find((c) => free(c) && fresh(c) && inCity(c)) ??
+    mealPool.find((c) => free(c) && inCity(c)) ??
+    mealPool.find((c) => free(c) && fresh(c)) ??
+    mealPool.find(free) ??
+    mealPool[0] ??
+    null
+  );
+}
+
+/** Drops eating places beyond `cap`, keeping the earliest, and frees the rest for other days. */
+function trimMeals(
+  day: ResolvedDay,
+  cap: number,
+  isMeal: (poiId: string) => boolean,
+  usedMeals: Set<string>,
+): void {
+  let kept = 0;
+  day.picks = day.picks.filter((pick) => {
+    if (!isMeal(pick.poiId)) return true;
+    kept += 1;
+    if (kept <= cap) return true;
+    usedMeals.delete(pick.poiId);
+    return false;
+  });
 }
 
 /** Orders a day's picks (meal in the middle) and hands out non-overlapping slots. */

@@ -18,6 +18,9 @@ export const POI_DESTINATION_CATEGORIES = [
 
 export type PoiDestinationCategory = (typeof POI_DESTINATION_CATEGORIES)[number];
 
+/** Categories that count as a sit-down eating stop in the trip planner. */
+export const POI_MEAL_CATEGORIES = ['restaurant', 'cafe'] as const;
+
 export interface PoiNameLabels {
   en: string;
   hy: string;

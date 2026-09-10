@@ -86,6 +86,7 @@ export function hydratePlan(params: {
         whyThisFits: entry.pick.whyThisFits,
         placeId: poi.id,
         verifiedAt: poi.lastVerifiedAt ? new Date(poi.lastVerifiedAt).toISOString() : null,
+        website: attributes.website ?? null,
         photos: params.photosByPoiId.get(poi.id) ?? [],
       };
     });

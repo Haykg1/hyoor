@@ -23,6 +23,7 @@ export interface GeneratedPlanItem {
   whyThisFits: string;
   placeId?: string | null;
   verifiedAt?: string | null;
+  website?: string | null;
   photos: GeneratedPlanPhoto[];
 }
 

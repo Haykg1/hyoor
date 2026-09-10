@@ -84,7 +84,18 @@ export function yandexMapsUrl(latitude: number, longitude: number): string {
   return `https://yandex.com/maps/?pt=${longitude},${latitude}&z=17&l=map`;
 }
 
-const WALK_SPEED_MPS = 1.35;
+// Driving-time estimate between two stops. Straight-line distance is inflated by
+// a winding factor for real roads, then divided by an average speed that rises
+// with distance (town crawl → open road) — a short hop and a day-trip leg both
+// come out sane. Deliberately not the property-page walk estimate.
+const ROAD_WINDING_FACTOR = 1.3;
+const MIN_DRIVE_MINUTES = 3;
+
+function driveMinutes(meters: number): number {
+  const roadKm = (meters / 1000) * ROAD_WINDING_FACTOR;
+  const speedKmh = roadKm <= 5 ? 24 : roadKm <= 15 ? 40 : 60;
+  return Math.max(MIN_DRIVE_MINUTES, Math.round((roadKm / speedKmh) * 60));
+}
 
 function priceBandFromAmount(amount: number | null): TripPlanPriceBand | null {
   if (amount == null || amount <= 0) return null;
@@ -156,13 +167,13 @@ export function toItemView(
     ? item.adjustments.filter((entry): entry is string => typeof entry === 'string')
     : [];
   const price = parsePrice(item.pricePerPerson);
-  let walkToNextMeters: number | null = null;
-  let walkToNextMinutes: number | null = null;
+  let driveToNextMeters: number | null = null;
+  let driveToNextMinutes: number | null = null;
   if (next) {
-    walkToNextMeters = Math.round(
+    driveToNextMeters = Math.round(
       computeDistanceMeters(latitude, longitude, Number(next.latitude), Number(next.longitude)),
     );
-    walkToNextMinutes = Math.max(1, Math.round(walkToNextMeters / WALK_SPEED_MPS / 60));
+    driveToNextMinutes = driveMinutes(driveToNextMeters);
   }
   return {
     id: item.id,
@@ -188,9 +199,21 @@ export function toItemView(
     adjustments,
     mapsUrl: mapsUrl(latitude, longitude),
     yandexUrl: yandexMapsUrl(latitude, longitude),
-    walkToNextMeters,
-    walkToNextMinutes,
+    website: websiteFromRefs(item),
+    driveToNextMeters,
+    driveToNextMinutes,
   };
+}
+
+function websiteFromRefs(item: TripPlanItem): string | null {
+  const refs = Array.isArray(item.sourceRefs) ? item.sourceRefs : [];
+  for (const ref of refs) {
+    if (ref && typeof ref === 'object' && 'website' in ref) {
+      const value = (ref as { website: unknown }).website;
+      if (typeof value === 'string' && value.trim()) return value.trim();
+    }
+  }
+  return null;
 }
 
 function verifiedAtFromRefs(item: TripPlanItem): string | null {

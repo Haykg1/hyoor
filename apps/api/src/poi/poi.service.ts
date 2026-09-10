@@ -16,6 +16,7 @@ import {
   computeDistanceKm,
   computeDistanceMeters,
   MAX_FEATURED_POIS,
+  POI_MEAL_CATEGORIES,
   resolveDestinationCitySlug,
   YEREVAN_NEARBY_CITY_SLUGS,
 } from '@repo/shared';
@@ -31,6 +32,7 @@ import {
   NEARBY_DESTINATIONS_MAX_RADIUS_KM,
   NEAREST_METRO_CATEGORY,
   NEAREST_METRO_MAX_RADIUS_KM,
+  PLANNER_MIN_MEAL_CANDIDATES,
 } from './poi.constants';
 
 @Injectable()
@@ -207,29 +209,49 @@ export class PoiService {
   }): Promise<PoiRecord[]> {
     const nearbySlugs =
       params.citySlug === 'yerevan' ? ['yerevan', ...YEREVAN_NEARBY_CITY_SLUGS] : [params.citySlug];
-    const rows = await this.prisma.poi.findMany({
+    const baseWhere = {
+      status: 'PUBLISHED' as const,
+      usableInPlanner: true,
+      citySlug: { in: [...nearbySlugs] },
+    };
+    const tagged = await this.prisma.poi.findMany({
       where: {
-        status: 'PUBLISHED',
-        usableInPlanner: true,
-        citySlug: { in: [...nearbySlugs] },
+        ...baseWhere,
         ...(params.tags.length > 0 ? { tags: { hasSome: params.tags } } : {}),
       },
       orderBy: [{ sortOrder: 'asc' }],
       take: params.limit,
     });
-    if (rows.length > 0 || params.tags.length === 0) {
-      return rows as unknown as PoiRecord[];
-    }
-    const fallback = await this.prisma.poi.findMany({
-      where: {
-        status: 'PUBLISHED',
-        usableInPlanner: true,
-        citySlug: { in: [...nearbySlugs] },
-      },
+    const rows =
+      tagged.length > 0 || params.tags.length === 0
+        ? tagged
+        : await this.prisma.poi.findMany({
+            where: baseWhere,
+            orderBy: [{ sortOrder: 'asc' }],
+            take: params.limit,
+          });
+    return this.withMealCandidates(rows, baseWhere) as unknown as PoiRecord[];
+  }
+
+  /**
+   * The tag filter often excludes restaurants and cafés, which would leave the
+   * planner with no way to give a day a meal. Guarantee a handful are always in
+   * the candidate set.
+   */
+  private async withMealCandidates(
+    rows: { id: string; category: string }[],
+    baseWhere: { status: 'PUBLISHED'; usableInPlanner: boolean; citySlug: { in: string[] } },
+  ): Promise<{ id: string; category: string }[]> {
+    const mealCategories = POI_MEAL_CATEGORIES as readonly string[];
+    const present = rows.filter((row) => mealCategories.includes(row.category)).length;
+    if (present >= PLANNER_MIN_MEAL_CANDIDATES) return rows;
+    const meals = await this.prisma.poi.findMany({
+      where: { ...baseWhere, category: { in: [...POI_MEAL_CATEGORIES] } },
       orderBy: [{ sortOrder: 'asc' }],
-      take: params.limit,
+      take: PLANNER_MIN_MEAL_CANDIDATES,
     });
-    return fallback as unknown as PoiRecord[];
+    const seen = new Set(rows.map((row) => row.id));
+    return [...rows, ...meals.filter((meal) => !seen.has(meal.id))];
   }
 
   async listPublishedCities(): Promise<{ citySlug: string; city: string; region: string }[]> {

@@ -6,6 +6,7 @@ function candidate(poiId: string, overrides: Partial<CompactCandidate> = {}): Co
     n: 0,
     poiId,
     name: poiId,
+    citySlug: 'yerevan',
     category: overrides.isMeal ? 'restaurant' : 'landmark',
     tags: [],
     desc: '',
@@ -123,6 +124,49 @@ describe('parseProposedPlan', () => {
     expect(plan?.days[0]?.picks.every((p) => p.poiId !== 'bar')).toBe(true);
   });
 
+  it('keeps a single eating place on a day with four or fewer sights', () => {
+    const plan = parseProposedPlan(
+      {
+        days: [
+          {
+            theme: 'D1',
+            picks: [pick('s1'), pick('m1'), pick('s2'), pick('m2'), pick('m3')],
+          },
+        ],
+      },
+      POOL,
+      7,
+      6,
+    );
+    expect(mealCount(plan?.days[0]?.picks ?? [])).toBe(1);
+  });
+
+  it('keeps two eating places on a day the model planned with more than four sights', () => {
+    const plan = parseProposedPlan(
+      {
+        days: [
+          {
+            theme: 'D1',
+            picks: [
+              pick('s1'),
+              pick('s2'),
+              pick('s3'),
+              pick('s4'),
+              pick('s5'),
+              pick('m1'),
+              pick('m2'),
+            ],
+          },
+        ],
+      },
+      POOL,
+      7,
+      6,
+    );
+    expect(mealCount(plan?.days[0]?.picks ?? [])).toBe(2);
+    expect(plan?.days[0]?.picks.length).toBeLessThanOrEqual(7);
+  });
+
   it('caps a day at maxStops', () => {
     const plan = parseProposedPlan(
       {
@@ -138,6 +182,72 @@ describe('parseProposedPlan', () => {
       3,
     );
     expect(plan?.days[0]?.picks.length).toBeLessThanOrEqual(3);
+  });
+
+  it('drops model picks that would take a day across a third city', () => {
+    const pool = numbered([
+      candidate('ye1', { citySlug: 'yerevan' }),
+      candidate('ga1', { citySlug: 'garni' }),
+      candidate('ech1', { citySlug: 'echmiadzin' }),
+      candidate('ye-meal', { citySlug: 'yerevan', isMeal: true }),
+    ]);
+    const plan = parseProposedPlan(
+      {
+        days: [
+          {
+            theme: 'D1',
+            picks: [pick('ye1'), pick('ga1'), pick('ech1'), pick('ye-meal')],
+          },
+        ],
+      },
+      pool,
+      7,
+      6,
+    );
+    const ids = plan?.days[0]?.picks.map((p) => p.poiId) ?? [];
+    expect(ids).not.toContain('ech1');
+    expect(ids).toContain('ye1');
+    expect(ids).toContain('ga1');
+  });
+
+  it('never fills a day with sights from a third city', () => {
+    const pool = numbered([
+      candidate('ye1', { citySlug: 'yerevan' }),
+      candidate('ga1', { citySlug: 'garni' }),
+      candidate('ech1', { citySlug: 'echmiadzin' }),
+      candidate('ech2', { citySlug: 'echmiadzin' }),
+      candidate('ye-meal', { citySlug: 'yerevan', isMeal: true }),
+    ]);
+    const plan = parseProposedPlan(
+      { days: [{ theme: 'D1', picks: [pick('ye1'), pick('ga1')] }] },
+      pool,
+      7,
+      6,
+    );
+    const cities = new Set(
+      (plan?.days[0]?.picks ?? []).map((p) => pool.find((c) => c.poiId === p.poiId)?.citySlug),
+    );
+    expect(cities.size).toBeLessThanOrEqual(2);
+    expect(cities.has('echmiadzin')).toBe(false);
+  });
+
+  it('always leaves a day with somewhere to eat, even when unique meals run out', () => {
+    const oneMeal = numbered([...SIGHTS, M1]);
+    const plan = parseProposedPlan(
+      {
+        days: [
+          { theme: 'D1', picks: [pick('s1'), pick('m1')] },
+          { theme: 'D2', picks: [pick('s2')] },
+          { theme: 'D3', picks: [pick('s3')] },
+        ],
+      },
+      oneMeal,
+      3, // short trip → strict unique meals, but only one meal exists
+      4,
+    );
+    for (const day of plan?.days ?? []) {
+      expect(mealCount(day.picks)).toBeGreaterThanOrEqual(1);
+    }
   });
 
   it('returns null when nothing usable is produced', () => {

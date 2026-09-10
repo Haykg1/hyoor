@@ -217,8 +217,9 @@ export interface TripPlanItemView {
   adjustments: string[];
   mapsUrl: string;
   yandexUrl: string;
-  walkToNextMeters: number | null;
-  walkToNextMinutes: number | null;
+  website: string | null;
+  driveToNextMeters: number | null;
+  driveToNextMinutes: number | null;
 }
 
 export interface TripPlanDayView {

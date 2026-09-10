@@ -19,6 +19,7 @@ export interface CompactCandidate {
   n: number;
   poiId: string;
   name: string;
+  citySlug: string;
   category: string;
   tags: string[];
   desc: string;
@@ -72,6 +73,7 @@ export class TripPlannerCandidatesService {
         n: index + 1,
         poiId: poi.id,
         name: name.en || poi.id,
+        citySlug: poi.citySlug || '',
         category: poi.category,
         tags: Array.isArray(poi.tags) ? poi.tags : [],
         desc: desc.length > DESC_MAX_CHARS ? `${desc.slice(0, DESC_MAX_CHARS)}…` : desc,

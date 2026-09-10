@@ -805,7 +805,14 @@ function itemData(
   sortOrder: number,
 ): Prisma.TripPlanItemCreateWithoutDayInput {
   const sourceRefs = item.placeId
-    ? [{ type: 'poi', id: item.placeId, verifiedAt: item.verifiedAt ?? null }]
+    ? [
+        {
+          type: 'poi',
+          id: item.placeId,
+          verifiedAt: item.verifiedAt ?? null,
+          website: item.website ?? null,
+        },
+      ]
     : [];
   return {
     tempId: item.tempId,

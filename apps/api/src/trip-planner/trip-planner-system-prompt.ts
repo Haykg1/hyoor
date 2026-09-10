@@ -23,10 +23,11 @@ const SYSTEM_PROMPT = [
   '- Reference each pick by its candidate number "n". Never invent a place or a number that is not in the list.',
   '- Do not repeat a candidate across the whole trip.',
   '- startTime/endTime are "HH:mm" 24h. Times within a day must not overlap; leave realistic travel gaps.',
-  '- Put a meal candidate around 13:00 and, if the day is long, another around 19:30 when the list has one.',
+  '- Pick exactly one meal candidate per day (around 13:00). Only add a second meal (around 19:30) when the day has more than four non-meal picks.',
   '- If the age band is "minor", never pick candidates tagged "alcohol" or "nightlife".',
   '- Prefer candidates whose tags match the traveller answers and whose price band fits the budget.',
   '- Keep each day geographically tight when possible (nearby lat/lng).',
+  '- A single day may span at most two cities. Never mix stops from three or more different cities in one day.',
   '- "whyThisFits" is one short sentence linking the pick to the traveller answers.',
   'Output shape:',
   '{ "summary": string, "days": [ { "theme": string, "picks": [ { "n": number, "startTime": "HH:mm", "endTime": "HH:mm", "whyThisFits": string } ] } ] }',
@@ -60,6 +61,7 @@ function candidateLines(candidates: CompactCandidate[]): string {
     .map((candidate) => {
       const bits = [
         `${candidate.n}. ${candidate.name} [${candidate.category}]`,
+        candidate.citySlug ? `city:${candidate.citySlug}` : null,
         candidate.tags.length ? `tags:${candidate.tags.join('/')}` : null,
         candidate.priceBand ? `price:${candidate.priceBand}` : null,
         candidate.servesAlcohol ? 'alcohol' : null,

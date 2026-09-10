@@ -1,5 +1,7 @@
 import type { TripPlanItemKind } from '@repo/shared';
+import { POI_MEAL_CATEGORIES } from '@repo/shared';
 
+const MEAL_CATEGORIES = new Set<string>(POI_MEAL_CATEGORIES);
 const KIND_BY_CATEGORY: Record<string, TripPlanItemKind> = {
   church: 'sight',
   landmark: 'sight',
@@ -8,8 +10,6 @@ const KIND_BY_CATEGORY: Record<string, TripPlanItemKind> = {
   museum: 'sight',
   viewpoint: 'sight',
   park: 'sight',
-  restaurant: 'meal',
-  cafe: 'meal',
   market: 'activity',
   winery: 'activity',
   gastrobar: 'activity',
@@ -18,9 +18,10 @@ const KIND_BY_CATEGORY: Record<string, TripPlanItemKind> = {
 };
 
 export function kindFor(category: string): TripPlanItemKind {
+  if (MEAL_CATEGORIES.has(category)) return 'meal';
   return KIND_BY_CATEGORY[category] ?? 'sight';
 }
 
 export function isMealCategory(category: string): boolean {
-  return kindFor(category) === 'meal';
+  return MEAL_CATEGORIES.has(category);
 }

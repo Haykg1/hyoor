@@ -197,7 +197,7 @@ describe('Trip planner (e2e)', () => {
         kind: string;
         verificationStatus: string;
         verifiedAt: string | null;
-        walkToNextMinutes: number | null;
+        driveToNextMinutes: number | null;
       }[];
     }[];
     expect(days).toHaveLength(2);
@@ -209,7 +209,7 @@ describe('Trip planner (e2e)', () => {
     expect(days[0]?.items.some((item) => item.placeId === 'tp-matenadaran')).toBe(true);
     expect(days[0]?.items[0]?.verificationStatus).toBe('verified');
     expect(days[0]?.items[0]?.verifiedAt).toBeTruthy();
-    expect(days[0]?.items[0]?.walkToNextMinutes).toBeGreaterThan(0);
+    expect(days[0]?.items[0]?.driveToNextMinutes).toBeGreaterThan(0);
     expect(days[0]?.estimatedCostAmd).toBeGreaterThan(0);
     expect(mockLlm.completeGeneratedTripPlan).toHaveBeenCalledTimes(1);
     const firecrawlCalls = fetchSpy.mock.calls.filter(([url]) => String(url).includes('firecrawl'));
